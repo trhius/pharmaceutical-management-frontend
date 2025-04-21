@@ -91,7 +91,7 @@ export function EmployeeView() {
         </Button>
       </Box>
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
           <Card sx={{ p: 2, mb: 2 }}>
             <Typography variant="body1" sx={{ fontWeight: 500 }}>
               Employee status
@@ -126,7 +126,7 @@ export function EmployeeView() {
             }}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 10 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 8, lg: 10 }}>
           <Card>
             <CustomTableToolbar
               numSelected={table.selected.length}

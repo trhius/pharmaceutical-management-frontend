@@ -72,8 +72,8 @@ export function SignInView() {
       <TextField
         fullWidth
         variant='standard'
-        name="username"
-        label="Username"
+        name="email"
+        label="Email"
         value={formData.email}
         error={!!formError.email}
         helperText={formError.email}

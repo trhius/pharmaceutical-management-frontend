@@ -1,8 +1,8 @@
 export const API_AUTH = {
-  login: "/api/v1/auth/login",
-  register: "/api/v1/auth/register",
-  refreshToken: "/api/v1/auth/refresh-token",
-  changePassword: "/api/v1/auth/change-password",
+  login: "/api/auth/login",
+  register: "/api/auth/register",
+  refreshToken: "/api/auth/refresh-token",
+  changePassword: "/api/auth/change-password",
 };
 
 export const API = {

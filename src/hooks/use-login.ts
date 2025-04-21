@@ -7,10 +7,10 @@ export default function useLogin() {
   const dispatch = useAppDispatch();
 
   const handleLogin = (response: any) => {
-    const { accessToken, refreshToken } = response.data;
-    const { userId, username, role } = jwtDecode(accessToken) as any;
+    const { accessToken, refreshToken } = response;
+    const { id, email, role, fullName } = jwtDecode(accessToken) as any;
     dispatch(setCredentials({ accessToken, refreshToken }));
-    dispatch(setUser({ id: userId, username, role }));
+    dispatch(setUser({ id, fullName, email, role }));
   };
 
   return handleLogin;

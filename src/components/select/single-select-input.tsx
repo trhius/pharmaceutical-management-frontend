@@ -31,40 +31,45 @@ export function SelectInput({
         options={options}
         value={selected}
         onChange={(event, newValue) => setSelected(newValue)}
-        renderOption={(props, option) => (
-          <Box
-            component="li"
-            {...props}
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              width: '100%',
-              '&:hover .edit-icon, &:focus-within .edit-icon': {
-                visibility: 'visible', // Show the icon on hover or focus
-              },
-            }}
-          >
-            <Typography width="90%">{option}</Typography>
-            {handleEditOption && (
-              <IconButton
-                className="edit-icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleEditOption(option);
-                }}
-                sx={{
-                  visibility: 'hidden', // Hide the icon by default
-                }}
-              >
-                <Iconify icon="mingcute:edit-line" />
-              </IconButton>
-            )}
-          </Box>
-        )}
+        renderOption={(props, option) => {
+          const { key, ...rest } = props;
+        
+          return (
+            <Box
+              component="li"
+              key={key}
+              {...rest}
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                width: '100%',
+                '&:hover .edit-icon, &:focus-within .edit-icon': {
+                  visibility: 'visible',
+                },
+              }}
+            >
+              <Typography width="90%">{option}</Typography>
+              {handleEditOption && (
+                <IconButton
+                  className="edit-icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditOption(option);
+                  }}
+                  sx={{
+                    visibility: 'hidden',
+                  }}
+                >
+                  <Iconify icon="mingcute:edit-line" />
+                </IconButton>
+              )}
+            </Box>
+          );
+        }}
         renderInput={(params) => (
           <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
-            <TextField {...params} multiline variant="standard" label={label} />
+            <TextField {...params} variant="standard" label={label} />
             <IconButton
               onClick={handleAddEvent}
               sx={{ml: 1}}

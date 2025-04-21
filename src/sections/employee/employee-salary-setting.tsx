@@ -196,7 +196,7 @@ export function EmployeeSalarySetting() {
                     onChange={(event, newValue) =>
                       setState({ ...state, salaryType: newValue || '' })
                     }
-                    renderInput={(params) => <TextField {...params} multiline variant="standard" />}
+                    renderInput={(params) => <TextField {...params} variant="standard" />}
                   />
                 </Grid>
               </Grid>
@@ -407,7 +407,7 @@ export function EmployeeSalarySetting() {
               options={['Select available salary form']}
               value={state.salaryType}
               onChange={(event, newValue) => setState({ ...state, salaryType: newValue || '' })}
-              renderInput={(params) => <TextField {...params} multiline variant="standard" />}
+              renderInput={(params) => <TextField {...params} variant="standard" />}
             />
           </Grid>
         </Grid>
@@ -435,7 +435,7 @@ export function EmployeeSalarySetting() {
                   value={state.salaryType}
                   onChange={(event, newValue) => setState({ ...state, salaryType: newValue || '' })}
                   renderInput={(params) => (
-                    <TextField {...params} multiline variant="standard" label="Compensate type" />
+                    <TextField {...params} variant="standard" label="Compensate type" />
                   )}
                 />
               </Grid>
@@ -445,7 +445,7 @@ export function EmployeeSalarySetting() {
                   value={state.salaryType}
                   onChange={(event, newValue) => setState({ ...state, salaryType: newValue || '' })}
                   renderInput={(params) => (
-                    <TextField {...params} multiline variant="standard" label="Form" />
+                    <TextField {...params} variant="standard" label="Form" />
                   )}
                 />
               </Grid>
@@ -574,7 +574,7 @@ export function EmployeeSalarySetting() {
                             renderInput={(params) => (
                               <TextField
                                 {...params}
-                                multiline
+                              
                                 variant="standard"
                                 placeholder="Select commission table"
                               />
@@ -643,7 +643,7 @@ export function EmployeeSalarySetting() {
                             renderInput={(params) => (
                               <TextField
                                 {...params}
-                                multiline
+                              
                                 variant="standard"
                                 placeholder="Select allowance type"
                               />
@@ -659,7 +659,7 @@ export function EmployeeSalarySetting() {
                             //   setState({ ...state, salaryType: newValue || '' })
                             // }
                             renderInput={(params) => (
-                              <TextField {...params} multiline variant="standard" />
+                              <TextField {...params} variant="standard" />
                             )}
                           />
                         </TableCell>
@@ -728,7 +728,7 @@ export function EmployeeSalarySetting() {
                             renderInput={(params) => (
                               <TextField
                                 {...params}
-                                multiline
+                              
                                 variant="standard"
                                 placeholder="Select allowance type"
                               />
@@ -743,7 +743,7 @@ export function EmployeeSalarySetting() {
                             //   setState({ ...state, salaryType: newValue || '' })
                             // }
                             renderInput={(params) => (
-                              <TextField {...params} multiline variant="standard" />
+                              <TextField {...params} variant="standard" />
                             )}
                           />
                         </TableCell>

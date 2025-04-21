@@ -1,5 +1,5 @@
+
 import * as React from 'react';
-import PropTypes from 'prop-types';
 import PopupState, { bindMenu, bindHover } from 'material-ui-popup-state';
 
 import Box from '@mui/material/Box';
@@ -13,18 +13,40 @@ import { _menu } from 'src/_mock';
 
 import HoverMenu from './hover-menu';
 
-const CascadingContext = React.createContext({
+type MenuItemType = {
+  id: number;
+  name: string;
+  value?: string;
+};
+
+type MenuData = {
+  parent: MenuItemType;
+  children: MenuItemType[];
+};
+
+type CascadingContextType = {
+  parentPopupState: any;
+  rootPopupState: any;
+};
+
+const CascadingContext = React.createContext<CascadingContextType>({
   parentPopupState: null,
   rootPopupState: null,
 });
 
-function CascadingMenuItem({ onClick, ...props }) {
+type CascadingMenuItemProps = {
+  onClick?: (event: React.MouseEvent<HTMLElement>) => void;
+  children: React.ReactNode;
+};
+
+function CascadingMenuItem({ onClick, ...props }: CascadingMenuItemProps) {
   const { rootPopupState } = React.useContext(CascadingContext);
   if (!rootPopupState) throw new Error('must be used inside a CascadingMenu');
+
   const handleClick = React.useCallback(
-    (event) => {
+    (event: React.MouseEvent<HTMLElement>) => {
       rootPopupState.close(event);
-      if (onClick) onClick(event);
+      onClick?.(event);
     },
     [rootPopupState, onClick]
   );
@@ -32,13 +54,20 @@ function CascadingMenuItem({ onClick, ...props }) {
   return <MenuItem {...props} onClick={handleClick} />;
 }
 
-function CascadingSubmenu({ title, onClick, popupId, ...props }) {
+type CascadingSubmenuProps = {
+  title: string;
+  popupId: string;
+  onClick?: (event: React.MouseEvent<HTMLElement>) => void;
+  children: React.ReactNode;
+};
+
+function CascadingSubmenu({ title, onClick, popupId, ...props }: CascadingSubmenuProps) {
   const { parentPopupState } = React.useContext(CascadingContext);
 
   const handleClick = React.useCallback(
-    (event) => {
-      parentPopupState.close(event);
-      if (onClick) onClick(event);
+    (event: React.MouseEvent<HTMLElement>) => {
+      parentPopupState?.close(event);
+      onClick?.(event);
     },
     [parentPopupState, onClick]
   );
@@ -52,7 +81,7 @@ function CascadingSubmenu({ title, onClick, popupId, ...props }) {
     >
       {(popupState) => (
         <Box>
-          <MenuItem {...bindHover(popupState)} onClick={handleClick} >
+          <MenuItem {...bindHover(popupState)} onClick={handleClick}>
             <Box style={{ flexGrow: 1 }}>{title}</Box>
             <ChevronRight sx={{ ml: 1 }} />
           </MenuItem>
@@ -68,9 +97,17 @@ function CascadingSubmenu({ title, onClick, popupId, ...props }) {
   );
 }
 
-function CascadingMenu({ popupState, ...props }) {
+type CascadingMenuProps = {
+  popupState: any;
+  children: React.ReactNode;
+  anchorOrigin?: any;
+  transformOrigin?: any;
+};
+
+function CascadingMenu({ popupState, ...props }: CascadingMenuProps) {
   const { rootPopupState } = React.useContext(CascadingContext);
-  const context = React.useMemo(
+
+  const contextValue = React.useMemo(
     () => ({
       rootPopupState: rootPopupState || popupState,
       parentPopupState: popupState,
@@ -79,14 +116,14 @@ function CascadingMenu({ popupState, ...props }) {
   );
 
   return (
-    <CascadingContext.Provider value={context}>
+    <CascadingContext.Provider value={contextValue}>
       <HoverMenu {...props} {...bindMenu(popupState)} />
     </CascadingContext.Provider>
   );
 }
 
 const Menu = () => {
-  const [categories, setCategories] = React.useState();
+  const [categories, setCategories] = React.useState<MenuData[]>();
 
   React.useEffect(() => {
     setCategories(_menu.data);
@@ -101,60 +138,48 @@ const Menu = () => {
   );
 };
 
-const MenuItem1 = ({ parent, children }) => {
+type MenuItem1Props = {
+  parent: MenuItemType;
+  children: MenuItemType[];
+};
+
+const MenuItem1 = ({ parent, children }: MenuItem1Props) => {
   const router = useRouter();
-  const handleRoute = (category) => {
-    router.push(`/${category.value}`);
+
+  const handleRoute = (menuItem: MenuItemType) => {
+    router.push(`/${menuItem.value}`);
   };
+
   return (
     <PopupState variant="popover" popupId="demoMenu" disableAutoFocus>
       {(popupState) => (
         <Box>
           <Button
-            color="inherit"
-            variant={location.pathname.includes('/shop') ? 'outlined' : ''}
+            color="success"
+            variant={children.map(c => c.value).includes(location.pathname.slice(1)) ? 'outlined' : undefined}
             {...bindHover(popupState)}
-            sx={{ mr: 0.5, color: '#000', fontSize: '16px', fontWeight: 500 }}
-            onClick={() => router.push(`/${parent.value}`)}
+            sx={{ mr: 1, color: '#000', fontSize: '16px', fontWeight: 500 }}
+            onClick={() => children.length === 0 && router.push(`/${parent.value}`)}
           >
             {parent.name}
           </Button>
-          {children.length > 0 && <CascadingMenu
-            popupState={popupState}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-          >
-            {children?.map((child) => (
-              <CascadingMenuItem key={child.id} onClick={() => handleRoute(child)}>
-                {child.name}
-              </CascadingMenuItem>
-            ))}
-          </CascadingMenu>}
+          {children.length > 0 && (
+            <CascadingMenu
+              popupState={popupState}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+            >
+              {children?.map((child) => (
+                <CascadingMenuItem key={child.id} onClick={() => handleRoute(child)}>
+                  {child.name}
+                </CascadingMenuItem>
+              ))}
+            </CascadingMenu>
+          )}
         </Box>
       )}
     </PopupState>
   );
-}
-
-CascadingMenuItem.propTypes = {
-  onClick: PropTypes.func,
-};
-
-CascadingSubmenu.propTypes = {
-  title: PropTypes.string,
-  onClick: PropTypes.func,
-  popupId: PropTypes.any,
-};
-
-CascadingMenu.propTypes = {
-  popupState: PropTypes.any,
-};
-
-Menu.propTypes = {
-  name: PropTypes.any,
-  path: PropTypes.any,
-  sx: PropTypes.any,
-  selected: PropTypes.any,
 };
 
 export default Menu;

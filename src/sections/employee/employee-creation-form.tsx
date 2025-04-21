@@ -16,7 +16,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
 import ImageUploader from 'src/components/upload/image-upload';
-import { SelectInput } from 'src/components/select/sinlge-select-input';
+import { SelectInput } from 'src/components/select/single-select-input';
 
 import { EmployeeSalarySetting } from './employee-salary-setting';
 //-------------------------------------------------------
@@ -422,7 +422,7 @@ export function EmployeeCreationForm({ popupOpen, setPopupOpen }: EmployeeCreati
               color="inherit"
               variant="contained"
               // disabled={!isValidForm()}
-              // onClick={handleSignUp}
+              onClick={() => setPopupOpen(false)}
               // loading={isLoading}
             >
               Cancel
