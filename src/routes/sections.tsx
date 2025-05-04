@@ -23,6 +23,7 @@ export const ProductsPage = lazy(() => import('src/pages/products'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
 export const EmployeePage = lazy(() => import('src/pages/employee'));
+export const EmployeeSettingPage = lazy(() => import('src/pages/employee-setting'));
 
 const renderFallback = () => (
   <Box
@@ -57,6 +58,7 @@ export const routesSection: RouteObject[] = [
       { index: true, element: <DashboardPage /> },
       { path: ROUTES.USER, element: <UserPage /> },
       { path: ROUTES.EMPLOYEE, element: <EmployeePage /> },
+      { path: ROUTES.EMPLOYEE_SETTING, element: <EmployeeSettingPage /> },
       { path: 'products', element: <ProductsPage /> },
       { path: 'blog', element: <BlogPage /> },
     ],

@@ -370,7 +370,7 @@ export function EmployeeCreationForm({ popupOpen, setPopupOpen }: EmployeeCreati
         '& .MuiDialog-paper': {
           width: '1200px',
           maxWidth: '90%',
-          height: '90%',
+          height: '90vh',
           background: '#eee',
         },
       }}
@@ -392,7 +392,7 @@ export function EmployeeCreationForm({ popupOpen, setPopupOpen }: EmployeeCreati
               sx={{
                 flex: 1,
                 overflow: 'auto',
-                height: '570px',
+                height: '65vh',
                 scrollbarGutter: 'stable'
               }}
             >

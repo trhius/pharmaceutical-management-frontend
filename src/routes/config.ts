@@ -10,4 +10,5 @@ export const ROUTES = {
   NOT_FOUND: '/404',
   USER: '/user',
   EMPLOYEE: '/employee',
+  EMPLOYEE_SETTING: '/employee-setting',
 }

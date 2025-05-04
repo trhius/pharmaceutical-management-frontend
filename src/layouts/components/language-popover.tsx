@@ -9,6 +9,7 @@ import MenuList from '@mui/material/MenuList';
 import IconButton from '@mui/material/IconButton';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
+import i18n from 'src/i18n';
 // ----------------------------------------------------------------------
 
 export type LanguagePopoverProps = IconButtonProps & {
@@ -22,11 +23,16 @@ export type LanguagePopoverProps = IconButtonProps & {
 export function LanguagePopover({ data = [], sx, ...other }: LanguagePopoverProps) {
   const { open, anchorEl, onClose, onOpen } = usePopover();
 
-  const [locale, setLocale] = useState(data[0].value);
+  const [locale, setLocale] = useState(localStorage.getItem('i18nextLng'));
+
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
 
   const handleChangeLang = useCallback(
     (newLang: string) => {
       setLocale(newLang);
+      changeLanguage(newLang);
       onClose();
     },
     [onClose]
