@@ -104,7 +104,7 @@ export function EmployeeView() {
 
           <Select
             title="Department"
-            holder="Select department"
+            // holder="Select department"
             options={['HR', 'Finance', 'Engineering', 'Marketing', 'Sales']}
             selected={selectedDepartments}
             setSelected={setSelectedDepartments}
@@ -116,7 +116,7 @@ export function EmployeeView() {
 
           <Select
             title="Job title"
-            holder="Select job title"
+            // holder="Select job title"
             options={['Manager', 'Developer', 'Designer', 'Analyst']}
             selected={selectedJobTitles}
             setSelected={setSelectedJobTitles}

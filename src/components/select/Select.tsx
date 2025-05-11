@@ -12,7 +12,7 @@ import { Iconify } from '../iconify';
 
 type SelectProps = {
   title: string;
-  holder: string;
+  holder?: string;
   options: string[];
   selected: string[];
   setSelected: (value: string[]) => void;

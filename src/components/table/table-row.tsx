@@ -13,16 +13,17 @@ import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
-type RowConfig = {
+export type RowConfigs = {
   field: string;
   align?: 'left' | 'center' | 'right';
   width?: number | string;
   render?: (row: any) => React.ReactNode;
   type?: 'avatar' | 'role' | 'status' | 'verify';
 }[];
+
 type CustomTableRowProps = {
   row: any;
-  config: RowConfig;
+  config: RowConfigs;
   selected: boolean;
   onSelectRow: () => void;
 };

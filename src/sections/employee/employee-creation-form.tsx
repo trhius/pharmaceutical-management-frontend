@@ -365,18 +365,17 @@ export function EmployeeCreationForm({ popupOpen, setPopupOpen }: EmployeeCreati
     <Dialog
       open={popupOpen}
       onClose={() => setPopupOpen(false)}
-      aria-labelledby="add-department-title"
+      aria-labelledby="dialog"
       sx={{
         '& .MuiDialog-paper': {
           width: '1200px',
           maxWidth: '90%',
-          height: '90vh',
-          background: '#eee',
+          height: '90vh'
         },
       }}
     >
       <Box sx={{ p: 3 }}>
-        <Typography id="add-department-title" variant="h5">
+        <Typography id="dialog" variant="h5">
           New Employee
         </Typography>
 

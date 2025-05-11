@@ -10,6 +10,8 @@ import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgr
 import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
 
+import { EmployeeSettingView } from 'src/sections/employee/settings';
+
 import { ROUTES } from './config';
 
 // ----------------------------------------------------------------------
@@ -24,6 +26,8 @@ export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
 export const EmployeePage = lazy(() => import('src/pages/employee'));
 export const EmployeeSettingPage = lazy(() => import('src/pages/employee-setting'));
+export const EmployeeWorkshiftPage = lazy(() => import('src/pages/employee-workshift'));
+export const CustomerPage = lazy(() => import('src/pages/customer'));
 
 const renderFallback = () => (
   <Box
@@ -59,8 +63,9 @@ export const routesSection: RouteObject[] = [
       { path: ROUTES.USER, element: <UserPage /> },
       { path: ROUTES.EMPLOYEE, element: <EmployeePage /> },
       { path: ROUTES.EMPLOYEE_SETTING, element: <EmployeeSettingPage /> },
-      { path: 'products', element: <ProductsPage /> },
-      { path: 'blog', element: <BlogPage /> },
+      { path: ROUTES.EMPLOYEE_WORKSHIFT, element: <EmployeeWorkshiftPage /> },
+      { path: ROUTES.CUSTOMER, element: <CustomerPage /> },
+      { path: ROUTES.MEDICINE_LIST, element: <ProductsPage /> },
     ],
   },
   {

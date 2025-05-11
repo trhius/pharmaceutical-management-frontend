@@ -106,7 +106,7 @@ const ImageUploader = ({
               height: 120,
               objectFit: 'cover',
               borderRadius: '5px',
-              mb: 2,
+              mb: 1,
             }}
             onClick={handleUploadButtonClick}
           />
@@ -129,7 +129,7 @@ const ImageUploader = ({
               objectFit: 'cover',
               borderRadius: '5px',
               background: '#eee',
-              mb: 2,
+              mb: 1,
             }}
           />
           <Button

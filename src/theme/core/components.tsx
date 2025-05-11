@@ -60,6 +60,9 @@ const MuiCardHeader: Components<Theme>['MuiCardHeader'] = {
 };
 
 const MuiOutlinedInput: Components<Theme>['MuiOutlinedInput'] = {
+  defaultProps: {
+    size: 'small',
+  },
   styleOverrides: {
     notchedOutline: ({ theme }) => ({
       borderColor: varAlpha(theme.vars.palette.grey['500Channel'], 0.2),
@@ -153,6 +156,36 @@ const MuiRadio: Components<Theme>['MuiRadio'] = {
   },
 };
 
+const MuiTextField: Components<Theme>['MuiTextField'] = {
+  defaultProps: {
+    size: 'small',
+  },
+};
+
+const MuiFormControl: Components<Theme>['MuiFormControl'] = {
+  defaultProps: {
+    size: 'small',
+  },
+};
+
+const MuiSelect: Components<Theme>['MuiSelect'] = {
+  defaultProps: {
+    size: 'small',
+  },
+};
+
+const MuiAutocomplete: Components<Theme>['MuiAutocomplete'] = {
+  defaultProps: {
+    size: 'small',
+  },
+};
+
+const MuiInputLabel: Components<Theme>['MuiInputLabel'] = {
+  defaultProps: {
+    size: 'small',
+  },
+};
+
 // ----------------------------------------------------------------------
 
 export const components = {
@@ -168,4 +201,9 @@ export const components = {
   MuiCardHeader,
   MuiOutlinedInput,
   MuiFormControlLabel,
+  MuiTextField,
+  MuiFormControl,
+  MuiSelect,
+  MuiAutocomplete,
+  MuiInputLabel,
 };

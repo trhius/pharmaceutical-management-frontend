@@ -11,4 +11,7 @@ export const ROUTES = {
   USER: '/user',
   EMPLOYEE: '/employee',
   EMPLOYEE_SETTING: '/employee-setting',
+  EMPLOYEE_WORKSHIFT: '/work-shift',
+  CUSTOMER: '/customer',
+  MEDICINE_LIST: '/medicine-list'
 }

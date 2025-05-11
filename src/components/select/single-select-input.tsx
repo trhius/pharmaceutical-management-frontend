@@ -9,7 +9,7 @@ import { Iconify } from 'src/components/iconify';
 //--------------------------------------
 
 type SelectInputProps = {
-  label: string;
+  label?: string;
   options: string[];
   selected: string;
   setSelected: (value: string | null) => void;

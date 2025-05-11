@@ -74,6 +74,69 @@ export function EmployeeInitView() {
             </Button>
           </ListItem>
           <Divider variant="inset" component="li" />
+          <ListItem alignItems="center">
+            <ListItemAvatar>
+              <CheckIcon />
+            </ListItemAvatar>
+            <ListItemText
+              primary="Xếp lịch làm việc"
+              secondary={
+                <Typography
+                  component="span"
+                  variant="body2"
+                  sx={{ color: 'text.primary', display: 'inline' }}
+                >
+                  Tạo ca và xếp lịch cho nhân viên.
+                </Typography>
+              }
+            />
+            <Button variant="outlined">
+              Tạo lịch
+            </Button>
+          </ListItem>
+          <Divider variant="fullWidth" component="li" />
+          <ListItem alignItems="center">
+            <ListItemAvatar>
+              <CheckIcon />
+            </ListItemAvatar>
+            <ListItemText
+              primary="Thiết lập chấm công"
+              secondary={
+                <Typography
+                  component="span"
+                  variant="body2"
+                  sx={{ color: 'text.primary', display: 'inline' }}
+                >
+                  Cài đặt và chọn hình thức chấm công cho cửa hàng
+                </Typography>
+              }
+            />
+            <Button variant="outlined">
+              Thiết lập
+            </Button>
+          </ListItem>
+          <Divider variant="fullWidth" component="li" />
+          <ListItem alignItems="center">
+            <ListItemAvatar>
+              <CheckIcon />
+            </ListItemAvatar>
+            <ListItemText
+              primary="Thiết lập bảng lương"
+              secondary={
+                <Typography
+                  component="span"
+                  variant="body2"
+                  sx={{ color: 'text.primary', display: 'inline' }}
+                >
+                  Theo dõi chính xác và tự động tính toán lương của từng nhân viên.
+                </Typography>
+              }
+            />
+            <Button variant="outlined">
+              Thiết lập
+            </Button>
+          </ListItem>
+          <Divider variant="fullWidth" component="li" />
         </List>
       </EmployeeSettingView>
       <EmployeeCreationForm popupOpen={employeePopupOpen} setPopupOpen={setEmployeePopupOpen} />
