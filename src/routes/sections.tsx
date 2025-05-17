@@ -10,8 +10,6 @@ import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgr
 import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
 
-import { EmployeeSettingView } from 'src/sections/employee/settings';
-
 import { ROUTES } from './config';
 
 // ----------------------------------------------------------------------
@@ -20,7 +18,7 @@ export const DashboardPage = lazy(() => import('src/pages/dashboard'));
 export const BlogPage = lazy(() => import('src/pages/blog'));
 export const UserPage = lazy(() => import('src/pages/user'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
-export const SignUpPage = lazy(() => import('src/pages/sign-up'));
+export const ResetPasswordPage = lazy(() => import('src/pages/reset-password'));
 export const ProductsPage = lazy(() => import('src/pages/products'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
@@ -77,10 +75,10 @@ export const routesSection: RouteObject[] = [
     ),
   },
   {
-    path: ROUTES.REGISTER,
+    path: ROUTES.RESET_PASSWORD,
     element: (
       <AuthLayout>
-        <SignUpPage />
+        <ResetPasswordPage />
       </AuthLayout>
     ),
   },

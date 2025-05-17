@@ -1,15 +1,15 @@
 import { CONFIG } from 'src/config-global';
 
-import { SignInView } from 'src/sections/auth/view';
+import { ResetPasswordView } from 'src/sections/reset-password';
 
 // ----------------------------------------------------------------------
 
 export default function Page() {
   return (
     <>
-      <title>{`Sign in - ${CONFIG.appName}`}</title>
+      <title>{`Reset Password - ${CONFIG.appName}`}</title>
 
-      <SignInView />
+      <ResetPasswordView />
     </>
   );
 }

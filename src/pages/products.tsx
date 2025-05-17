@@ -1,6 +1,6 @@
 import { CONFIG } from 'src/config-global';
 
-import { ProductView } from 'src/sections/product/view';
+import { ProductView } from 'src/sections/products/view';
 
 // ----------------------------------------------------------------------
 

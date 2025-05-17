@@ -27,16 +27,23 @@ export const noTokenApiSlice = noAuthApiSlice.injectEndpoints({
       }),
     }),
     requestResetPassword: builder.mutation({
-      query: (email) => ({
-        url: `users/auth/reset-password-request?email=${email}`,
+      query: (payload) => ({
+        url: `/api/auth/forgot-password`,
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+    verifyResetPasswordToken: builder.mutation({
+      query: (token) => ({
+        url: `/api/auth/verify-reset-token?token=${token}`,
         method: 'GET',
       }),
     }),
     resetPassword: builder.mutation({
       query: ({ token, newPassword }) => ({
-        url: `users/auth/reset-password?token=${token}`,
-        method: 'PATCH',
-        body: { newPassword },
+        url: `/api/auth/reset-password`,
+        method: 'POST',
+        body: { token, newPassword },
       }),
     }),
     removeRefreshToken: builder.mutation({
@@ -65,6 +72,7 @@ export const {
   useRegisterMutation,
   useRefreshMutation,
   useRequestResetPasswordMutation,
+  useVerifyResetPasswordTokenMutation,
   useResetPasswordMutation,
   useRemoveRefreshTokenMutation,
 } = noTokenApiSlice;

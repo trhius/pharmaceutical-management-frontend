@@ -20,6 +20,8 @@ import { useLoginMutation } from 'src/app/api/auth/authApiSlice';
 
 import { Iconify } from 'src/components/iconify';
 
+import { ForgotPasswordView } from '../forgot-password-view';
+
 // ----------------------------------------------------------------------
 const form = {
   initialState: {
@@ -33,6 +35,8 @@ export function SignInView() {
   const router = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
+
+  const [forgotPasswordPopupOpen, setForgotPasswordOpen] = useState(false);
 
   const { formData, formError, handleInputChange, isValidForm } = useDebounceForm(form);
 
@@ -71,7 +75,7 @@ export function SignInView() {
     >
       <TextField
         fullWidth
-        variant='standard'
+        size="medium"
         name="email"
         label="Email"
         value={formData.email}
@@ -86,7 +90,7 @@ export function SignInView() {
 
       <TextField
         fullWidth
-        variant='standard'
+        size="medium"
         name="password"
         label="Password"
         value={formData.password}
@@ -114,7 +118,12 @@ export function SignInView() {
         sx={{ mb: 3 }}
       />
 
-      <Link variant="body2" color="inherit" sx={{ mb: 1.5 }}>
+      <Link
+        variant="body2"
+        color="inherit"
+        sx={{ mb: 1.5 }}
+        onClick={() => setForgotPasswordOpen(true)}
+      >
         Forgot password?
       </Link>
 
@@ -147,6 +156,10 @@ export function SignInView() {
         <Typography variant="h5">Sign in</Typography>
       </Box>
       {renderForm}
+      <ForgotPasswordView
+        popupOpen={forgotPasswordPopupOpen}
+        setPopupOpen={setForgotPasswordOpen}
+      />
     </>
   );
 }
