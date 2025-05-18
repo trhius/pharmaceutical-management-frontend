@@ -18,8 +18,22 @@ export const validateField = (
       break;
 
     case 'confirmPassword':
-      if (!value && required) return 'Password is required!';
+      if (!value && required) return 'Confirm password is required!';
       if (value !== state.password) return 'Passwords do not match!';
+      break;
+
+    case 'oldPassword':
+      if (!value && required) return 'Old password is required!';
+      break;
+
+    case 'newPassword':
+      if (!value && required) return 'New password is required!';
+      if (value.length < 6) return 'Password must be at least 6 characters!';
+      break;
+
+    case 'confirmNewPassword':
+      if (!value && required) return 'Confirm new password is required!';
+      if (value !== state.newPassword) return 'New passwords do not match!';
       break;
 
     case 'username':
@@ -33,6 +47,13 @@ export const validateField = (
 
     case 'description':
       if (!value && required) return 'Description is required!';
+      if (value.length > 500) return 'Description must be less than 500 characters!';
+      break;
+
+    case 'phone':
+      if (!value && required) return 'Phone number is required!';
+      // Vietnamese phone numbers start with 0 or +84, followed by 9 digits
+      if (!/^[35789][0-9]{8}$/.test(value)) return 'Invalid Vietnamese phone number format!';
       break;
 
     default:

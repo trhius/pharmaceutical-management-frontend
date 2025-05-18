@@ -2,15 +2,12 @@ import type { RouteObject } from 'react-router';
 
 import { lazy, Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
-import { varAlpha } from 'minimal-shared/utils';
-
-import Box from '@mui/material/Box';
-import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 
 import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
 
 import { ROUTES } from './config';
+import { Fallback } from './fallback';
 
 // ----------------------------------------------------------------------
 
@@ -26,32 +23,13 @@ export const EmployeePage = lazy(() => import('src/pages/employee'));
 export const EmployeeSettingPage = lazy(() => import('src/pages/employee-setting'));
 export const EmployeeWorkshiftPage = lazy(() => import('src/pages/employee-workshift'));
 export const CustomerPage = lazy(() => import('src/pages/customer'));
-
-const renderFallback = () => (
-  <Box
-    sx={{
-      display: 'flex',
-      flex: '1 1 auto',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}
-  >
-    <LinearProgress
-      sx={{
-        width: 1,
-        maxWidth: 320,
-        bgcolor: (theme) => varAlpha(theme.vars.palette.text.primaryChannel, 0.16),
-        [`& .${linearProgressClasses.bar}`]: { bgcolor: 'text.primary' },
-      }}
-    />
-  </Box>
-);
+export const ProfilePage = lazy(() => import('src/pages/profile'));
 
 export const routesSection: RouteObject[] = [
   {
     element: (
       <DashboardLayout>
-        <Suspense fallback={renderFallback()}>
+        <Suspense fallback={<Fallback />}>
           <Outlet />
         </Suspense>
       </DashboardLayout>
@@ -64,6 +42,7 @@ export const routesSection: RouteObject[] = [
       { path: ROUTES.EMPLOYEE_WORKSHIFT, element: <EmployeeWorkshiftPage /> },
       { path: ROUTES.CUSTOMER, element: <CustomerPage /> },
       { path: ROUTES.MEDICINE_LIST, element: <ProductsPage /> },
+      { path: ROUTES.PROFILE, element: <ProfilePage /> },
     ],
   },
   {

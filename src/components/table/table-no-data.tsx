@@ -7,11 +7,9 @@ import Typography from '@mui/material/Typography';
 
 // ----------------------------------------------------------------------
 
-type TableNoDataProps = TableRowProps & {
-  searchQuery: string;
-};
+type TableNoDataProps = TableRowProps & {};
 
-export function TableNoData({ searchQuery, ...other }: TableNoDataProps) {
+export function TableNoData({ ...other }: TableNoDataProps) {
   return (
     <TableRow {...other}>
       <TableCell align="center" colSpan={7}>
@@ -20,11 +18,7 @@ export function TableNoData({ searchQuery, ...other }: TableNoDataProps) {
             Not found
           </Typography>
 
-          <Typography variant="body2">
-            No results found for &nbsp;
-            <strong>&quot;{searchQuery}&quot;</strong>.
-            <br /> Try checking for typos or using complete words.
-          </Typography>
+          <Typography variant="body2">No results found.</Typography>
         </Box>
       </TableCell>
     </TableRow>

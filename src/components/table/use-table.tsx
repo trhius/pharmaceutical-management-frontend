@@ -1,20 +1,28 @@
+import type { SelectChangeEvent } from '@mui/material';
+
 import { useState, useCallback } from 'react';
+
+import { useFilter } from 'src/hooks/useFilter';
 // ----------------------------------------------------------------------
 
 export function useTable() {
-  const [page, setPage] = useState(0);
-  const [orderBy, setOrderBy] = useState('name');
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const { getFilter, updateFilters } = useFilter();
+  const [page, setPage] = useState(() => Number(getFilter('page')) || 1);
+  const [orderBy, setOrderBy] = useState(getFilter('sortBy'));
+  const [rowsPerPage, setRowsPerPage] = useState(() => Number(getFilter('size')) || 10);
   const [selected, setSelected] = useState<string[]>([]);
-  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
+  const [order, setOrder] = useState<'asc' | 'desc'>(
+    () => (getFilter('sortOrder')?.toLowerCase() as 'asc' | 'desc') || 'asc'
+  );
 
   const onSort = useCallback(
     (id: string) => {
       const isAsc = orderBy === id && order === 'asc';
       setOrder(isAsc ? 'desc' : 'asc');
       setOrderBy(id);
+      updateFilters({ sortBy: id, sortOrder: isAsc ? 'DESC' : 'ASC' });
     },
-    [order, orderBy]
+    [order, orderBy, updateFilters]
   );
 
   const onSelectAllRows = useCallback((checked: boolean, newSelecteds: string[]) => {
@@ -38,18 +46,24 @@ export function useTable() {
 
   const onResetPage = useCallback(() => {
     setPage(0);
-  }, []);
+    updateFilters({ page: '0' });
+  }, [updateFilters]);
 
-  const onChangePage = useCallback((event: unknown, newPage: number) => {
-    setPage(newPage);
-  }, []);
+  const onPageChange = useCallback(
+    (event: React.ChangeEvent<unknown>, newPage: number) => {
+      setPage(newPage);
+      updateFilters({ page: newPage.toString() });
+    },
+    [updateFilters]
+  );
 
   const onChangeRowsPerPage = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
-      onResetPage();
+    (event: SelectChangeEvent) => {
+      const newSize = parseInt(event.target.value as string, 10);
+      setRowsPerPage(newSize);
+      updateFilters({ size: newSize.toString() });
     },
-    [onResetPage]
+    [updateFilters]
   );
 
   return {
@@ -61,7 +75,7 @@ export function useTable() {
     rowsPerPage,
     onSelectRow,
     onResetPage,
-    onChangePage,
+    onPageChange,
     onSelectAllRows,
     onChangeRowsPerPage,
   };

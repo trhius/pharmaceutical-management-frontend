@@ -1,21 +1,18 @@
 import type { RowConfigs } from 'src/components/table/table-row';
 
-import { useState } from 'react';
-
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
-import TablePagination from '@mui/material/TablePagination';
 
 import { Scrollbar } from 'src/components/scrollbar';
 import { useTable } from 'src/components/table/use-table';
 import { CustomTableRow } from 'src/components/table/table-row';
 import { TableNoData } from 'src/components/table/table-no-data';
 import { CustomTableHead } from 'src/components/table/table-head';
-import { TableEmptyRows } from 'src/components/table/table-empty-rows';
 import { CustomTableToolbar } from 'src/components/table/table-toolbar';
-import { emptyRows, applyFilter, getComparator } from 'src/components/table/utils';
+
+import { DPagination } from '../pagination';
 
 // ----------------------------------------------------------------------
 
@@ -26,35 +23,37 @@ export type Header = {
 };
 
 export type TableProps = {
-  data: { id: string }[];
+  data: { id: number }[];
+  totalPages: number;
   headerConfigs: Header[];
   rowConfigs: RowConfigs;
   toolbar?: boolean;
+  customSearchKeyword?: string;
+  customSearchOptions?: Record<string, string>[];
 };
 
-export function DTable({ data, headerConfigs, rowConfigs, toolbar }: TableProps) {
+export function DTable({
+  data,
+  totalPages,
+  headerConfigs,
+  rowConfigs,
+  toolbar,
+  customSearchKeyword,
+  customSearchOptions,
+}: TableProps) {
   const table = useTable();
 
-  const [filterName, setFilterName] = useState('');
-
-  const dataFiltered: typeof data = applyFilter({
-    inputData: data,
-    comparator: getComparator(table.order, table.orderBy),
-    filterName,
-  });
-
-  const notFound = !dataFiltered.length && !!filterName;
+  const notFound = !data?.length;
 
   return (
     <Card>
-      {toolbar && <CustomTableToolbar
-        numSelected={table.selected.length}
-        filterName={filterName}
-        onFilterName={(event: React.ChangeEvent<HTMLInputElement>) => {
-          setFilterName(event.target.value);
-          table.onResetPage();
-        }}
-      />}
+      {toolbar && (
+        <CustomTableToolbar
+          numSelected={table.selected.length}
+          customSearchKeyword={customSearchKeyword}
+          customSearchOptions={customSearchOptions}
+        />
+      )}
 
       <Scrollbar>
         <TableContainer sx={{ overflow: 'unset' }}>
@@ -62,52 +61,46 @@ export function DTable({ data, headerConfigs, rowConfigs, toolbar }: TableProps)
             <CustomTableHead
               order={table.order}
               orderBy={table.orderBy}
-              rowCount={data.length}
+              rowCount={data?.length}
               numSelected={table.selected.length}
               onSort={table.onSort}
               onSelectAllRows={(checked) =>
                 table.onSelectAllRows(
                   checked,
-                  data.map((row) => row.id)
+                  data?.map((row) => '' + row.id)
                 )
               }
               headLabel={headerConfigs}
             />
             <TableBody>
-              {dataFiltered
-                .slice(
-                  table.page * table.rowsPerPage,
-                  table.page * table.rowsPerPage + table.rowsPerPage
-                )
-                .map((row) => (
-                  <CustomTableRow
-                    key={row.id}
-                    row={row}
-                    selected={table.selected.includes(row.id)}
-                    onSelectRow={() => table.onSelectRow(row.id)}
-                    config={rowConfigs}
-                  />
-                ))}
+              {data?.map((row) => (
+                <CustomTableRow
+                  key={row.id}
+                  row={row}
+                  selected={table.selected.includes('' + row.id)}
+                  onSelectRow={() => table.onSelectRow('' + row.id)}
+                  config={rowConfigs}
+                />
+              ))}
 
-              <TableEmptyRows
+              {/* <TableEmptyRows
                 height={68}
-                emptyRows={emptyRows(table.page, table.rowsPerPage, data.length)}
-              />
+                emptyRows={emptyRows(table.page, table.rowsPerPage, data?.length)}
+              /> */}
 
-              {notFound && <TableNoData searchQuery={filterName} />}
+              {notFound && <TableNoData />}
             </TableBody>
           </Table>
         </TableContainer>
       </Scrollbar>
 
-      <TablePagination
-        component="div"
+      <DPagination
         page={table.page}
-        count={data.length}
+        count={totalPages}
         rowsPerPage={table.rowsPerPage}
-        onPageChange={table.onChangePage}
-        rowsPerPageOptions={[5, 10, 25]}
-        onRowsPerPageChange={table.onChangeRowsPerPage}
+        onPageChange={table.onPageChange}
+        rowsPerPageOptions={[10, 25, 50]}
+        onChangeRowsPerPage={table.onChangeRowsPerPage}
       />
     </Card>
   );

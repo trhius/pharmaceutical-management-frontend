@@ -81,11 +81,12 @@ export function ResetPasswordView() {
       };
       await resetPassword(payload).unwrap();
       showSuccessMessage('Updated password successfully!');
-      logout();
     } catch (error) {
       console.log('Reset password Error:', error);
       handleError(error, 'Reset password failed!');
     }
+
+    logout();
   };
 
   const renderForm = (

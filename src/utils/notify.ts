@@ -11,9 +11,9 @@ export const handleError = (err: any, defaultMessage: string) => {
   if (!status) {
     message = "No Server Response";
   } else if (status === 401) {
-    message = "Unauthorized";
+    message = data.message|| data.error || "Unauthorized";
   } else if (status === 400) {
-    message = data.message || defaultMessage;
+    message = data.message|| data.error || defaultMessage;
   } else {
     message = defaultMessage;
   }

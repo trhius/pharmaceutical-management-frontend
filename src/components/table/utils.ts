@@ -1,4 +1,3 @@
-
 // ----------------------------------------------------------------------
 
 export const visuallyHidden = {
@@ -34,7 +33,7 @@ function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
 // ----------------------------------------------------------------------
 
 export function getComparator<Key extends keyof any>(
-  order: 'asc' | 'desc',
+  order: 'ASC' | 'DESC',
   orderBy: Key
 ): (
   a: {
@@ -44,7 +43,7 @@ export function getComparator<Key extends keyof any>(
     [key in Key]: number | string;
   }
 ) => number {
-  return order === 'desc'
+  return order === 'DESC'
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
@@ -53,12 +52,12 @@ export function getComparator<Key extends keyof any>(
 
 type ApplyFilterProps = {
   inputData: any[];
-  filterName: string;
+  filterName?: string;
   comparator: (a: any, b: any) => number;
 };
 
 export function applyFilter({ inputData, comparator, filterName }: ApplyFilterProps) {
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
+  const stabilizedThis = inputData?.map((el, index) => [el, index] as const) || [];
 
   stabilizedThis.sort((a, b) => {
     const order = comparator(a[0], b[0]);
@@ -70,7 +69,7 @@ export function applyFilter({ inputData, comparator, filterName }: ApplyFilterPr
 
   if (filterName) {
     inputData = inputData.filter(
-      (user) => user.name.toLowerCase().indexOf(filterName.toLowerCase()) !== -1
+      (user) => user.fullName.toLowerCase().indexOf(filterName.toLowerCase()) !== -1
     );
   }
 

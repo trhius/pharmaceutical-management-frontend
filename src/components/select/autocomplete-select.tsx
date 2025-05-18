@@ -39,7 +39,7 @@ export function Select({
           justifyContent: 'space-between',
         }}
       >
-        <Typography variant="body1" sx={{ fontWeight: 500 }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
           {title}
         </Typography>
         <Box>

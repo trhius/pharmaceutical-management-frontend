@@ -1,34 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
-import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
 import Checkbox from '@mui/material/Checkbox';
-import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
-import TableContainer from '@mui/material/TableContainer';
-import TablePagination from '@mui/material/TablePagination';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
-import { _users } from 'src/_mock';
-import { DashboardContent } from 'src/layouts/dashboard';
+import { Fallback } from 'src/routes/fallback';
 
+import { useFilter } from 'src/hooks/useFilter';
+
+import { fDate, fDateTime } from 'src/utils/format-time';
+
+import { DashboardContent } from 'src/layouts/dashboard';
+import { useGetEmployeesQuery } from 'src/app/api/employee/employeeApiSlice';
+
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
-import { Scrollbar } from 'src/components/scrollbar';
-import { Select } from 'src/components/select/Select';
-import { useTable } from 'src/components/table/use-table';
-import { CustomTableRow } from 'src/components/table/table-row';
-import { TableNoData } from 'src/components/table/table-no-data';
-import { CustomTableHead } from 'src/components/table/table-head';
-import { TableEmptyRows } from 'src/components/table/table-empty-rows';
-import { CustomTableToolbar } from 'src/components/table/table-toolbar';
-import { emptyRows, applyFilter, getComparator } from 'src/components/table/utils';
+import { DTable } from 'src/components/table/table';
+import { Select } from 'src/components/select/autocomplete-select';
 
 import { EmployeeDialog } from '../employee-dialog';
 import { EmployeeCreationForm } from '../employee-creation-form';
-
 // ----------------------------------------------------------------------
 export type UserProps = {
   id: string;
@@ -40,16 +36,41 @@ export type UserProps = {
   isVerified: boolean;
 };
 
+export type Employee = {
+  id: number;
+  employeeCode: string;
+  email: string;
+  fullName: string;
+  phone: string;
+  role: string;
+  status: string;
+  storeId: number | null;
+  storeName: string | null;
+  storeAddress: string | null;
+  address: string;
+  dateOfBirth: string;
+  identityCard: string | null;
+  joinDate: string | null;
+  gender: string | null;
+  createdAt: string;
+  createdBy: string;
+  updatedAt: string;
+  updatedBy: string;
+};
+
+const EMPLOYEE_STATUS = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+};
+
 export function EmployeeView() {
-  const table = useTable();
+  const [employees, setEmployees] = useState<Employee[]>([]);
 
-  const [filterName, setFilterName] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
 
-  const dataFiltered: UserProps[] = applyFilter({
-    inputData: _users,
-    comparator: getComparator(table.order, table.orderBy),
-    filterName,
-  });
+  const { getAllFilters } = useFilter();
+
+  console.log(statusFilter);
 
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [selectedJobTitles, setSelectedJobTitles] = useState<string[]>([]);
@@ -59,6 +80,19 @@ export function EmployeeView() {
   const [jobTitlePopupUpdateOpen, setJobTitlePopupUpdateOpen] = useState(false);
   const [employeePopupOpen, setEmployeePopupOpen] = useState(false);
 
+  const filters = getAllFilters();
+
+  console.log(filters);
+
+  const { data: employeesData, isLoading } = useGetEmployeesQuery({
+    ...filters,
+    page: filters?.page ? Number(filters?.page) - 1 : 0,
+  });
+
+  useEffect(() => {
+    setEmployees(employeesData?.content);
+  }, [employeesData]);
+
   const handleSaveDeparment = (data: any) => {
     console.log('Department data:', data);
   };
@@ -67,7 +101,9 @@ export function EmployeeView() {
     console.log('Job title data:', data);
   };
 
-  const notFound = !dataFiltered.length && !!filterName;
+  if (isLoading) {
+    return <Fallback />;
+  }
 
   return (
     <DashboardContent sx={{ backgroundColor: '#f5f5f5' }}>
@@ -79,7 +115,7 @@ export function EmployeeView() {
         }}
       >
         <Typography variant="h4" sx={{ flexGrow: 1 }}>
-          Employee
+          Nhân Viên
         </Typography>
         <Button
           variant="contained"
@@ -87,23 +123,55 @@ export function EmployeeView() {
           startIcon={<Iconify icon="mingcute:add-line" />}
           onClick={() => setEmployeePopupOpen(true)}
         >
-          New employee
+          Tạo mới
         </Button>
       </Box>
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
           <Card sx={{ p: 2, mb: 2 }}>
             <Typography variant="body1" sx={{ fontWeight: 500 }}>
-              Employee status
+              Trạng thái nhân viên
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', mt: 2 }}>
-              <FormControlLabel label="Working" control={<Checkbox defaultChecked />} />
-              <FormControlLabel label="Quit" control={<Checkbox defaultChecked />} />
+              <FormControlLabel
+                label="Đang làm việc"
+                control={
+                  <Checkbox
+                    checked={statusFilter?.includes(EMPLOYEE_STATUS.ACTIVE)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setStatusFilter((prev) => [...(prev || []), EMPLOYEE_STATUS.ACTIVE]);
+                      } else {
+                        setStatusFilter((prev) =>
+                          prev?.filter((status) => status !== EMPLOYEE_STATUS.ACTIVE)
+                        );
+                      }
+                    }}
+                  />
+                }
+              />
+              <FormControlLabel
+                label="Đã nghỉ"
+                control={
+                  <Checkbox
+                    checked={statusFilter?.includes(EMPLOYEE_STATUS.INACTIVE)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setStatusFilter((prev) => [...(prev || []), EMPLOYEE_STATUS.INACTIVE]);
+                      } else {
+                        setStatusFilter((prev) =>
+                          prev?.filter((status) => status !== EMPLOYEE_STATUS.INACTIVE)
+                        );
+                      }
+                    }}
+                  />
+                }
+              />
             </Box>
           </Card>
 
           <Select
-            title="Department"
+            title="Chi nhánh"
             // holder="Select department"
             options={['HR', 'Finance', 'Engineering', 'Marketing', 'Sales']}
             selected={selectedDepartments}
@@ -115,7 +183,7 @@ export function EmployeeView() {
           />
 
           <Select
-            title="Job title"
+            title="Chức danh"
             // holder="Select job title"
             options={['Manager', 'Developer', 'Designer', 'Analyst']}
             selected={selectedJobTitles}
@@ -127,109 +195,68 @@ export function EmployeeView() {
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 8, lg: 10 }}>
-          <Card>
-            <CustomTableToolbar
-              numSelected={table.selected.length}
-              filterName={filterName}
-              onFilterName={(event: React.ChangeEvent<HTMLInputElement>) => {
-                setFilterName(event.target.value);
-                table.onResetPage();
-              }}
-            />
-
-            <Scrollbar>
-              <TableContainer sx={{ overflow: 'unset' }}>
-                <Table sx={{ minWidth: 800 }}>
-                  <CustomTableHead
-                    order={table.order}
-                    orderBy={table.orderBy}
-                    rowCount={_users.length}
-                    numSelected={table.selected.length}
-                    onSort={table.onSort}
-                    onSelectAllRows={(checked) =>
-                      table.onSelectAllRows(
-                        checked,
-                        _users.map((user) => user.id)
-                      )
-                    }
-                    headLabel={[
-                      { id: 'id', label: 'Employee number' },
-                      { id: 'attendance', label: 'Attendance number' },
-                      { id: 'name', label: 'Name' },
-                      { id: 'phone', label: 'Phone' },
-                      { id: 'nationalId', label: 'National ID' },
-                      { id: 'debtsAndAdvances', label: 'Debts and advances' },
-                      { id: 'note', label: 'Note' },
-                      { id: '' },
-                    ]}
-                  />
-                  <TableBody>
-                    {dataFiltered
-                      .slice(
-                        table.page * table.rowsPerPage,
-                        table.page * table.rowsPerPage + table.rowsPerPage
-                      )
-                      .map((row) => (
-                        <CustomTableRow
-                          key={row.id}
-                          row={row}
-                          selected={table.selected.includes(row.id)}
-                          onSelectRow={() => table.onSelectRow(row.id)}
-                          config={[
-                            {
-                              field: 'id',
-                              render: () => (
-                                <Box sx={{ gap: 2, display: 'flex', alignItems: 'center' }}>
-                                  <img
-                                    src={row.avatarUrl}
-                                    alt={row.id}
-                                    style={{ width: 40, height: 40, borderRadius: '50%' }}
-                                  />
-                                  {row.id.substring(0, 8)}...
-                                </Box>
-                              ),
-                            },
-                            {
-                              field: 'attendance',
-                              width: 100,
-                            },
-                            {
-                              field: 'name',
-                            },
-                            { field: 'phone' },
-                            { field: 'nationalId' },
-                            {
-                              field: 'debtsAndAdvances',
-                              align: 'right',
-                            },
-                            {
-                              field: 'note',
-                            },
-                          ]}
-                        />
-                      ))}
-
-                    <TableEmptyRows
-                      height={68}
-                      emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
-                    />
-
-                    {notFound && <TableNoData searchQuery={filterName} />}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Scrollbar>
-
-            <TablePagination
-              component="div"
-              page={table.page}
-              count={_users.length}
-              rowsPerPage={table.rowsPerPage}
-              onPageChange={table.onChangePage}
-              rowsPerPageOptions={[5, 10, 25]}
-              onRowsPerPageChange={table.onChangeRowsPerPage}
-            />
-          </Card>
+          <DTable
+            customSearchKeyword='commonSearchBy'
+            customSearchOptions={[
+              { key: 'NAME', value: 'Tên nhân viên' },
+              { key: 'CODE', value: 'Mã nhân viên' },
+            ]}
+            data={employees}
+            totalPages={employeesData?.totalPages}
+            headerConfigs={[
+              { id: 'employeeCode', label: 'Mã nhân viên' },
+              { id: 'fullName', label: 'Tên nhân viên' },
+              { id: 'email', label: 'Email' },
+              { id: 'storeName', label: 'Chi nhánh làm việc' },
+              { id: 'role', label: 'Chức danh' },
+              { id: 'status', label: 'Trạng thái' },
+              { id: 'createdAt', label: 'Ngày bắt đầu làm' },
+              { id: '' },
+            ]}
+            rowConfigs={[
+              {
+                field: 'code',
+                render: (row: Employee) => (
+                  <Box sx={{ gap: 2, display: 'flex', alignItems: 'center' }}>
+                    {/* <img
+                              src={row.avatarUrl}
+                              alt={row.id}
+                              style={{ width: 40, height: 40, borderRadius: '50%' }}
+                            /> */}
+                    {row?.employeeCode}
+                  </Box>
+                ),
+              },
+              { field: 'fullName' },
+              {
+                field: 'email',
+                render: (row: Employee) => (
+                  <Tooltip title={row?.email}>
+                    <Box>{row?.email?.substring(0, 20)}...</Box>
+                  </Tooltip>
+                ),
+              },
+              { field: 'storeName' },
+              { field: 'role' },
+              {
+                field: 'status',
+                render: (row: Employee) => (
+                  <Label color={(row.status === 'INACTIVE' && 'error') || 'success'}>
+                    {row.status}
+                  </Label>
+                ),
+              },
+              {
+                field: 'createdAt',
+                render: (row: Employee) => (
+                  <Tooltip title={fDateTime(row?.createdAt)}>
+                    <Box>{fDate(row?.createdAt)}</Box>
+                  </Tooltip>
+                ),
+              },
+            ]}
+            toolbar
+          />
         </Grid>
       </Grid>
       <EmployeeDialog
@@ -257,7 +284,7 @@ export function EmployeeView() {
         title="New Job Title"
         handleSave={handleSaveJobTitle}
       />
-      <EmployeeCreationForm popupOpen={employeePopupOpen} setPopupOpen={setEmployeePopupOpen}/>
+      <EmployeeCreationForm popupOpen={employeePopupOpen} setPopupOpen={setEmployeePopupOpen} />
     </DashboardContent>
   );
 }

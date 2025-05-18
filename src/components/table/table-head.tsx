@@ -10,10 +10,10 @@ import { visuallyHidden } from './utils';
 // ----------------------------------------------------------------------
 
 type CustomTableHeadProps = {
-  orderBy: string;
+  orderBy?: string | null;
   rowCount: number;
   numSelected: number;
-  order: 'asc' | 'desc';
+  order?: 'asc' | 'desc';
   onSort: (id: string) => void;
   headLabel: Record<string, any>[];
   onSelectAllRows: (checked: boolean) => void;

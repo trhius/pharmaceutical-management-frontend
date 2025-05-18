@@ -85,13 +85,17 @@ export function useCustomDelayDebounceForm<T extends Record<string, any>>(
     return isValid;
   };
 
-  const resetForm = useCallback(() => {
-    setFormData(form.initialState);
-    setFormError(form.initialState);
-    setInputValue(null);
-    setDebouncedFields(new Set());
-    formDataRef.current = form.initialState; // Reset the ref copy
-  }, [form.initialState]);
+  const resetForm = useCallback(
+    (data?: Partial<typeof form.initialState>) => {
+      const newFormData = { ...form.initialState, ...data };
+      setFormData(newFormData);
+      setFormError(form.initialState);
+      setInputValue(null);
+      setDebouncedFields(new Set());
+      formDataRef.current = newFormData; // Reset the ref copy
+    },
+    [form]
+  );
 
   return { formData, formError, handleInputChange, setFormError, isValidForm, resetForm };
 }

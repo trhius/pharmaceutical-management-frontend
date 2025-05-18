@@ -18,6 +18,8 @@ type ImageUploaderProps = {
   removable?: boolean;
   disabled?: boolean;
   saveable?: boolean;
+  hideUploadButton?: boolean;
+  size?: number
 };
 
 const ImageUploader = ({
@@ -26,6 +28,8 @@ const ImageUploader = ({
   removable,
   disabled,
   saveable,
+  hideUploadButton,
+  size
 }: ImageUploaderProps) => {
   // const { t } = useTranslation('profile', { keyPrefix: 'image.tooltip' });
   const [image, _setImage] = useState<string | null>(null);
@@ -102,15 +106,15 @@ const ImageUploader = ({
             src={image}
             alt="photoURL"
             sx={{
-              width: 120,
-              height: 120,
+              width: size ? size : 120,
+              height: size ? size : 120,
               objectFit: 'cover',
               borderRadius: '5px',
               mb: 1,
             }}
             onClick={handleUploadButtonClick}
           />
-          <Button
+          {!hideUploadButton && <Button
             fullWidth
             variant="outlined"
             color="inherit"
@@ -118,21 +122,22 @@ const ImageUploader = ({
             onClick={handleUploadButtonClick}
           >
             Upload
-          </Button>
+          </Button>}
         </Box>
       ) : (
         <Box>
           <Box
             sx={{
-              width: 120,
-              height: 120,
+              width: size ? size : 120,
+              height: size ? size : 120,
               objectFit: 'cover',
               borderRadius: '5px',
               background: '#eee',
               mb: 1,
             }}
+            onClick={handleUploadButtonClick}
           />
-          <Button
+          {!hideUploadButton && <Button
             fullWidth
             variant="outlined"
             color="inherit"
@@ -140,14 +145,14 @@ const ImageUploader = ({
             onClick={handleUploadButtonClick}
           >
             Upload
-          </Button>
+          </Button>}
         </Box>
       )}
       {isUploading && (
         <Stack
           sx={{
-            width: 120,
-            height: 120,
+            width: size ? size : 120,
+            height: size ? size : 120,
             position: 'absolute',
             objectFit: 'cover',
             borderRadius: '5px',
@@ -162,8 +167,8 @@ const ImageUploader = ({
           justifyContent="center"
           alignItems="center"
           sx={{
-            width: 120,
-            height: 120,
+            width: size ? size : 120,
+            height: size ? size : 120,
             position: 'absolute',
             objectFit: 'cover',
             borderRadius: '5px',

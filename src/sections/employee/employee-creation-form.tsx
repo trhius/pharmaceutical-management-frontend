@@ -54,7 +54,7 @@ export function EmployeeCreationForm({ popupOpen, setPopupOpen }: EmployeeCreati
         <Grid container spacing={8}>
           <Grid size={{ xs: 12, sm: 2, md: 2 }}>
             <Box sx={{ width: '220px' }}>
-              <ImageUploader imageUrl={imageUrl} setImageUrl={setImageUrl} />
+              <ImageUploader imageUrl={imageUrl} setImageUrl={setImageUrl} size={150}/>
             </Box>
           </Grid>
           <Grid container spacing={3} columnSpacing={10} size={{ xs: 12, sm: 10, md: 10 }}>
