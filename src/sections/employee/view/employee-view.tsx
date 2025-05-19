@@ -21,7 +21,7 @@ import { useGetEmployeesQuery } from 'src/app/api/employee/employeeApiSlice';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { DTable } from 'src/components/table/table';
-import { Select } from 'src/components/select/autocomplete-select';
+import { Select as AutocompleteSelect } from 'src/components/select/autocomplete-select';
 
 import { EmployeeDialog } from '../employee-dialog';
 import { EmployeeCreationForm } from '../employee-creation-form';
@@ -63,14 +63,20 @@ const EMPLOYEE_STATUS = {
   INACTIVE: 'INACTIVE',
 };
 
+const ROLE_CONFIG = [
+  { key: 'SUPER_ADMIN', value: 'Super admin' },
+  { key: 'STORE_MANAGER', value: 'Store manager' },
+  { key: 'PHARMACIST', value: 'Pharmacist' },
+  { key: 'INVENTORY_STAFF', value: 'Inventory staff' },
+];
+
 export function EmployeeView() {
   const [employees, setEmployees] = useState<Employee[]>([]);
 
-  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [status, setStatus] = useState<string[]>([]);
+  const [role, setRole] = useState<any>();
 
-  const { getAllFilters } = useFilter();
-
-  console.log(statusFilter);
+  const { getAllFilters, updateFilters } = useFilter();
 
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [selectedJobTitles, setSelectedJobTitles] = useState<string[]>([]);
@@ -92,6 +98,14 @@ export function EmployeeView() {
   useEffect(() => {
     setEmployees(employeesData?.content);
   }, [employeesData]);
+
+  useEffect(() => {
+    if (status && status.length === 1) {
+      updateFilters({ status: status[0] });
+    } else {
+      updateFilters({ status: '' });
+    }
+  }, [status, updateFilters]);
 
   const handleSaveDeparment = (data: any) => {
     console.log('Department data:', data);
@@ -137,14 +151,12 @@ export function EmployeeView() {
                 label="Đang làm việc"
                 control={
                   <Checkbox
-                    checked={statusFilter?.includes(EMPLOYEE_STATUS.ACTIVE)}
+                    checked={status?.includes(EMPLOYEE_STATUS.ACTIVE)}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        setStatusFilter((prev) => [...(prev || []), EMPLOYEE_STATUS.ACTIVE]);
+                        setStatus((prev) => [...(prev || []), EMPLOYEE_STATUS.ACTIVE]);
                       } else {
-                        setStatusFilter((prev) =>
-                          prev?.filter((status) => status !== EMPLOYEE_STATUS.ACTIVE)
-                        );
+                        setStatus((prev) => prev?.filter((s) => s !== EMPLOYEE_STATUS.ACTIVE));
                       }
                     }}
                   />
@@ -154,14 +166,12 @@ export function EmployeeView() {
                 label="Đã nghỉ"
                 control={
                   <Checkbox
-                    checked={statusFilter?.includes(EMPLOYEE_STATUS.INACTIVE)}
+                    checked={status?.includes(EMPLOYEE_STATUS.INACTIVE)}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        setStatusFilter((prev) => [...(prev || []), EMPLOYEE_STATUS.INACTIVE]);
+                        setStatus((prev) => [...(prev || []), EMPLOYEE_STATUS.INACTIVE]);
                       } else {
-                        setStatusFilter((prev) =>
-                          prev?.filter((status) => status !== EMPLOYEE_STATUS.INACTIVE)
-                        );
+                        setStatus((prev) => prev?.filter((s) => s !== EMPLOYEE_STATUS.INACTIVE));
                       }
                     }}
                   />
@@ -170,7 +180,7 @@ export function EmployeeView() {
             </Box>
           </Card>
 
-          <Select
+          <AutocompleteSelect
             title="Chi nhánh"
             // holder="Select department"
             options={['HR', 'Finance', 'Engineering', 'Marketing', 'Sales']}
@@ -182,21 +192,18 @@ export function EmployeeView() {
             }}
           />
 
-          <Select
+          <AutocompleteSelect
             title="Chức danh"
+
             // holder="Select job title"
-            options={['Manager', 'Developer', 'Designer', 'Analyst']}
-            selected={selectedJobTitles}
-            setSelected={setSelectedJobTitles}
-            handleAddEvent={() => setJobTitlePopupOpen(true)}
-            handleEditOption={(option) => {
-              setJobTitlePopupUpdateOpen(true);
-            }}
+            options={ROLE_CONFIG}
+            selected={role}
+            setSelected={setRole}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 8, lg: 10 }}>
           <DTable
-            customSearchKeyword='commonSearchBy'
+            customSearchKeyword="commonSearchBy"
             customSearchOptions={[
               { key: 'NAME', value: 'Tên nhân viên' },
               { key: 'CODE', value: 'Mã nhân viên' },

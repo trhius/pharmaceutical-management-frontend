@@ -47,10 +47,12 @@ export function CustomTableToolbar({
     const filter: Record<string, string> = { search: debouncedSearchInput };
     if (searchOption && searchOption.key && customSearchKeyword !== undefined) {
       filter[customSearchKeyword] = searchOption.key;
+      if (!filter.search) {
+        filter[customSearchKeyword] = '';
+      }
     }
-    if (filter.search) {
-      updateFilters(filter);
-    }
+
+    updateFilters(filter);
   }, [debouncedSearchInput, searchOption, updateFilters, customSearchKeyword]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,11 +135,7 @@ export function CustomTableToolbar({
           </IconButton>
         </Tooltip>
       ) : (
-        <Tooltip title="Filter list">
-          <IconButton>
-            <Iconify icon="ic:round-filter-list" />
-          </IconButton>
-        </Tooltip>
+        <Box />
       )}
     </Toolbar>
   );

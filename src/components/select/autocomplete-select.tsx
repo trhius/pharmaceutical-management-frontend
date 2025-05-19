@@ -12,16 +12,18 @@ import { Iconify } from '../iconify';
 
 type SelectProps = {
   title: string;
+  multiple?: boolean;
   holder?: string;
-  options: string[];
-  selected: string[];
-  setSelected: (value: string[]) => void;
-  handleAddEvent: () => void;
+  options: any[];
+  selected: any[];
+  setSelected: (value: any[]) => void;
+  handleAddEvent?: () => void;
   handleEditOption?: (option: string) => void;
 };
 
 export function Select({
   title,
+  multiple,
   holder,
   options,
   selected,
@@ -43,9 +45,11 @@ export function Select({
           {title}
         </Typography>
         <Box>
-          <IconButton onClick={handleAddEvent}>
-            <Iconify icon="mingcute:add-line" />
-          </IconButton>
+          {handleAddEvent && (
+            <IconButton onClick={handleAddEvent}>
+              <Iconify icon="mingcute:add-line" />
+            </IconButton>
+          )}
           <IconButton onClick={() => setOpen(!open)}>
             <Iconify icon={open ? 'mingcute:up-line' : 'mingcute:down-line'} />
           </IconButton>
@@ -55,9 +59,10 @@ export function Select({
       {open && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Autocomplete
-            multiple
+            multiple={multiple}
             options={options}
             value={selected}
+            getOptionLabel={(option) => option.value}
             onChange={(event, newValue) => setSelected(newValue)}
             renderOption={(props, option) => (
               <Box
@@ -73,7 +78,7 @@ export function Select({
                   },
                 }}
               >
-                <Typography width="90%">{option}</Typography>
+                <Typography width="90%">{option.value}</Typography>
                 {handleEditOption && (
                   <IconButton
                     className="edit-icon"
@@ -91,7 +96,7 @@ export function Select({
               </Box>
             )}
             renderInput={(params) => (
-              <TextField {...params} multiline variant="standard" label={holder} />
+              <TextField {...params} multiline label={holder} />
             )}
           />
         </Box>
