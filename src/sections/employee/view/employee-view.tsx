@@ -16,14 +16,15 @@ import { useFilter } from 'src/hooks/useFilter';
 import { fDate, fDateTime } from 'src/utils/format-time';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+import { useGetAllStoresQuery } from 'src/app/api/store/storeApiSlice';
 import { useGetEmployeesQuery } from 'src/app/api/employee/employeeApiSlice';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { DTable } from 'src/components/table/table';
-import { Select as AutocompleteSelect } from 'src/components/select/autocomplete-select';
+import { Select as AutocompleteSelect } from 'src/components/select/custom-select';
 
-import { EmployeeDialog } from '../employee-dialog';
+import { StoreCreationForm } from '../store-creation-form';
 import { EmployeeCreationForm } from '../employee-creation-form';
 // ----------------------------------------------------------------------
 export type UserProps = {
@@ -64,48 +65,79 @@ const EMPLOYEE_STATUS = {
 };
 
 const ROLE_CONFIG = [
-  { key: 'SUPER_ADMIN', value: 'Super admin' },
-  { key: 'STORE_MANAGER', value: 'Store manager' },
-  { key: 'PHARMACIST', value: 'Pharmacist' },
-  { key: 'INVENTORY_STAFF', value: 'Inventory staff' },
+  { value: 'SUPER_ADMIN', label: 'Super admin' },
+  { value: 'STORE_MANAGER', label: 'Store manager' },
+  { value: 'PHARMACIST', label: 'Pharmacist' },
+  { value: 'INVENTORY_STAFF', label: 'Inventory staff' },
 ];
 
 export function EmployeeView() {
+  const { getAllFilters, updateFilters } = useFilter();
+  const filters = getAllFilters();
+  console.log(filters);
+
   const [employees, setEmployees] = useState<Employee[]>([]);
 
-  const [status, setStatus] = useState<string[]>([]);
-  const [role, setRole] = useState<any>();
+  const [status, setStatus] = useState<string[]>(() => (filters.status ? [filters.status] : []));
+  const [role, setRole] = useState<any>(() => ROLE_CONFIG.find((c) => c.value === filters.role));
 
-  const { getAllFilters, updateFilters } = useFilter();
+  const [storePopupOpen, setStorePopupOpen] = useState(false);
+  const [storeUpdatePopupOpen, setStoreUpdatePopupOpen] = useState(false);
+  const [selectedStore, setSelectedStore] = useState();
 
-  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
-  const [selectedJobTitles, setSelectedJobTitles] = useState<string[]>([]);
-  const [departmentPopupOpen, setDepartmentPopupOpen] = useState(false);
-  const [departmentPopupUpdateOpen, setDepartmentPopupUpdateOpen] = useState(false);
-  const [jobTitlePopupOpen, setJobTitlePopupOpen] = useState(false);
-  const [jobTitlePopupUpdateOpen, setJobTitlePopupUpdateOpen] = useState(false);
   const [employeePopupOpen, setEmployeePopupOpen] = useState(false);
-
-  const filters = getAllFilters();
-
-  console.log(filters);
 
   const { data: employeesData, isLoading } = useGetEmployeesQuery({
     ...filters,
     page: filters?.page ? Number(filters?.page) - 1 : 0,
   });
 
+  const { data: storesData, isLoading: isLoadingStore } = useGetAllStoresQuery({});
+
+  const [storeConfigs, setStoreConfigs] = useState<any>([]);
+  const [store, setStore] = useState<any>([]);
+
   useEffect(() => {
     setEmployees(employeesData?.content);
   }, [employeesData]);
 
   useEffect(() => {
+    if (storesData) {
+      const configs = storesData?.map((s: any) => ({ label: s.name, value: s.id }));
+      setStoreConfigs(configs);
+      console.log(configs, filters.store);
+
+      if (filters.store) {
+        setStore(configs?.find((s: any) => s.value === Number(filters.store)));
+      }
+    }
+  }, [storesData, filters.store]);
+
+  useEffect(() => {
+    console.log(status);
+
     if (status && status.length === 1) {
       updateFilters({ status: status[0] });
     } else {
       updateFilters({ status: '' });
     }
   }, [status, updateFilters]);
+
+  useEffect(() => {
+    if (role && role.value) {
+      updateFilters({ role: role.value });
+    } else {
+      updateFilters({ role: '' });
+    }
+  }, [role, updateFilters]);
+
+  useEffect(() => {
+    if (store && store.value) {
+      updateFilters({ store: store.value });
+    } else if (!filters.store) {
+      updateFilters({ store: '' });
+    }
+  }, [store, updateFilters, filters.store]);
 
   const handleSaveDeparment = (data: any) => {
     console.log('Department data:', data);
@@ -115,7 +147,7 @@ export function EmployeeView() {
     console.log('Job title data:', data);
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingStore) {
     return <Fallback />;
   }
 
@@ -182,20 +214,21 @@ export function EmployeeView() {
 
           <AutocompleteSelect
             title="Chi nhánh"
-            // holder="Select department"
-            options={['HR', 'Finance', 'Engineering', 'Marketing', 'Sales']}
-            selected={selectedDepartments}
-            setSelected={setSelectedDepartments}
-            handleAddEvent={() => setDepartmentPopupOpen(true)}
-            handleEditOption={(option) => {
-              setDepartmentPopupUpdateOpen(true);
+            options={storeConfigs ?? []}
+            selected={store}
+            setSelected={setStore}
+            handleAddEvent={() => setStorePopupOpen(true)}
+            handleEditOption={(option: any) => {
+              const storeToEdit = storesData?.find((s: any) => s.id === option.value);
+              if (storeToEdit) {
+                setSelectedStore(storeToEdit);
+              }
+              setStoreUpdatePopupOpen(true);
             }}
           />
 
           <AutocompleteSelect
             title="Chức danh"
-
-            // holder="Select job title"
             options={ROLE_CONFIG}
             selected={role}
             setSelected={setRole}
@@ -225,11 +258,6 @@ export function EmployeeView() {
                 field: 'code',
                 render: (row: Employee) => (
                   <Box sx={{ gap: 2, display: 'flex', alignItems: 'center' }}>
-                    {/* <img
-                              src={row.avatarUrl}
-                              alt={row.id}
-                              style={{ width: 40, height: 40, borderRadius: '50%' }}
-                            /> */}
                     {row?.employeeCode}
                   </Box>
                 ),
@@ -266,30 +294,16 @@ export function EmployeeView() {
           />
         </Grid>
       </Grid>
-      <EmployeeDialog
-        popupOpen={departmentPopupOpen}
-        setPopupOpen={setDepartmentPopupOpen}
-        title="New Department"
-        handleSave={handleSaveDeparment}
+      <StoreCreationForm
+        popupOpen={storePopupOpen}
+        setPopupOpen={setStorePopupOpen}
+        title="New Store"
       />
-      <EmployeeDialog
-        popupOpen={departmentPopupUpdateOpen}
-        setPopupOpen={setDepartmentPopupUpdateOpen}
-        title="Update Department"
-        handleSave={handleSaveDeparment}
-        handleDelete={handleSaveDeparment}
-      />
-      <EmployeeDialog
-        popupOpen={jobTitlePopupOpen}
-        setPopupOpen={setJobTitlePopupOpen}
-        title="New Job Title"
-        handleSave={handleSaveJobTitle}
-      />
-      <EmployeeDialog
-        popupOpen={jobTitlePopupUpdateOpen}
-        setPopupOpen={setJobTitlePopupUpdateOpen}
-        title="New Job Title"
-        handleSave={handleSaveJobTitle}
+      <StoreCreationForm
+        popupOpen={storeUpdatePopupOpen}
+        setPopupOpen={setStoreUpdatePopupOpen}
+        title="Update Store"
+        editData={selectedStore}
       />
       <EmployeeCreationForm popupOpen={employeePopupOpen} setPopupOpen={setEmployeePopupOpen} />
     </DashboardContent>

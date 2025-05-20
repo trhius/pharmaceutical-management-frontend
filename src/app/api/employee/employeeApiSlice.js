@@ -9,47 +9,44 @@ export const authApiSlice = apiSlice.injectEndpoints({
         method: "GET",
         params
       }),
-      providesTags: ['User'],
+      providesTags: ['Employee'],
     }),
-    getUserDetail: builder.mutation({
+    getEmployeeDetail: builder.mutation({
       query: (id) => ({
         url: `${API.employee}/${id}`,
         method: "GET"
       }),
     }),
-    createUser: builder.mutation({
+    createEmployee: builder.mutation({
       query: (payload) => ({
         url: `${API.employee}`,
         method: "POST",
         body: { ...payload },
       }),
-      invalidatesTags: ['User'],
+      invalidatesTags: ['Employee'],
     }),
-    deleteUser: builder.mutation({
+    deleteEmployee: builder.mutation({
       query: (id) => ({
         url: `${API.employee}/${id}`,
         method: "DELETE"
       }),
-      invalidatesTags: ['User'],
+      invalidatesTags: ['Employee'],
     }),
-    updateUser: builder.mutation({
+    updateEmployee: builder.mutation({
       query: ({ id, payload }) => ({
         url: `${API.employee}/${id}`,
         method: "PATCH",
         body: { ...payload },
       }),
-      invalidatesTags: ['User'],
-    }),
-    deleteUsers: builder.mutation({
-      query: (ids) => ({
-        url: `${API.employee}/${ids.join()}`,
-        method: "DELETE"
-      }),
-      invalidatesTags: ['User'],
+      invalidatesTags: ['Employee'],
     }),
   }),
 });
 
 export const {
-  useGetEmployeesQuery
+  useGetEmployeesQuery,
+  useGetEmployeeDetailMutation,
+  useCreateEmployeeMutation,
+  useDeleteEmployeeMutation,
+  useUpdateEmployeeMutation,
 } = authApiSlice;

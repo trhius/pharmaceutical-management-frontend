@@ -8,7 +8,7 @@ export function useDebounceForm<T extends Record<string, any>>(form: Form<T>) {
   return useCustomDelayDebounceForm(form, 500);
 }
 
-type Form<T> = {
+export type Form<T> = {
   initialState: T;
   requiredFields: string[];
 };
@@ -18,9 +18,21 @@ export function useCustomDelayDebounceForm<T extends Record<string, any>>(
   delay: number
 ) {
   const [formData, setFormData] = useState<T>(form.initialState);
-  const [formError, setFormError] = useState<T>(form.initialState);
+  const [formError, setFormError] = useState<Record<keyof T, string>>(
+    () =>
+      Object.fromEntries(Object.keys(form.initialState).map((key) => [key, ''])) as Record<
+        keyof T,
+        string
+      >
+  );
 
-  const [inputValue, setInputValue] = useState<{ name: string; value: string } | null>(null);
+  console.log('formData', formData);
+  console.log('formError', formError);
+
+  const [inputValue, setInputValue] = useState<{
+    name: string;
+    value: string | boolean;
+  } | null>(null);
   const [debouncedFields, setDebouncedFields] = useState<Set<string>>(new Set());
 
   // Keep a mutable copy of formData
@@ -37,7 +49,7 @@ export function useCustomDelayDebounceForm<T extends Record<string, any>>(
       // Validate the field and set error
       const error = validateField(
         name,
-        value,
+        value as string,
         form.requiredFields.includes(name),
         formDataRef.current
       );
@@ -52,44 +64,50 @@ export function useCustomDelayDebounceForm<T extends Record<string, any>>(
     }
   }, [debouncedInput, form.requiredFields]);
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setInputValue({ name, value });
+  const handleInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const { type, name, value: val, checked } = event.target;
+
+    const value = type === 'checkbox' ? checked : val;
+
+    if (['text', 'password', 'number', 'email'].includes(type)) {
+      setInputValue({ name, value });
+
+      setFormError((prevError) => ({ ...prevError, [name]: '' }));
+
+      // Add the field to the debouncedFields set
+      setDebouncedFields((prev) => new Set(prev).add(name));
+    }
 
     // Update form data
-    setFormError((prevError) => ({ ...prevError, [name]: '' }));
     setFormData((prevData) => {
       const updatedData = { ...prevData, [name]: value };
       formDataRef.current = updatedData; // Update the ref copy
       return updatedData;
     });
-
-    // Add the field to the debouncedFields set
-    setDebouncedFields((prev) => new Set(prev).add(name));
-  };
+  }, []);
 
   const isValidForm = () => {
-    // Check if all required fields are filled
-    const isAllRequiredFieldsFilled = form.requiredFields.every(
-      (field) => formDataRef.current[field]
-    );
-    // Check if all debounced fields are processed
-    const isAllDebouncedFieldsProcessed = debouncedFields.size === 0;
-    let isValid = isAllRequiredFieldsFilled && isAllDebouncedFieldsProcessed;
-    // Check if there are any errors in formError
-    Object.keys(formError).forEach((key) => {
-      if (formError[key as keyof T]) {
-        isValid = false;
-      }
-    });
-    return isValid;
+    const allFilled = form.requiredFields.every((field) => formDataRef.current[field]);
+
+    const noErrors = Object.values(formError).every((val) => !val);
+    Object.values(formError).forEach((val) => console.log(val));
+    const noDebouncePending = debouncedFields.size === 0;
+
+    console.log(allFilled, noErrors, noDebouncePending);
+
+    return allFilled && noErrors && noDebouncePending;
   };
 
   const resetForm = useCallback(
     (data?: Partial<typeof form.initialState>) => {
       const newFormData = { ...form.initialState, ...data };
       setFormData(newFormData);
-      setFormError(form.initialState);
+      setFormError(
+        Object.fromEntries(Object.keys(form.initialState).map((key) => [key, ''])) as Record<
+          keyof T,
+          string
+        >
+      );
       setInputValue(null);
       setDebouncedFields(new Set());
       formDataRef.current = newFormData; // Reset the ref copy
