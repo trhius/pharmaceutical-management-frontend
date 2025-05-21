@@ -16,15 +16,14 @@ import { useFilter } from 'src/hooks/useFilter';
 import { fDate, fDateTime } from 'src/utils/format-time';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { useGetAllStoresQuery } from 'src/app/api/store/storeApiSlice';
 import { useGetEmployeesQuery } from 'src/app/api/employee/employeeApiSlice';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { DTable } from 'src/components/table/table';
-import { Select as AutocompleteSelect } from 'src/components/select/custom-select';
+import { RoleSelect } from 'src/components/select/role-select';
+import { StoreSelect } from 'src/components/select/store-select';
 
-import { StoreCreationForm } from '../store-creation-form';
 import { EmployeeCreationForm } from '../employee-creation-form';
 // ----------------------------------------------------------------------
 export type UserProps = {
@@ -64,13 +63,6 @@ const EMPLOYEE_STATUS = {
   INACTIVE: 'INACTIVE',
 };
 
-const ROLE_CONFIG = [
-  { value: 'SUPER_ADMIN', label: 'Super admin' },
-  { value: 'STORE_MANAGER', label: 'Store manager' },
-  { value: 'PHARMACIST', label: 'Pharmacist' },
-  { value: 'INVENTORY_STAFF', label: 'Inventory staff' },
-];
-
 export function EmployeeView() {
   const { getAllFilters, updateFilters } = useFilter();
   const filters = getAllFilters();
@@ -79,11 +71,7 @@ export function EmployeeView() {
   const [employees, setEmployees] = useState<Employee[]>([]);
 
   const [status, setStatus] = useState<string[]>(() => (filters.status ? [filters.status] : []));
-  const [role, setRole] = useState<any>(() => ROLE_CONFIG.find((c) => c.value === filters.role));
-
-  const [storePopupOpen, setStorePopupOpen] = useState(false);
-  const [storeUpdatePopupOpen, setStoreUpdatePopupOpen] = useState(false);
-  const [selectedStore, setSelectedStore] = useState();
+  const [role, setRole] = useState<any>([]);
 
   const [employeePopupOpen, setEmployeePopupOpen] = useState(false);
 
@@ -92,9 +80,6 @@ export function EmployeeView() {
     page: filters?.page ? Number(filters?.page) - 1 : 0,
   });
 
-  const { data: storesData, isLoading: isLoadingStore } = useGetAllStoresQuery({});
-
-  const [storeConfigs, setStoreConfigs] = useState<any>([]);
   const [store, setStore] = useState<any>([]);
 
   useEffect(() => {
@@ -102,20 +87,6 @@ export function EmployeeView() {
   }, [employeesData]);
 
   useEffect(() => {
-    if (storesData) {
-      const configs = storesData?.map((s: any) => ({ label: s.name, value: s.id }));
-      setStoreConfigs(configs);
-      console.log(configs, filters.store);
-
-      if (filters.store) {
-        setStore(configs?.find((s: any) => s.value === Number(filters.store)));
-      }
-    }
-  }, [storesData, filters.store]);
-
-  useEffect(() => {
-    console.log(status);
-
     if (status && status.length === 1) {
       updateFilters({ status: status[0] });
     } else {
@@ -126,10 +97,10 @@ export function EmployeeView() {
   useEffect(() => {
     if (role && role.value) {
       updateFilters({ role: role.value });
-    } else {
+    } else if (!filters.role){
       updateFilters({ role: '' });
     }
-  }, [role, updateFilters]);
+  }, [role, updateFilters, filters.role]);
 
   useEffect(() => {
     if (store && store.value) {
@@ -139,15 +110,7 @@ export function EmployeeView() {
     }
   }, [store, updateFilters, filters.store]);
 
-  const handleSaveDeparment = (data: any) => {
-    console.log('Department data:', data);
-  };
-
-  const handleSaveJobTitle = (data: any) => {
-    console.log('Job title data:', data);
-  };
-
-  if (isLoading || isLoadingStore) {
+  if (isLoading) {
     return <Fallback />;
   }
 
@@ -212,27 +175,9 @@ export function EmployeeView() {
             </Box>
           </Card>
 
-          <AutocompleteSelect
-            title="Chi nhánh"
-            options={storeConfigs ?? []}
-            selected={store}
-            setSelected={setStore}
-            handleAddEvent={() => setStorePopupOpen(true)}
-            handleEditOption={(option: any) => {
-              const storeToEdit = storesData?.find((s: any) => s.id === option.value);
-              if (storeToEdit) {
-                setSelectedStore(storeToEdit);
-              }
-              setStoreUpdatePopupOpen(true);
-            }}
-          />
+          <StoreSelect store={store} setStore={setStore} defaultStore={filters.store} />
 
-          <AutocompleteSelect
-            title="Chức danh"
-            options={ROLE_CONFIG}
-            selected={role}
-            setSelected={setRole}
-          />
+          <RoleSelect role={role} setRole={setRole} defaultRole={filters.role}/>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 8, lg: 10 }}>
           <DTable
@@ -294,17 +239,6 @@ export function EmployeeView() {
           />
         </Grid>
       </Grid>
-      <StoreCreationForm
-        popupOpen={storePopupOpen}
-        setPopupOpen={setStorePopupOpen}
-        title="New Store"
-      />
-      <StoreCreationForm
-        popupOpen={storeUpdatePopupOpen}
-        setPopupOpen={setStoreUpdatePopupOpen}
-        title="Update Store"
-        editData={selectedStore}
-      />
       <EmployeeCreationForm popupOpen={employeePopupOpen} setPopupOpen={setEmployeePopupOpen} />
     </DashboardContent>
   );

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
 import TabList from '@mui/lab/TabList';
+import { Divider } from '@mui/material';
 import TabPanel from '@mui/lab/TabPanel';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
@@ -12,133 +13,150 @@ import TabContext from '@mui/lab/TabContext';
 import Checkbox from '@mui/material/Checkbox';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import InputAdornment from '@mui/material/InputAdornment';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
-import ImageUploader from 'src/components/upload/image-upload';
-import { SelectInput } from 'src/components/select/single-select-input';
+import { useDebounceForm } from 'src/hooks/use-debounce-form';
+
+import { RoleSelect } from 'src/components/select/role-select';
+import { StoreSelect } from 'src/components/select/store-select';
 
 import { EmployeeSalarySetting } from './employee-salary-setting';
+
 //-------------------------------------------------------
+
 type EmployeeCreationFormProps = {
   popupOpen: boolean;
   setPopupOpen: (open: boolean) => void;
 };
 
+const employeeForm = {
+  initialState: {
+    fullName: '',
+    email: '',
+    phone: '',
+    identityCardNo: '',
+    address: '',
+    note: '',
+  },
+  requiredFields: [],
+};
+
 export function EmployeeCreationForm({ popupOpen, setPopupOpen }: EmployeeCreationFormProps) {
   const [value, setValue] = useState('1');
 
-  const [imageUrl, setImageUrl] = useState<string>('');
+  const [store, setStore] = useState<any>({});
+  const [storeError, setStoreError] = useState<string>('');
+  const [role, setRole] = useState<any>({});
+  const [roleError, setRoleError] = useState<string>('');
+  const [gender, setGender] = useState<'MALE' | 'FEMALE'>('MALE');
 
   const [openMore, setOpenMore] = useState(false);
+
+  const { formData, formError, handleInputChange, setFormError, isValidForm, resetForm } =
+    useDebounceForm(employeeForm);
 
   const handleChange = (event: any, newValue: any) => {
     setValue(newValue);
   };
 
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    status: 'active',
-    department: '',
-    jobTitle: '',
-    workingBranch: '',
-  });
+  const isValidEmployee = () => {
+    if (!store?.value) {
+      setStoreError('Store is required!');
+    }
+
+    if (!role?.value) {
+      setRoleError('Role is required!');
+    }
+
+    if (!store || !role) {
+      return false;
+    }
+
+    return isValidForm();
+  };
+
+  const handleCreateEmployee = () => {
+    if (!isValidEmployee()) {
+      return;
+    }
+  };
 
   const creationForm = (
     <Box sx={{}}>
-      <Card sx={{ p: 3, mb: 2 }}>
-        <Typography variant="subtitle1" sx={{ mb: 3 }}>
-          Basic information
+      <Card sx={{ px: 10, pt: 3, pb: 6, mb: 2 }}>
+        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+          Thông tin cơ bản
         </Typography>
-        <Grid container spacing={8}>
-          <Grid size={{ xs: 12, sm: 2, md: 2 }}>
-            <Box sx={{ width: '220px' }}>
-              <ImageUploader imageUrl={imageUrl} setImageUrl={setImageUrl} size={150}/>
+
+        <Grid container spacing={2} columnSpacing={6} size={{ xs: 12, sm: 12, md: 12 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+            <Typography variant="caption" sx={{ mb: 1 }}>
+              Mã nhân viên
+            </Typography>
+            <TextField
+              fullWidth
+              name="employeeCode"
+              placeholder="Auto generated"
+              disabled
+              sx={{ mb: 0 }}
+              slotProps={{
+                inputLabel: { shrink: true },
+              }}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+            <Typography variant="caption" sx={{ mb: 1 }}>
+              Tên nhân viên
+            </Typography>
+            <TextField
+              fullWidth
+              name="fullName"
+              value={formData.fullName}
+              error={!!formError.fullName}
+              helperText={formError.fullName}
+              onChange={handleInputChange}
+              sx={{ mb: 0 }}
+              slotProps={{
+                inputLabel: { shrink: true },
+              }}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+            <Box sx={{ width: '100%' }}>
+              <Typography variant="caption" sx={{ mb: 1 }}>
+                Điện thoại
+              </Typography>
+              <TextField
+                fullWidth
+                type="number"
+                name="phone"
+                value={formData.phone}
+                error={!!formError.phone}
+                helperText={formError.phone}
+                onChange={handleInputChange}
+                sx={{ mb: 0 }}
+                slotProps={{
+                  inputLabel: { shrink: true },
+                  input: {
+                    startAdornment: <InputAdornment position="start">+84</InputAdornment>,
+                  },
+                }}
+              />
             </Box>
           </Grid>
-          <Grid container spacing={3} columnSpacing={10} size={{ xs: 12, sm: 10, md: 10 }}>
-            <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-              <TextField
-                fullWidth
-                variant="standard"
-                name="code"
-                label="Employee code"
-                placeholder="Auto generated"
-                // value={formData.name}
-                // error={!!formError.name}
-                // helperText={formError.name}
-                // onChange={handleInputChange}
-                sx={{ mb: 0 }}
-                slotProps={{
-                  inputLabel: { shrink: true },
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-              <TextField
-                fullWidth
-                variant="standard"
-                name="name"
-                label="Employee name"
-                // value={formData.email}
-                // error={!!formError.email}
-                // helperText={formError.email}
-                // onChange={handleInputChange}
-                sx={{ mb: 0 }}
-                slotProps={{
-                  inputLabel: { shrink: true },
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-              <TextField
-                fullWidth
-                variant="standard"
-                name="phone"
-                label="Phone number"
-                // value={formData.name}
-                // error={!!formError.name}
-                // helperText={formError.name}
-                // onChange={handleInputChange}
-                sx={{ mb: 0 }}
-                slotProps={{
-                  inputLabel: { shrink: true },
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-              <TextField
-                fullWidth
-                variant="standard"
-                name="paymentBranch"
-                label="Payment branch"
-                // value={formData.email}
-                // error={!!formError.email}
-                // helperText={formError.email}
-                // onChange={handleInputChange}
-                sx={{ mb: 0 }}
-                slotProps={{
-                  inputLabel: { shrink: true },
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 12, md: 12 }}>
-              <TextField
-                fullWidth
-                variant="standard"
-                name="workingBranch"
-                label="Working branch"
-                // value={formData.email}
-                // error={!!formError.email}
-                // helperText={formError.email}
-                // onChange={handleInputChange}
-                sx={{ mb: 0 }}
-                slotProps={{
-                  inputLabel: { shrink: true },
-                }}
-              />
-            </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+            <Typography variant="caption" sx={{ mb: 1 }}>
+              Chi nhánh làm việc
+            </Typography>
+            <StoreSelect
+              store={store}
+              setStore={setStore}
+              inputStyle
+              error={storeError}
+              setError={setStoreError}
+            />
           </Grid>
         </Grid>
       </Card>
@@ -149,210 +167,130 @@ export function EmployeeCreationForm({ popupOpen, setPopupOpen }: EmployeeCreati
           sx={{ mb: 2 }}
           onClick={() => setOpenMore(!openMore)}
         >
-          {openMore ? 'Hide' : 'More'}
+          {openMore ? 'Ẩn thông tin' : 'Hiện thông tin'}
         </Button>
       </Box>
       {openMore && (
         <Box>
-          <Card sx={{ p: 3, mb: 3 }}>
-            <Typography variant="subtitle1" sx={{ mb: 3 }}>
-              Working information
+          <Card sx={{ px: 10, pt: 3, pb: 6, mb: 2 }}>
+            <Typography variant="subtitle1" sx={{ mb: 2 }}>
+              Thông tin công việc
             </Typography>
-            <Grid container spacing={8}>
-              <Grid size={{ xs: 12, sm: 2, md: 2 }} />
-              <Grid container spacing={3} columnSpacing={10} size={{ xs: 12, sm: 10, md: 10 }}>
-                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                  <DatePicker
-                    label="Start working date"
-                    slotProps={{ textField: { variant: 'standard', fullWidth: true } }}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                  <SelectInput
-                    options={['Option 1', 'Option 2', 'Option 3']}
-                    selected={formData.department}
-                    setSelected={(val: string | null) =>
-                      setFormData({ ...formData, department: val || '' })
-                    }
-                    handleEditOption={() => {}}
-                    handleAddEvent={() => {}}
-                    label="Select department"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                  <SelectInput
-                    options={['Option 1', 'Option 2', 'Option 3']}
-                    selected={formData.department}
-                    setSelected={(val: string | null) =>
-                      setFormData({ ...formData, department: val || '' })
-                    }
-                    handleEditOption={() => {}}
-                    handleAddEvent={() => {}}
-                    label="Select job title"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                  <SelectInput
-                    options={['Option 1', 'Option 2', 'Option 3']}
-                    selected={formData.department}
-                    setSelected={(val: string | null) =>
-                      setFormData({ ...formData, department: val || '' })
-                    }
-                    handleEditOption={() => {}}
-                    handleAddEvent={() => {}}
-                    label="Select login account"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 12, md: 12 }}>
-                  <TextField
-                    fullWidth
-                    variant="standard"
-                    name="note"
-                    label="Note"
-                    // value={formData.email}
-                    // error={!!formError.email}
-                    // helperText={formError.email}
-                    // onChange={handleInputChange}
-                    sx={{ mb: 0 }}
-                    slotProps={{
-                      inputLabel: { shrink: true },
-                    }}
-                    multiline
-                    rows={2}
-                  />
-                </Grid>
+
+            <Grid container spacing={2} columnSpacing={6} size={{ xs: 12, sm: 12, md: 12 }}>
+              <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+                <Typography variant="caption" sx={{ mb: 1 }}>
+                  Ngày bắt đầu làm việc
+                </Typography>
+                <DatePicker slotProps={{ textField: { fullWidth: true } }} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+                <Typography variant="caption" sx={{ mb: 1 }}>
+                  Chức danh
+                </Typography>
+                <RoleSelect
+                  role={role}
+                  setRole={setRole}
+                  inputStyle
+                  error={roleError}
+                  setError={setRoleError}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 12, md: 12 }}>
+                <Typography variant="caption" sx={{ mb: 1 }}>
+                  Ghi chú
+                </Typography>
+                <TextField
+                  fullWidth
+                  name="note"
+                  value={formData.note}
+                  error={!!formError.note}
+                  helperText={formError.note}
+                  onChange={handleInputChange}
+                  sx={{ mb: 0 }}
+                  slotProps={{
+                    inputLabel: { shrink: true },
+                  }}
+                  multiline
+                  rows={2}
+                />
               </Grid>
             </Grid>
           </Card>
-          <Card sx={{ p: 3, mb: 3 }}>
-            <Typography variant="subtitle1" sx={{ mb: 3 }}>
-              Personal information
+          <Card sx={{ px: 10, pt: 3, pb: 6, mb: 2 }}>
+            <Typography variant="subtitle1" sx={{ mb: 2 }}>
+              Thông tin cá nhân
             </Typography>
-            <Grid container spacing={8}>
-              <Grid size={{ xs: 12, sm: 2, md: 2 }} />
-              <Grid container spacing={3} columnSpacing={10} size={{ xs: 12, sm: 10, md: 10 }}>
-                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    variant="standard"
-                    name="idCard"
-                    label="ID card number"
-                    // value={formData.email}
-                    // error={!!formError.email}
-                    // helperText={formError.email}
-                    // onChange={handleInputChange}
-                    sx={{ mb: 0 }}
-                    slotProps={{
-                      inputLabel: { shrink: true },
-                    }}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                  <DatePicker
-                    label="Date of birth"
-                    slotProps={{ textField: { variant: 'standard', fullWidth: true } }}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-                    <Typography variant="body2" sx={{ mr: 2 }}>
-                      Gender
-                    </Typography>
-                    <FormControlLabel label="Male" control={<Checkbox />} />
-                    <FormControlLabel label="Female" control={<Checkbox />} />
-                  </Box>
-                </Grid>
+
+            <Grid container spacing={2} columnSpacing={6} size={{ xs: 12, sm: 12, md: 12 }}>
+              <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+                <Typography variant="caption" sx={{ mb: 1 }}>
+                  Số CMND/CCCD
+                </Typography>
+                <TextField
+                  fullWidth
+                  name="identityCardNo"
+                  value={formData.identityCardNo}
+                  error={!!formError.identityCardNo}
+                  helperText={formError.identityCardNo}
+                  onChange={handleInputChange}
+                  sx={{ mb: 0 }}
+                  slotProps={{
+                    inputLabel: { shrink: true },
+                  }}
+                />
               </Grid>
-            </Grid>
-          </Card>
-          <Card sx={{ p: 3, mb: 3 }}>
-            <Typography variant="subtitle1" sx={{ mb: 3 }}>
-              Contact information
-            </Typography>
-            <Grid container spacing={8}>
-              <Grid size={{ xs: 12, sm: 2, md: 2 }} />
-              <Grid container spacing={3} columnSpacing={10} size={{ xs: 12, sm: 10, md: 10 }}>
-                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+              <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+                <Typography variant="caption" sx={{ mb: 1 }}>
+                  Ngày sinh
+                </Typography>
+                <DatePicker slotProps={{ textField: { fullWidth: true } }} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                  <Typography variant="caption" sx={{ mr: 2 }}>
+                    Gender
+                  </Typography>
+                  <FormControlLabel
+                    label="Male"
+                    control={
+                      <Checkbox
+                        checked={gender === 'MALE'}
+                        onChange={(e: ChangeEvent, checked) => {
+                          if (checked) setGender('MALE');
+                        }}
+                      />
+                    }
+                  />
+                  <FormControlLabel
+                    label="Female"
+                    control={
+                      <Checkbox
+                        checked={gender === 'FEMALE'}
+                        onChange={(e: ChangeEvent, checked) => {
+                          if (checked) setGender('FEMALE');
+                        }}
+                      />
+                    }
+                  />
+                </Box>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 12, md: 12 }}>
+                <Box sx={{ width: '100%' }}>
+                  <Typography variant="caption">Address</Typography>
                   <TextField
                     fullWidth
-                    variant="standard"
                     name="address"
-                    label="Address"
-                    // value={formData.name}
-                    // error={!!formError.name}
-                    // helperText={formError.name}
-                    // onChange={handleInputChange}
+                    value={formData.address}
+                    error={!!formError.address}
+                    helperText={formError.address}
+                    onChange={handleInputChange}
                     sx={{ mb: 0 }}
                     slotProps={{
                       inputLabel: { shrink: true },
                     }}
                   />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    variant="standard"
-                    name="province"
-                    label="Province"
-                    // value={formData.email}
-                    // error={!!formError.email}
-                    // helperText={formError.email}
-                    // onChange={handleInputChange}
-                    sx={{ mb: 0 }}
-                    slotProps={{
-                      inputLabel: { shrink: true },
-                    }}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    variant="standard"
-                    name="email"
-                    label="Email"
-                    // value={formData.name}
-                    // error={!!formError.name}
-                    // helperText={formError.name}
-                    // onChange={handleInputChange}
-                    sx={{ mb: 0 }}
-                    slotProps={{
-                      inputLabel: { shrink: true },
-                    }}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    variant="standard"
-                    name="district"
-                    label="District"
-                    // value={formData.email}
-                    // error={!!formError.email}
-                    // helperText={formError.email}
-                    // onChange={handleInputChange}
-                    sx={{ mb: 0 }}
-                    slotProps={{
-                      inputLabel: { shrink: true },
-                    }}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6, md: 6 }} />
-                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    variant="standard"
-                    name="ward"
-                    label="Ward"
-                    // value={formData.email}
-                    // error={!!formError.email}
-                    // helperText={formError.email}
-                    // onChange={handleInputChange}
-                    sx={{ mb: 0 }}
-                    slotProps={{
-                      inputLabel: { shrink: true },
-                    }}
-                  />
-                </Grid>
+                </Box>
               </Grid>
             </Grid>
           </Card>
@@ -368,23 +306,23 @@ export function EmployeeCreationForm({ popupOpen, setPopupOpen }: EmployeeCreati
       aria-labelledby="dialog"
       sx={{
         '& .MuiDialog-paper': {
-          width: '1200px',
+          width: '800px',
           maxWidth: '90%',
-          height: '90vh'
+          height: '90vh',
         },
       }}
     >
       <Box sx={{ p: 3 }}>
         <Typography id="dialog" variant="h5">
-          New Employee
+          Tạo nhân viên
         </Typography>
 
         <Box sx={{ width: '100%', typography: 'body1' }}>
           <TabContext value={value}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
               <TabList onChange={handleChange} aria-label="lab API tabs example">
-                <Tab label="Employee Information" value="1" />
-                <Tab label="Salary Settings" value="2" />
+                <Tab label="Thông tin nhân viên" value="1" />
+                <Tab label="Thiết lập lương" value="2" />
               </TabList>
             </Box>
             <Box
@@ -392,7 +330,7 @@ export function EmployeeCreationForm({ popupOpen, setPopupOpen }: EmployeeCreati
                 flex: 1,
                 overflow: 'auto',
                 height: '65vh',
-                scrollbarGutter: 'stable'
+                scrollbarGutter: 'stable',
               }}
             >
               <TabPanel value="1" sx={{ px: 1 }}>
@@ -404,27 +342,25 @@ export function EmployeeCreationForm({ popupOpen, setPopupOpen }: EmployeeCreati
             </Box>
           </TabContext>
         </Box>
+        <Divider />
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Button
               size="medium"
-              color="primary"
+              color="inherit"
               variant="contained"
-              // disabled={!isValidForm()}
-              // onClick={handleSignUp}
-              // loading={isLoading}
+              onClick={() => setPopupOpen(false)}
             >
-              Save
+              Cancel
             </Button>
             <Button
               size="medium"
-              color="inherit"
+              color="primary"
               variant="contained"
-              // disabled={!isValidForm()}
-              onClick={() => setPopupOpen(false)}
-              // loading={isLoading}
+              disabled={!isValidForm()}
+              onClick={handleCreateEmployee}
             >
-              Cancel
+              Save
             </Button>
           </Box>
         </Box>
