@@ -9,14 +9,7 @@ import {
   getFilteredRowModel,
   SortingState,
 } from '@tanstack/react-table';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
@@ -36,7 +29,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
-  searchPlaceholder = 'Search...',
+  searchPlaceholder = 'Tìm kiếm...',
   onRowClick,
   expandedContent,
   isLoading,
@@ -61,9 +54,9 @@ export function DataTable<TData, TValue>({
   });
 
   const toggleRow = (id: string) => {
-    setExpandedRows(prev => ({
+    setExpandedRows((prev) => ({
       ...prev,
-      [id]: !prev[id]
+      [id]: !prev[id],
     }));
   };
 
@@ -87,12 +80,7 @@ export function DataTable<TData, TValue>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -102,7 +90,10 @@ export function DataTable<TData, TValue>({
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={columns.length + (expandedContent ? 1 : 0)} className="h-24 text-center">
-                  Loading...
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="animate-spin" />
+                    <span>Đang tìm kiếm...</span>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
@@ -110,10 +101,7 @@ export function DataTable<TData, TValue>({
                 <React.Fragment key={row.id}>
                   <TableRow
                     data-state={row.getIsSelected() && 'selected'}
-                    className={cn(
-                      'cursor-pointer hover:bg-muted/50',
-                      expandedRows[row.id] && 'bg-muted/50'
-                    )}
+                    className={cn('cursor-pointer hover:bg-muted/50', expandedRows[row.id] && 'bg-muted/50')}
                     onClick={() => {
                       if (expandedContent) {
                         toggleRow(row.id);
@@ -122,29 +110,18 @@ export function DataTable<TData, TValue>({
                     }}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
+                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                     ))}
                     {expandedContent && (
                       <TableCell className="w-4">
-                        {expandedRows[row.id] ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )}
+                        {expandedRows[row.id] ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                       </TableCell>
                     )}
                   </TableRow>
                   {expandedContent && expandedRows[row.id] && (
                     <TableRow>
                       <TableCell colSpan={columns.length + 1} className="p-0">
-                        <div className="border-t bg-muted/50 p-4">
-                          {expandedContent(row.original)}
-                        </div>
+                        <div className="border-t bg-muted/50 p-4">{expandedContent(row.original)}</div>
                       </TableCell>
                     </TableRow>
                   )}
@@ -152,11 +129,8 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  Không có kết quả.
                 </TableCell>
               </TableRow>
             )}
@@ -165,21 +139,11 @@ export function DataTable<TData, TValue>({
       </div>
 
       <div className="flex items-center justify-end space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
+        <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+          Trước
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
+        <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+          Tiếp
         </Button>
       </div>
     </div>

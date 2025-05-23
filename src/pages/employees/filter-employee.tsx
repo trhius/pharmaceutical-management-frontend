@@ -9,14 +9,8 @@ import { cn } from '@/lib/utils';
 import { useForm } from 'react-hook-form';
 import { ListEmployeeRequest } from '@/apis/types';
 import { useAllStores } from '@/apis';
+import { roles } from '@/apis/types/transform';
 
-// Sample users data
-const roles = [
-  { label: 'Quản trị viên', value: 'SUPER_ADMIN' },
-  { label: 'Quản lý cửa hàng', value: 'STORE_MANAGER' },
-  { label: 'Dược sĩ', value: 'PHARMACIST' },
-  { label: 'Nhân viên hàng hóa', value: 'INVENTORY_STAFF' },
-];
 
 export function FilterEmployee({ onFilter }: { onFilter?: (values: ListEmployeeRequest) => void }) {
   const storeRes = useAllStores();
