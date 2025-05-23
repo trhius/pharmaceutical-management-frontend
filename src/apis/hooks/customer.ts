@@ -2,7 +2,7 @@ import { useQuery, useMutation, UseQueryResult, UseMutationResult } from '@tanst
 import * as Types from '../types';
 import { customer } from '../services/customer';
 
-export const useAddCustomer = (): UseMutationResult<Types.CustomerResponse, Error, Types.CustomerRequest> =>
+export const useAddCustomer = (): UseMutationResult<Types.CustomerResponse, Error, Types.CreateCustomerRequest> =>
   useMutation({
     mutationFn: customer.addCustomer,
   });
@@ -10,7 +10,7 @@ export const useAddCustomer = (): UseMutationResult<Types.CustomerResponse, Erro
 export const useUpdateCustomer = (): UseMutationResult<
   Types.CustomerResponse,
   Error,
-  { id: number; data: Types.CustomerRequest }
+  { id: number; data: Types.CreateCustomerRequest }
 > =>
   useMutation({
     mutationFn: ({ id, data }) => customer.updateCustomer(id, data),

@@ -19,7 +19,7 @@ export interface UpdateEmployeeRequest {
 }
 
 export interface EmployeeResponse {
-  id?: number;
+  id: number;
   employeeCode?: string;
   email?: string;
   fullName?: string;
@@ -73,7 +73,7 @@ export interface ListEmployeeRequest {
   role?: 'SUPER_ADMIN' | 'STORE_MANAGER' | 'PHARMACIST' | 'INVENTORY_STAFF';
   status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'ON_LEAVE';
   search?: string;
-  commonSearchBy?: 'NAME' | 'CODE' | 'PHONE';
+  searchBy?: 'NAME' | 'CODE' | 'PHONE';
 }
 
 export interface PageEmployeeResponse {

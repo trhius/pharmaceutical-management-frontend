@@ -2,10 +2,10 @@ import * as Types from '../types';
 import { apiClient } from '../client';
 
 export const customer = {
-  addCustomer: (data: Types.CustomerRequest): Promise<Types.CustomerResponse> =>
+  addCustomer: (data: Types.CreateCustomerRequest): Promise<Types.CustomerResponse> =>
     apiClient.post('/api/customers/add', data).then((res) => res.data),
 
-  updateCustomer: (id: number, data: Types.CustomerRequest): Promise<Types.CustomerResponse> =>
+  updateCustomer: (id: number, data: Types.CreateCustomerRequest): Promise<Types.CustomerResponse> =>
     apiClient.post(`/api/customers/${id}/edit`, data).then((res) => res.data),
 
   deactivateCustomer: (id: number): Promise<Types.StringResponse> =>

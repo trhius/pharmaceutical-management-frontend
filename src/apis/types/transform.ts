@@ -4,3 +4,23 @@ export const roles = [
   { label: 'Dược sĩ', value: 'PHARMACIST' },
   { label: 'Nhân viên hàng hóa', value: 'INVENTORY_STAFF' },
 ];
+
+export const genders = [
+  { label: 'Nam', value: 'MALE' },
+  { label: 'Nữ', value: 'FEMALE' },
+  { label: 'Khác', value: 'OTHER' },
+];
+
+export const ageGroups = [
+  { label: 'Trẻ em', value: 'CHILD' },
+  { label: 'Trẻ vị thành niên', value: 'TEEN' },
+  { label: 'Trưởng thành', value: 'ADULT' },
+  { label: 'Người cao tuổi', value: 'ELDERLY' },
+];
+
+export const employeeStatuses = [
+  { label: 'Đang hoạt động', value: 'ACTIVE' },
+  { label: 'Ngừng hoạt động', value: 'INACTIVE' },
+  { label: 'Đình chỉ', value: 'SUSPENDED' },
+  { label: 'Đang nghỉ phép', value: 'ON_LEAVE' },
+];

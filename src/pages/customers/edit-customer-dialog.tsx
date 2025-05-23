@@ -1,6 +1,4 @@
-import { z } from 'zod';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
   DialogContent,
@@ -9,112 +7,80 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
-const formSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters.'),
-  email: z.string().email('Please enter a valid email.'),
-  phone: z.string().min(10, 'Please enter a valid phone number.'),
-  address: z.string().min(5, 'Address must be at least 5 characters.'),
-  type: z.string().min(1, 'Please select a customer type.'),
-  status: z.boolean(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  type: string;
-  status: string;
-  since: string;
-}
+import { CreateCustomerRequest, CustomerResponse } from '@/apis/types/customer';
+import { useUpdateCustomer } from '@/apis/hooks/customer';
+import { genders } from '@/apis/types/transform';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface EditCustomerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  customer: Customer;
+  customer: CustomerResponse;
 }
 
-export function EditCustomerDialog({
-  open,
-  onOpenChange,
-  customer,
-}: EditCustomerDialogProps) {
+export function EditCustomerDialog({ open, onOpenChange, customer }: EditCustomerDialogProps) {
   const { toast } = useToast();
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const updateCustomerMutation = useUpdateCustomer();
+  const queryClient = useQueryClient();
+
+  const form = useForm<CreateCustomerRequest>({
     defaultValues: {
       name: customer.name,
+      phoneNumber: customer.phoneNumber,
       email: customer.email,
-      phone: customer.phone,
+      dayOfBirth: customer.dayOfBirth,
+      gender: customer.gender,
       address: customer.address,
-      type: customer.type,
-      status: customer.status === 'active',
     },
   });
 
-  // Update form when customer changes
-  useEffect(() => {
-    form.reset({
-      name: customer.name,
-      email: customer.email,
-      phone: customer.phone,
-      address: customer.address,
-      type: customer.type,
-      status: customer.status === 'active',
-    });
-  }, [customer, form]);
+  const onSubmit = (data: CreateCustomerRequest) => {
+    if (data.dayOfBirth) {
+      data.dayOfBirth = format(data.dayOfBirth, "yyyy-MM-dd'T'HH:mm:ss");
+    }
 
-  const onSubmit = (data: FormValues) => {
-    // In a real app, this would call your API to update the customer
-    console.log('Edit customer:', {
-      id: customer.id,
-      ...data,
-      status: data.status ? 'active' : 'inactive',
-    });
-
-    toast({
-      title: 'Customer updated',
-      description: `${data.name}'s information has been updated.`,
-    });
-
-    onOpenChange(false);
+    updateCustomerMutation.mutate(
+      { id: customer.id, data },
+      {
+        onSuccess: () => {
+          toast({
+            title: 'Cập nhật khách hàng thành công',
+            description: `${data.name} đã được cập nhật thành công.`, // Use name from form data
+          });
+          queryClient.invalidateQueries({ queryKey: ['customers'] });
+          form.reset();
+          onOpenChange(false);
+        },
+        onError: (error) => {
+          toast({
+            title: 'Cập nhật khách hàng thất bại',
+            description: error.message || 'Đã xảy ra lỗi khi cập nhật khách hàng.',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Edit Customer</DialogTitle>
-          <DialogDescription>
-            Update the customer's information.
-          </DialogDescription>
+          <DialogTitle>Thêm khách hàng mới</DialogTitle>
+          <DialogDescription>Nhập thông tin chi tiết cho khách hàng mới.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -124,9 +90,9 @@ export function EditCustomerDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>Họ và Tên</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input placeholder="Ví dụ: Nguyễn Văn A" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -136,12 +102,12 @@ export function EditCustomerDialog({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="phoneNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Số điện thoại</FormLabel>
                     <FormControl>
-                      <Input type="email" {...field} />
+                      <Input placeholder="Ví dụ: 0901234567" type="tel" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -150,13 +116,77 @@ export function EditCustomerDialog({
 
               <FormField
                 control={form.control}
-                name="phone"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input placeholder="ví dụ: email@example.com" type="email" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Date of Birth */}
+              <FormField
+                control={form.control}
+                name="dayOfBirth"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Ngày sinh</FormLabel>
+                    <Popover modal={true}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={'outline'}
+                            className={cn(
+                              'w-full justify-start text-left font-normal',
+                              !field.value && 'text-muted-foreground'
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : <span>Chọn ngày</span>}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={(date) => field.onChange(date?.toISOString())}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Gender */}
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Giới tính</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn giới tính" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {genders.map((gender) => (
+                          <SelectItem key={gender.value} value={gender.value}>
+                            {gender.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -168,70 +198,29 @@ export function EditCustomerDialog({
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address</FormLabel>
+                  <FormLabel>Địa chỉ</FormLabel>
                   <FormControl>
-                    <Textarea {...field} rows={3} />
+                    <Textarea placeholder="Ví dụ: Số 1, Đường A, Quận B, Thành phố C" {...field} rows={3} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Customer Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select customer type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="retail">Retail</SelectItem>
-                      <SelectItem value="wholesale">Wholesale</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Customer Status</FormLabel>
-                    <FormDescription>
-                      {field.value ? 'Active' : 'Inactive'}
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            {/* Removed 'type' field as it's not in CreateCustomerRequest */}
 
             <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={updateCustomerMutation.isPending}
               >
-                Cancel
+                Hủy
               </Button>
-              <Button type="submit">Save Changes</Button>
+              <Button type="submit" disabled={updateCustomerMutation.isPending}>
+                {updateCustomerMutation.isPending ? 'Đang cập nhật...' : 'Cập nhật khách hàng'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

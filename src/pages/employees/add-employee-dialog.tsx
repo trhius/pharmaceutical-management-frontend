@@ -94,11 +94,15 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
   });
 
   const onSubmit = (data: FormValues) => {
+    if (data.joinDate) {
+      data.joinDate = format(data.joinDate, "yyyy-MM-dd'T'HH:mm:ss");
+    }
+
     createEmployeeMutation.mutate(data as CreateEmployeeRequest, {
       onSuccess: () => {
         toast({
           title: 'Đã thêm nhân viên',
-          description: `${data.fullName} has been successfully added.`, // Use fullName from form data
+          description: `${data.fullName} đã được thêm thành công.`, // Use fullName from form data
         });
         form.reset();
         onOpenChange(false);

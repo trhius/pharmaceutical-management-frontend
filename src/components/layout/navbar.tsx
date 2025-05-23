@@ -58,20 +58,20 @@ export function Navbar() {
   const navigate = useNavigate();
 
   const navigation = [
-    { name: 'Dashboard', href: '/' },
+    { name: 'Bảng điều khiển', href: '/' },
     {
-      name: 'Products',
+      name: 'Sản phẩm',
       href: '/products', // Parent link, can be the default sub-item page
       subItems: [
-        { name: 'List Products', href: '/products' },
-        { name: 'Product Prices', href: '/products/prices' },
+        { name: 'Danh sách sản phẩm', href: '/products' },
+        { name: 'Giá sản phẩm', href: '/products/prices' },
         // Add more sub-items here
       ],
     },
-    { name: 'Employees', href: '/employees' },
-    { name: 'Customers', href: '/customers' },
-    { name: 'Providers', href: '/providers' },
-    { name: 'Orders', href: '/orders' },
+    { name: 'Nhân viên', href: '/employees' },
+    { name: 'Khách hàng', href: '/customers' },
+    { name: 'Nhà cung cấp', href: '/providers' },
+    { name: 'Đơn hàng', href: '/orders' },
   ];
 
   const handleLogout = () => {
@@ -145,8 +145,8 @@ export function Navbar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt={user?.name || 'User'} />
-                  <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
+                  <AvatarImage src="/placeholder-avatar.jpg" alt={user?.name || 'Người dùng'} />
+                  <AvatarFallback>{user?.name?.charAt(0) || 'N'}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -160,7 +160,7 @@ export function Navbar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
-                Log out
+                Đăng xuất
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

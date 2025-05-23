@@ -10,15 +10,20 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PageHeader } from '@/components/layout/page-header';
 import { TableFilterSidebar } from './filter-customer';
 
-import { useCustomers } from '@/apis/hooks/customer';
+import { useCustomers, useDeactivateCustomer } from '@/apis/hooks/customer';
+import { useToast } from '@/hooks/use-toast';
 import { CustomerResponse, CustomerListRequest } from '@/apis/types/customer';
 import { format } from 'date-fns';
+import { ageGroups } from '@/apis/types/transform';
 
 export default function CustomersListPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerResponse | null>(null);
+
+  const deleteCustomerMutation = useDeactivateCustomer();
+  const { toast } = useToast();
 
   const [filter, setFilter] = useState<CustomerListRequest>({});
   const { data: customersData, isLoading, refetch } = useCustomers({ request: filter });
@@ -29,17 +34,12 @@ export default function CustomersListPage() {
     setIsEditDialogOpen(true);
   };
 
-  const handleDelete = (customer: CustomerResponse) => {
-    setSelectedCustomer(customer);
-    setIsDeleteDialogOpen(true);
-  };
-
   const onFilter = useCallback((values: CustomerListRequest) => {
     setFilter(values);
   }, []);
 
   const columns = [
-     {
+    {
       accessorKey: 'customerCode',
       header: 'Mã khách hàng',
     },
@@ -55,14 +55,14 @@ export default function CustomersListPage() {
       accessorKey: 'phoneNumber',
       header: 'Số điện thoại',
     },
-     {
+    {
       accessorKey: 'address',
       header: 'Địa chỉ',
     },
     {
       accessorKey: 'createdAt',
       header: 'Ngày tạo',
-       cell: ({ row }: any) => {
+      cell: ({ row }: any) => {
         const date = row.original.createdAt;
         return <span>{date ? format(new Date(date), 'dd/MM/yyyy') : 'N/A'}</span>;
       },
@@ -115,18 +115,24 @@ export default function CustomersListPage() {
 
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Ngày sinh</p>
-              <p className="text-sm font-medium">{customer.dayOfBirth ? format(new Date(customer.dayOfBirth), 'dd/MM/yyyy') : 'N/A'}</p>
+              <p className="text-sm font-medium">
+                {customer.dayOfBirth ? format(new Date(customer.dayOfBirth), 'dd/MM/yyyy') : 'N/A'}
+              </p>
             </div>
 
             {/* Row 3 */}
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Giới tính</p>
-              <p className="text-sm font-medium">{customer.gender === 'MALE' ? 'Nam' : customer.gender === 'FEMALE' ? 'Nữ' : 'Khác'}</p>
+              <p className="text-sm font-medium">
+                {customer.gender === 'MALE' ? 'Nam' : customer.gender === 'FEMALE' ? 'Nữ' : 'Khác'}
+              </p>
             </div>
 
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Nhóm tuổi</p>
-              <p className="text-sm font-medium">{customer.ageGroup || 'N/A'}</p>
+              <p className="text-sm font-medium">
+                {ageGroups.find((ageGroup) => ageGroup.value === customer.ageGroup)?.label}
+              </p>
             </div>
 
             <div className="space-y-1">
@@ -135,42 +141,57 @@ export default function CustomersListPage() {
             </div>
 
             {/* Row 4 */}
-             <div className="space-y-1">
+            <div className="space-y-1">
               <p className="text-xs text-gray-500">Trạng thái</p>
-              <p className="text-sm font-medium">{customer.status === 'ACTIVE' ? 'Đang hoạt động' : customer.status === 'INACTIVE' ? 'Ngừng hoạt động' : 'Đã vô hiệu hóa'}</p>
+              <p className="text-sm font-medium">
+                {customer.status === 'ACTIVE'
+                  ? 'Đang hoạt động'
+                  : customer.status === 'INACTIVE'
+                    ? 'Ngừng hoạt động'
+                    : 'Đã vô hiệu hóa'}
+              </p>
             </div>
 
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Ngày tạo</p>
-              <p className="text-sm font-medium">{customer.createdAt ? format(new Date(customer.createdAt), 'dd/MM/yyyy HH:mm') : 'N/A'}</p>
+              <p className="text-sm font-medium">
+                {customer.createdAt ? format(new Date(customer.createdAt), 'dd/MM/yyyy HH:mm') : 'N/A'}
+              </p>
             </div>
 
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Cập nhật lần cuối</p>
-              <p className="text-sm font-medium">{customer.updatedAt ? format(new Date(customer.updatedAt), 'dd/MM/yyyy HH:mm') : 'N/A'}</p>
+              <p className="text-sm font-medium">
+                {customer.updatedAt ? format(new Date(customer.updatedAt), 'dd/MM/yyyy HH:mm') : 'N/A'}
+              </p>
             </div>
-
           </div>
         </div>
 
         <div className="flex justify-end">
           <div className="space-x-2">
-             <Button variant="outline" onClick={() => customer.customerCode && navigator.clipboard.writeText(customer.customerCode)}>
-                Sao chép Mã khách hàng
+            <Button
+              variant="outline"
+              onClick={() => customer.customerCode && navigator.clipboard.writeText(customer.customerCode)}
+            >
+              Sao chép Mã khách hàng
+            </Button>
+            {customer.id && (
+              <Button variant="outline" onClick={() => handleEdit(customer)}>
+                Chỉnh sửa chi tiết
               </Button>
-              {customer.id && (
-                 <Button variant="outline" onClick={() => handleEdit(customer)}>
-                  Chỉnh sửa chi tiết
-                </Button>
-              )}
-              {customer.id && (
-                <Button
-                  variant="destructive"
-                  onClick={() => handleDelete(customer)}
-                >
-                  Vô hiệu hóa
-                </Button>
-              )}
+            )}
+            {customer.id && customer.status === 'ACTIVE' && (
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setSelectedCustomer(customer);
+                  setIsDeleteDialogOpen(true);
+                }}
+              >
+                Vô hiệu hóa
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -191,42 +212,31 @@ export default function CustomersListPage() {
       />
 
       <div className="flex min-h-screen items-start gap-8 py-8">
-      <div className="sticky top-8">
-        <TableFilterSidebar onFilter={onFilter} />
-      </div>
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Danh sách khách hàng</CardTitle>
-          <CardDescription>
-            Quản lý khách hàng lẻ và khách hàng sỉ.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            columns={columns}
-            data={customers || []}
-            searchKey="name"
-            searchPlaceholder="Tìm kiếm khách hàng..."
-            expandedContent={renderExpandedContent}
-            isLoading={isLoading}
-          />
-        </CardContent>
-      </Card>
+        <div className="sticky top-8">
+          <TableFilterSidebar onFilter={onFilter} />
+        </div>
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle>Danh sách khách hàng</CardTitle>
+            <CardDescription>Quản lý khách hàng lẻ và khách hàng sỉ.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DataTable
+              columns={columns}
+              data={customers || []}
+              searchKey="name"
+              searchPlaceholder="Tìm kiếm khách hàng..."
+              expandedContent={renderExpandedContent}
+              isLoading={isLoading}
+            />
+          </CardContent>
+        </Card>
       </div>
 
-      <AddCustomerDialog
-        open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-        onCustomerAdded={refetch}
-      />
+      <AddCustomerDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onCustomerAdded={refetch} />
 
       {selectedCustomer && (
-        <EditCustomerDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          customer={selectedCustomer}
-          onCustomerUpdated={refetch}
-        />
+        <EditCustomerDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} customer={selectedCustomer} />
       )}
 
       {selectedCustomer && (
@@ -235,10 +245,27 @@ export default function CustomersListPage() {
           onOpenChange={setIsDeleteDialogOpen}
           title="Vô hiệu hóa khách hàng"
           description={`Bạn có chắc chắn muốn vô hiệu hóa khách hàng ${selectedCustomer?.name}? Hành động này không thể hoàn tác.`}
-          confirmText="Vô hiệu hóa"
+          confirmText={deleteCustomerMutation.isPending ? 'Đang vô hiệu hóa...' : 'Vô hiệu hóa'}
           onConfirm={() => {
-            // Handle deactivation
-            setIsDeleteDialogOpen(false);
+            if (selectedCustomer?.id) {
+              deleteCustomerMutation.mutate(selectedCustomer.id, {
+                onSuccess: () => {
+                  setIsDeleteDialogOpen(false);
+                  setSelectedCustomer(null); // Clear selected customer after deletion
+                  refetch();
+                  toast({
+                    title: 'Vô hiệu hóa khách hàng thành công',
+                    description: `Thông tin của ${selectedCustomer?.name} đã được cập nhật trạng thái.`,
+                  });
+                },
+                onError: (error) => {
+                  console.error('Failed to deactivate customer:', error);
+                  setIsDeleteDialogOpen(false);
+                  setSelectedCustomer(null); // Clear selected customer even on error
+                  // Optionally show an error toast here
+                },
+              });
+            }
           }}
         />
       )}

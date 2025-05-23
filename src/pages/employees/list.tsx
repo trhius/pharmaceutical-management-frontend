@@ -11,6 +11,8 @@ import { PageHeader } from '@/components/layout/page-header';
 import { FilterEmployee } from './filter-employee';
 import { useListEmployees } from '@/apis';
 import { EmployeeResponse, ListEmployeeRequest } from '@/apis/types';
+import { roles, genders, employeeStatuses } from '@/apis/types/transform';
+import { Input } from '@/components/ui/input';
 
 export default function EmployeesListPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -40,6 +42,13 @@ export default function EmployeesListPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleSearch = (value: string) => {
+    const applyFilter: Partial<ListEmployeeRequest> = value
+      ? { search: value, searchBy: 'NAME' }
+      : { search: undefined, searchBy: undefined };
+    setFilter({ ...filter, ...applyFilter });
+  };
+
   const onFilter = useCallback((values: ListEmployeeRequest) => {
     setFilter(values);
   }, []);
@@ -58,28 +67,31 @@ export default function EmployeesListPage() {
       header: 'Email',
     },
     {
-      accessorKey: 'branch',
+      accessorKey: 'storeName',
       header: 'Chi nhánh',
     },
     {
       accessorKey: 'role',
       header: 'Chức danh',
+      cell: ({ row }: any) => {
+        return (
+          <Badge variant={row.original.role === 'SUPER_ADMIN' ? 'default' : 'secondary'}>
+            {roles.find((role) => role.value === row.original.role)?.label}
+          </Badge>
+        );
+      },
     },
     {
-      accessorKey: 'createdAt',
+      accessorKey: 'joinDate',
       header: 'Ngày bắt đầu làm',
     },
     {
-      accessorKey: 'note',
-      header: 'Ghi chú',
-    },
-    {
       accessorKey: 'status',
-      header: 'Status',
+      header: 'Trạng thái',
       cell: ({ row }: any) => {
         return (
           <Badge variant={row.original.status === 'ACTIVE' ? 'default' : 'secondary'}>
-            {row.original.status === 'ACTIVE' ? 'Active' : 'Inactive'}
+            {employeeStatuses.find((status) => status.value === row.original.status)?.label}
           </Badge>
         );
       },
@@ -115,7 +127,7 @@ export default function EmployeesListPage() {
 
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Giới tính</p>
-              <p className="text-sm font-medium">{employee.gender}</p>
+              <p className="text-sm font-medium">{genders.find((gender) => gender.value === employee.gender)?.label}</p>
             </div>
 
             <div className="space-y-1">
@@ -126,7 +138,7 @@ export default function EmployeesListPage() {
             {/* Row 3 */}
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Chức danh</p>
-              <p className="text-sm font-medium">{employee.role}</p>
+              <p className="text-sm font-medium">{roles.find((role) => role.value === employee.role)?.label}</p>
             </div>
 
             <div className="space-y-1">
@@ -158,7 +170,7 @@ export default function EmployeesListPage() {
             {/* Row 5 - Notes (spans full width) */}
             <div className="space-y-1 md:col-span-3">
               <p className="text-xs text-gray-500">Ghi chú</p>
-              <p className="text-sm font-medium"></p>
+              <p className="text-sm font-medium">{employee.note}</p>
             </div>
           </div>
         </div>
@@ -180,8 +192,8 @@ export default function EmployeesListPage() {
   return (
     <div className="mx-auto">
       <PageHeader
-        title="Employees"
-        description="View and manage all employees"
+        title="Nhân viên"
+        description="Quản lý nhân viên"
         actions={
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -196,15 +208,18 @@ export default function EmployeesListPage() {
         </div>
         <Card className="w-full">
           <CardHeader>
-            <CardTitle>Employees List</CardTitle>
-            <CardDescription>Manage pharmacy employees and their details.</CardDescription>
+            <CardTitle>Danh sách nhân viên</CardTitle>
+            <CardDescription>Quản lý danh sách nhân viên.</CardDescription>
           </CardHeader>
           <CardContent>
+            <Input
+              placeholder="Tìm nhân viên..."
+              className="mb-4 w-fit"
+              onChange={(e) => handleSearch(e.target.value)}
+            />
             <DataTable
               columns={columns}
               data={employees || []}
-              searchKey="name"
-              searchPlaceholder="Search employees..."
               expandedContent={renderExpandedContent}
               isLoading={listEmployeesData.isLoading}
             />
@@ -212,10 +227,19 @@ export default function EmployeesListPage() {
         </Card>
       </div>
 
-      <AddEmployeeDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onEmployeeAdded={listEmployeesData.refetch} />
+      <AddEmployeeDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onEmployeeAdded={listEmployeesData.refetch}
+      />
 
       {selectedEmployee && (
-        <EditEmployeeDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} employee={selectedEmployee} onEmployeeUpdated={listEmployeesData.refetch} />
+        <EditEmployeeDialog
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          employee={selectedEmployee}
+          onEmployeeUpdated={listEmployeesData.refetch}
+        />
       )}
 
       <ConfirmDialog

@@ -4,7 +4,7 @@
 
 import { PageableObject, SortObject } from "./utility";
 
-export interface CustomerRequest {
+export interface CreateCustomerRequest {
   name?: string;
   phoneNumber?: string;
   email?: string;
@@ -14,7 +14,7 @@ export interface CustomerRequest {
 }
 
 export interface CustomerResponse {
-  id?: number;
+  id: number;
   customerCode?: string;
   name?: string;
   phoneNumber?: string;

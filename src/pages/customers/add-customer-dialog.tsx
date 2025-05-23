@@ -1,6 +1,4 @@
-import { z } from 'zod';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
   DialogContent,
@@ -36,23 +34,7 @@ import { cn } from '@/lib/utils';
 
 import { CreateCustomerRequest } from '@/apis/types/customer';
 import { useAddCustomer } from '@/apis/hooks/customer';
-
-const genderOptions = [
-  { label: 'Nam', value: 'MALE' },
-  { label: 'Nữ', value: 'FEMALE' },
-  { label: 'Khác', value: 'OTHER' },
-];
-
-const formSchema = z.object({
-  name: z.string().min(2, 'Tên đầy đủ phải có ít nhất 2 ký tự.'),
-  phoneNumber: z.string().optional(), // Phone is optional in CreateCustomerRequest
-  email: z.string().email('Vui lòng nhập địa chỉ email hợp lệ.').optional(), // Email is optional in CreateCustomerRequest
-  dayOfBirth: z.string().optional(), // date format, optional
-  gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
-  address: z.string().optional(), // Address is optional in CreateCustomerRequest
-});
-
-type FormValues = z.infer<typeof formSchema>;
+import { genders } from '@/apis/types/transform';
 
 interface AddCustomerDialogProps {
   open: boolean;
@@ -65,8 +47,7 @@ export function AddCustomerDialog({ open, onOpenChange, onCustomerAdded }: AddCu
 
   const addCustomerMutation = useAddCustomer();
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<CreateCustomerRequest>({
     defaultValues: {
       name: '',
       phoneNumber: '',
@@ -77,7 +58,7 @@ export function AddCustomerDialog({ open, onOpenChange, onCustomerAdded }: AddCu
     },
   });
 
-  const onSubmit = (data: FormValues) => {
+  const onSubmit = (data: CreateCustomerRequest) => {
     addCustomerMutation.mutate(data as CreateCustomerRequest, {
       onSuccess: () => {
         toast({
@@ -162,7 +143,7 @@ export function AddCustomerDialog({ open, onOpenChange, onCustomerAdded }: AddCu
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Ngày sinh</FormLabel>
-                    <Popover>
+                    <Popover modal={true}>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
@@ -205,7 +186,7 @@ export function AddCustomerDialog({ open, onOpenChange, onCustomerAdded }: AddCu
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {genderOptions.map((gender) => (
+                        {genders.map((gender) => (
                           <SelectItem key={gender.value} value={gender.value}>
                             {gender.label}
                           </SelectItem>
@@ -243,12 +224,12 @@ export function AddCustomerDialog({ open, onOpenChange, onCustomerAdded }: AddCu
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={addCustomerMutation.isLoading}
+                disabled={addCustomerMutation.isPending}
               >
                 Hủy
               </Button>
-              <Button type="submit" disabled={addCustomerMutation.isLoading}>
-                {addCustomerMutation.isLoading ? 'Đang thêm...' : 'Thêm khách hàng'}
+              <Button type="submit" disabled={addCustomerMutation.isPending}>
+                {addCustomerMutation.isPending ? 'Đang thêm...' : 'Thêm khách hàng'}
               </Button>
             </DialogFooter>
           </form>
