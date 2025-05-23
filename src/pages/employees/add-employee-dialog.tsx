@@ -206,7 +206,7 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Chi nhánh</FormLabel>
-                    <Popover>
+                    <Popover modal>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
@@ -280,7 +280,7 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Ngày sinh</FormLabel>
-                    <Popover>
+                    <Popover modal>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
@@ -316,7 +316,7 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Ngày bắt đầu làm việc</FormLabel>
-                    <Popover>
+                    <Popover modal>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button

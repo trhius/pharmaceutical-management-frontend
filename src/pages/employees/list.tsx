@@ -9,10 +9,12 @@ import { EditEmployeeDialog } from './edit-employee-dialog';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PageHeader } from '@/components/layout/page-header';
 import { FilterEmployee } from './filter-employee';
-import { useListEmployees } from '@/apis';
+import { useListEmployees, useDeleteEmployee } from '@/apis';
 import { EmployeeResponse, ListEmployeeRequest } from '@/apis/types';
 import { roles, genders, employeeStatuses } from '@/apis/types/transform';
 import { Input } from '@/components/ui/input';
+import { useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 
 export default function EmployeesListPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -31,6 +33,9 @@ export default function EmployeesListPage() {
   const [filter, setFilter] = useState<ListEmployeeRequest>({});
   const listEmployeesData = useListEmployees({ request: filter });
   const employees = listEmployeesData.data?.content;
+  const deleteEmployeeMutation = useDeleteEmployee();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const handleEdit = (employee: EmployeeResponse) => {
     setSelectedEmployee(employee);
@@ -48,6 +53,27 @@ export default function EmployeesListPage() {
       : { search: undefined, searchBy: undefined };
     setFilter({ ...filter, ...applyFilter });
   };
+
+  const onDelete = useCallback(() => {
+    if (!selectedEmployee) return;
+    deleteEmployeeMutation.mutate(selectedEmployee?.id, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['listEmployees'] });
+        toast({
+          title: 'Đã xóa nhân viên',
+          description: `${selectedEmployee?.fullName} đã được xóa thành công.`, // Use fullName from form data
+        });
+        setIsDeleteDialogOpen(false);
+      },
+      onError: () => {
+        toast({
+          title: 'Xóa nhân viên thất bại',
+          description: 'Đã xảy ra lỗi xóa nhân viên',
+          variant: 'destructive',
+        });
+      },
+    });
+  }, [selectedEmployee, deleteEmployeeMutation, queryClient, toast]);
 
   const onFilter = useCallback((values: ListEmployeeRequest) => {
     setFilter(values);
@@ -178,11 +204,13 @@ export default function EmployeesListPage() {
         <div className="flex justify-end">
           <div className="space-x-2">
             <Button variant="outline" onClick={() => handleEdit(employee)}>
-              Edit Details
+              Cập nhật thông tin
             </Button>
-            <Button variant="destructive" onClick={() => handleDelete(employee)}>
-              Delete
-            </Button>
+            {employee.status === 'ACTIVE' && (
+              <Button variant="destructive" onClick={() => handleDelete(employee)}>
+                Vô hiệu hóa
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -197,7 +225,7 @@ export default function EmployeesListPage() {
         actions={
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Add Employee
+            Thêm nhân viên
           </Button>
         }
       />
@@ -245,11 +273,12 @@ export default function EmployeesListPage() {
       <ConfirmDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-        title="Delete Employee"
-        description={`Are you sure you want to delete ${selectedEmployee?.name}? This action cannot be undone.`}
+        title="Vô hiệu hóa"
+        description={`Bạn có chắc muốn vô hiệu hóa ${selectedEmployee?.fullName}? Hành động này không thể hoàn tác.`}
+        confirmText={deleteEmployeeMutation.isPending ? 'Đang xóa' : 'Xóa'}
+        cancelText="Hủy"
         onConfirm={() => {
-          // Handle deletion
-          setIsDeleteDialogOpen(false);
+          onDelete();
         }}
       />
     </div>
