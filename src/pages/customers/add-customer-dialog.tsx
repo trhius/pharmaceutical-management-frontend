@@ -28,13 +28,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+
+import { CreateCustomerRequest } from '@/apis/types/customer';
+import { useAddCustomer } from '@/apis/hooks/customer';
+
+const genderOptions = [
+  { label: 'Nam', value: 'MALE' },
+  { label: 'Nữ', value: 'FEMALE' },
+  { label: 'Khác', value: 'OTHER' },
+];
 
 const formSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters.'),
-  email: z.string().email('Please enter a valid email.'),
-  phone: z.string().min(10, 'Please enter a valid phone number.'),
-  address: z.string().min(5, 'Address must be at least 5 characters.'),
-  type: z.string().min(1, 'Please select a customer type.'),
+  name: z.string().min(2, 'Tên đầy đủ phải có ít nhất 2 ký tự.'),
+  phoneNumber: z.string().optional(), // Phone is optional in CreateCustomerRequest
+  email: z.string().email('Vui lòng nhập địa chỉ email hợp lệ.').optional(), // Email is optional in CreateCustomerRequest
+  dayOfBirth: z.string().optional(), // date format, optional
+  gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
+  address: z.string().optional(), // Address is optional in CreateCustomerRequest
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -42,45 +57,57 @@ type FormValues = z.infer<typeof formSchema>;
 interface AddCustomerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCustomerAdded: () => void;
 }
 
-export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps) {
+export function AddCustomerDialog({ open, onOpenChange, onCustomerAdded }: AddCustomerDialogProps) {
   const { toast } = useToast();
-  
+
+  const addCustomerMutation = useAddCustomer();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
+      phoneNumber: '',
       email: '',
-      phone: '',
+      dayOfBirth: undefined,
+      gender: undefined,
       address: '',
-      type: '',
     },
   });
-  
+
   const onSubmit = (data: FormValues) => {
-    // In a real app, this would call your API to create a new customer
-    console.log('Add customer:', data);
-    
-    toast({
-      title: 'Customer added',
-      description: `${data.name} has been successfully added.`,
+    addCustomerMutation.mutate(data as CreateCustomerRequest, {
+      onSuccess: () => {
+        toast({
+          title: 'Thêm khách hàng thành công',
+          description: `${data.name} đã được thêm thành công.`, // Use name from form data
+        });
+        form.reset();
+        onOpenChange(false);
+        onCustomerAdded();
+      },
+      onError: (error) => {
+        toast({
+          title: 'Thêm khách hàng thất bại',
+          description: error.message || 'Đã xảy ra lỗi khi thêm khách hàng.',
+          variant: 'destructive',
+        });
+      },
     });
-    
-    form.reset();
-    onOpenChange(false);
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Add New Customer</DialogTitle>
+          <DialogTitle>Thêm khách hàng mới</DialogTitle>
           <DialogDescription>
-            Enter the details for the new customer.
+            Nhập thông tin chi tiết cho khách hàng mới.
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <FormField
@@ -88,16 +115,30 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>Họ và Tên</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Smith" {...field} />
+                    <Input placeholder="Ví dụ: Nguyễn Văn A" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Số điện thoại</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ví dụ: 0901234567" type="tel" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="email"
@@ -105,38 +146,88 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="john.smith@example.com" type="email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="(555) 123-4567" {...field} />
+                      <Input placeholder="ví dụ: email@example.com" type="email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-            
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Date of Birth */}
+              <FormField
+                control={form.control}
+                name="dayOfBirth"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Ngày sinh</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? format(new Date(field.value), "dd/MM/yyyy") : <span>Chọn ngày</span>}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={(date) => field.onChange(date?.toISOString())}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Gender */}
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Giới tính</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn giới tính" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {genderOptions.map((gender) => (
+                          <SelectItem key={gender.value} value={gender.value}>
+                            {gender.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <FormField
               control={form.control}
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address</FormLabel>
+                  <FormLabel>Địa chỉ</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="123 Main St, City, State, ZIP" 
-                      {...field} 
+                    <Textarea
+                      placeholder="Ví dụ: Số 1, Đường A, Quận B, Thành phố C"
+                      {...field}
                       rows={3}
                     />
                   </FormControl>
@@ -144,41 +235,21 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
                 </FormItem>
               )}
             />
-            
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Customer Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select customer type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="retail">Retail</SelectItem>
-                      <SelectItem value="wholesale">Wholesale</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
+
+            {/* Removed 'type' field as it's not in CreateCustomerRequest */}
+
             <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={addCustomerMutation.isLoading}
               >
-                Cancel
+                Hủy
               </Button>
-              <Button type="submit">Add Customer</Button>
+              <Button type="submit" disabled={addCustomerMutation.isLoading}>
+                {addCustomerMutation.isLoading ? 'Đang thêm...' : 'Thêm khách hàng'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

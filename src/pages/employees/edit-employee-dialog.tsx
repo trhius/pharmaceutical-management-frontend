@@ -1,88 +1,140 @@
 import { useState, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query'
-import { CalendarIcon, Search, ChevronsUpDown, Check } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
-import { employee as employeeApi, useAllStores } from '@/apis';
+import { EmployeeResponse, UpdateEmployeeRequest, StoreResponse } from '@/apis/types/employee';
+import { useAllStores, useUpdateEmployeeDetails } from '@/apis/hooks/employee';
+import { useToast } from '@/hooks/use-toast';
+
+const roles = [
+  { label: 'Quản trị viên', value: 'SUPER_ADMIN' },
+  { label: 'Quản lý cửa hàng', value: 'STORE_MANAGER' },
+  { label: 'Dược sĩ', value: 'PHARMACIST' },
+  { label: 'Nhân viên hàng hóa', value: 'INVENTORY_STAFF' },
+];
+
+const genderOptions = [
+  { label: 'Nam', value: 'MALE' },
+  { label: 'Nữ', value: 'FEMALE' },
+  { label: 'Khác', value: 'OTHER' },
+];
+
+const formSchema = z.object({
+  fullName: z.string().min(2, 'Tên đầy đủ phải có ít nhất 2 ký tự.').optional(),
+  email: z.string().email('Vui lòng nhập địa chỉ email hợp lệ.').optional(),
+  phone: z.string().optional(),
+  storeId: z.number().optional(),
+  role: z.enum(['SUPER_ADMIN', 'STORE_MANAGER', 'PHARMACIST', 'INVENTORY_STAFF']).optional(),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED', 'ON_LEAVE']).optional(),
+  dateOfBirth: z.string().optional(), // Assuming date format is string
+  identityCardNo: z.string().optional(),
+  joinDate: z.string().optional(), // Assuming date format is string
+  gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
+  address: z.string().optional(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface EditEmployeeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   employee: EmployeeResponse;
+  onEmployeeUpdated: () => void;
 }
 
-export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmployeeDialogProps) {
-  const [areaOpen, setAreaOpen] = useState(false);
-  const [wardOpen, setWardOpen] = useState(false);
-  const [branchOpen, setBranchOpen] = useState(false);
-  const queryClient = useQueryClient()
+export function EditEmployeeDialog({ open, onOpenChange, employee, onEmployeeUpdated }: EditEmployeeDialogProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const storeRes = useAllStores();
-  const stores = storeRes.data;
+  const { data: stores, isLoading: isLoadingStores } = useAllStores();
+  const updateEmployeeMutation = useUpdateEmployeeDetails();
 
-  // Initialize the form
-  const form = useForm({
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      employeeCode: employee.employeeCode,
-      fullName: employee.fullName,
-      phone: employee.phone,
-      branch: employee.branch,
-      notes: employee.notes,
-      dateOfBirth: employee.dateOfBirth,
-      identityCard: employee.identityCard,
-      gender: employee.gender,
-      address: employee.address,
-      area: employee.area,
-      ward: employee.ward,
-      facebook: employee.facebook,
-      email: employee.email,
+      fullName: employee.fullName || '',
+      email: employee.email || '',
+      phone: employee.phone || '',
+      storeId: employee.storeId || undefined,
+      role: employee.role || undefined,
+      status: employee.status || 'ACTIVE',
+      dateOfBirth: employee.dateOfBirth || undefined,
+      identityCardNo: employee.identityCard || '',
+      joinDate: employee.joinDate || undefined,
+      gender: employee.gender || undefined,
+      address: employee.address || '',
     },
   });
 
   useEffect(() => {
     form.reset({
-      employeeCode: employee.employeeCode,
-      fullName: employee.fullName,
-      phone: employee.phone,
-      branch: employee.branch,
-      notes: employee.notes,
-      identityCard: employee.identityCard,
-      dateOfBirth: employee.dateOfBirth,
-      gender: employee.gender,
-      address: employee.address,
-      area: employee.area,
-      ward: employee.ward,
-      facebook: employee.facebook,
-      email: employee.email,
+      fullName: employee.fullName || '',
+      email: employee.email || '',
+      phone: employee.phone || '',
+      storeId: employee.storeId || undefined,
+      role: employee.role || undefined,
+      status: employee.status || 'ACTIVE',
+      dateOfBirth: employee.dateOfBirth || undefined,
+      identityCardNo: employee.identityCard || '',
+      joinDate: employee.joinDate || undefined,
+      gender: employee.gender || undefined,
+      address: employee.address || '',
     });
   }, [employee, form]);
 
   // Form submission handler
   async function onSubmit(data: FormValues) {
-    onOpenChange(false);
-    await employeeApi.updateEmployeeDetails(employee.id, data);
-    queryClient.invalidateQueries({ queryKey: ['listEmployees'] });
+    if (employee.id === undefined) {
+      toast({
+        title: 'Lỗi',
+        description: 'Không thể cập nhật thông tin nhân viên: ID nhân viên không xác định.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    updateEmployeeMutation.mutate(
+      {
+        id: employee.id,
+        data: data as UpdateEmployeeRequest,
+      },
+      {
+        onSuccess: () => {
+          toast({
+            title: 'Cập nhật thành công',
+            description: `Thông tin nhân viên ${data.fullName || employee.fullName} đã được cập nhật.`, // Use original name if fullName is empty in form
+          });
+          onOpenChange(false);
+          onEmployeeUpdated();
+        },
+        onError: (error) => {
+          toast({
+            title: 'Cập nhật thất bại',
+            description: error.message || 'Đã xảy ra lỗi khi cập nhật thông tin nhân viên.',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="outline">Sửa nhân viên</Button>
-      </DialogTrigger>
       <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">Sửa thông tin nhân viên</DialogTitle>
@@ -104,10 +156,10 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
                       <FormLabel>Mã nhân viên</FormLabel>
                       <FormControl>
                         <Input
-                          {...field}
+                          value={employee.employeeCode || ''} // Display employeeCode from prop
+                          disabled // employeeCode is not editable
                           placeholder="Mã nhân viên tự động"
                           className="bg-gray-200 dark:bg-zinc-800 dark:text-gray-400"
-                          readOnly
                         />
                       </FormControl>
                       <FormMessage />
@@ -123,6 +175,20 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
                       <FormLabel>Tên nhân viên</FormLabel>
                       <FormControl>
                         <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="email" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -150,46 +216,41 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
                     <FormItem>
                       <FormLabel>Chi nhánh</FormLabel>
                       <FormControl>
-                        <Popover open={branchOpen} onOpenChange={setBranchOpen}>
+                        <Popover>
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
                               role="combobox"
-                              aria-expanded={branchOpen}
-                              className="w-full justify-between"
+                              className={cn('w-full justify-between', !field.value && 'text-muted-foreground')}
                             >
                               {field.value ? stores?.find((store) => store.id === field.value)?.name : 'Chọn chi nhánh'}
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-full p-0">
+                          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                             <Command>
+                              <CommandInput placeholder="Tìm chi nhánh..." />
                               <CommandList>
-                                <CommandInput placeholder="Tìm chi nhánh..." />
+                                <CommandEmpty>Không tìm thấy chi nhánh.</CommandEmpty>
                                 <CommandGroup>
                                   {stores?.map((store) => (
                                     <CommandItem
-                                      key={store.id}
-                                      keywords={[store.name || '']}
                                       value={store.id?.toString()}
-                                      onSelect={(currentValue) => {
-                                        const storeId =
-                                          currentValue === field.value?.toString() ? undefined : Number(currentValue);
-                                        form.setValue('storeId', storeId);
-                                        setBranchOpen(false);
+                                      key={store.id}
+                                      onSelect={() => {
+                                        form.setValue('storeId', store.id);
                                       }}
                                     >
                                       <Check
                                         className={cn(
                                           'mr-2 h-4 w-4',
-                                          field.value === store.id ? 'opacity-100' : 'opacity-0'
+                                          store.id === field.value ? 'opacity-100' : 'opacity-0'
                                         )}
                                       />
                                       {store.name}
                                     </CommandItem>
                                   ))}
                                 </CommandGroup>
-                                <CommandEmpty>Ko thấy nhóm hàng nào.</CommandEmpty>
                               </CommandList>
                             </Command>
                           </PopoverContent>
@@ -198,61 +259,25 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
                     </FormItem>
                   )}
                 />
-              </CardContent>
-            </Card>
-
-            {/* Work Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Thông tin công việc</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="startDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Ngày bắt đầu làm việc</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={'outline'}
-                              className={cn(
-                                'w-full justify-start text-left font-normal',
-                                !field.value && 'text-muted-foreground'
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {field.value ? format(field.value, 'dd/MM/yyyy') : 'Chọn ngày'}
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <FormField
                   control={form.control}
-                  name="position"
+                  name="role"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Chức danh</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Chọn chức danh" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="manager">Quản lý</SelectItem>
-                          <SelectItem value="employee">Nhân viên</SelectItem>
-                          <SelectItem value="accountant">Kế toán</SelectItem>
+                          {roles.map((role) => (
+                            <SelectItem key={role.value} value={role.value}>
+                              {role.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -262,13 +287,23 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
 
                 <FormField
                   control={form.control}
-                  name="notes"
+                  name="status"
                   render={({ field }) => (
-                    <FormItem className="sm:col-span-2">
-                      <FormLabel>Ghi chú</FormLabel>
-                      <FormControl>
-                        <Textarea {...field} className="min-h-[100px]" />
-                      </FormControl>
+                    <FormItem>
+                      <FormLabel>Trạng thái</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn trạng thái" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="ACTIVE">Đang hoạt động</SelectItem>
+                          <SelectItem value="INACTIVE">Ngừng hoạt động</SelectItem>
+                          <SelectItem value="SUSPENDED">Đình chỉ</SelectItem>
+                          <SelectItem value="ON_LEAVE">Đang nghỉ phép</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -284,7 +319,7 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
               <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="identityCard"
+                  name="identityCardNo"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Số CMND/CCCD</FormLabel>
@@ -313,12 +348,17 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
                               )}
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
-                              {field.value ? format(field.value, 'dd/MM/yyyy') : 'Chọn ngày'}
+                              {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : <span>Chọn ngày</span>}
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? new Date(field.value) : undefined}
+                            onSelect={(date) => field.onChange(date?.toISOString())}
+                            initialFocus
+                          />
                         </PopoverContent>
                       </Popover>
                       <FormMessage />
@@ -330,20 +370,57 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
                   control={form.control}
                   name="gender"
                   render={({ field }) => (
-                    <FormItem className="sm:col-span-2">
+                    <FormItem>
                       <FormLabel>Giới tính</FormLabel>
-                      <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="MALE" id="male" />
-                            <Label htmlFor="male">Nam</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="FEMALE" id="female" />
-                            <Label htmlFor="female">Nữ</Label>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn giới tính" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {genderOptions.map((gender) => (
+                            <SelectItem key={gender.value} value={gender.value}>
+                              {gender.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="joinDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Ngày vào làm</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={'outline'}
+                              className={cn(
+                                'w-full justify-start text-left font-normal',
+                                !field.value && 'text-muted-foreground'
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : <span>Chọn ngày</span>}
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? new Date(field.value) : undefined}
+                            onSelect={(date) => field.onChange(date?.toISOString())}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -361,158 +438,10 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
                   control={form.control}
                   name="address"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="sm:col-span-2">
                       <FormLabel>Địa chỉ</FormLabel>
                       <FormControl>
                         <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="area"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Khu vực</FormLabel>
-                      <Popover open={areaOpen} onOpenChange={setAreaOpen}>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={areaOpen}
-                              className="w-full justify-between"
-                            >
-                              {field.value || 'Chọn Tỉnh/TP - Quận/Huyện'}
-                              <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0">
-                          <Command>
-                            <CommandInput placeholder="Tìm kiếm..." />
-                            <CommandEmpty>Không tìm thấy kết quả.</CommandEmpty>
-                            <CommandList>
-                              <CommandGroup>
-                                <CommandItem
-                                  onSelect={() => {
-                                    form.setValue('area', 'Hà Nội - Ba Đình');
-                                    setAreaOpen(false);
-                                  }}
-                                >
-                                  Hà Nội - Ba Đình
-                                </CommandItem>
-                                <CommandItem
-                                  onSelect={() => {
-                                    form.setValue('area', 'Hà Nội - Cầu Giấy');
-                                    setAreaOpen(false);
-                                  }}
-                                >
-                                  Hà Nội - Cầu Giấy
-                                </CommandItem>
-                                <CommandItem
-                                  onSelect={() => {
-                                    form.setValue('area', 'TP.HCM - Quận 1');
-                                    setAreaOpen(false);
-                                  }}
-                                >
-                                  TP.HCM - Quận 1
-                                </CommandItem>
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="ward"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phường/Xã</FormLabel>
-                      <Popover open={wardOpen} onOpenChange={setWardOpen}>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={wardOpen}
-                              className="w-full justify-between"
-                            >
-                              {field.value || 'Chọn Phường/Xã'}
-                              <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0">
-                          <Command>
-                            <CommandInput placeholder="Tìm kiếm..." />
-                            <CommandEmpty>Không tìm thấy kết quả.</CommandEmpty>
-                            <CommandList>
-                              <CommandGroup>
-                                <CommandItem
-                                  onSelect={() => {
-                                    form.setValue('ward', 'Phường Trúc Bạch');
-                                    setWardOpen(false);
-                                  }}
-                                >
-                                  Phường Trúc Bạch
-                                </CommandItem>
-                                <CommandItem
-                                  onSelect={() => {
-                                    form.setValue('ward', 'Phường Vĩnh Phúc');
-                                    setWardOpen(false);
-                                  }}
-                                >
-                                  Phường Vĩnh Phúc
-                                </CommandItem>
-                                <CommandItem
-                                  onSelect={() => {
-                                    form.setValue('ward', 'Phường Cống Vị');
-                                    setWardOpen(false);
-                                  }}
-                                >
-                                  Phường Cống Vị
-                                </CommandItem>
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="facebook"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Facebook</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="email" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -522,10 +451,17 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
             </Card>
 
             <DialogFooter className="mt-4 flex justify-between sm:justify-end">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={updateEmployeeMutation.isLoading}
+              >
                 Bỏ qua
               </Button>
-              <Button type="submit">Lưu</Button>
+              <Button type="submit" disabled={updateEmployeeMutation.isLoading}>
+                {updateEmployeeMutation.isLoading ? 'Đang lưu...' : 'Lưu'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>
@@ -533,4 +469,3 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
     </Dialog>
   );
 }
-

@@ -206,15 +206,16 @@ export default function EmployeesListPage() {
               searchKey="name"
               searchPlaceholder="Search employees..."
               expandedContent={renderExpandedContent}
+              isLoading={listEmployeesData.isLoading}
             />
           </CardContent>
         </Card>
       </div>
 
-      <AddEmployeeDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
+      <AddEmployeeDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onEmployeeAdded={listEmployeesData.refetch} />
 
       {selectedEmployee && (
-        <EditEmployeeDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} employee={selectedEmployee} />
+        <EditEmployeeDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} employee={selectedEmployee} onEmployeeUpdated={listEmployeesData.refetch} />
       )}
 
       <ConfirmDialog

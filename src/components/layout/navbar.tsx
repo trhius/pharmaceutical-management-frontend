@@ -5,11 +5,14 @@ import {
   NavigationMenuItem,
   NavigationMenuList,
   navigationMenuTriggerStyle,
+  NavigationMenuContent,
+  NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { NavigationMenuLink } from "@radix-ui/react-navigation-menu";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +23,34 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/store/auth-store';
 import { useNavigate } from 'react-router-dom';
+import * as React from 'react';
+
+const ListItem = React.forwardRef<
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a">
+>(({ className, title, children, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <Link
+          to={props.href}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            className
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
+        </Link>
+      </NavigationMenuLink>
+    </li>
+  );
+});
+ListItem.displayName = "ListItem";
+
 
 export function Navbar() {
   const location = useLocation();
@@ -28,7 +59,15 @@ export function Navbar() {
 
   const navigation = [
     { name: 'Dashboard', href: '/' },
-    { name: 'Products', href: '/products' },
+    {
+      name: 'Products',
+      href: '/products', // Parent link, can be the default sub-item page
+      subItems: [
+        { name: 'List Products', href: '/products' },
+        { name: 'Product Prices', href: '/products/prices' },
+        // Add more sub-items here
+      ],
+    },
     { name: 'Employees', href: '/employees' },
     { name: 'Customers', href: '/customers' },
     { name: 'Providers', href: '/providers' },
@@ -52,15 +91,47 @@ export function Navbar() {
             <NavigationMenuList>
               {navigation.map((item) => (
                 <NavigationMenuItem key={item.name}>
-                  <Link
-                    to={item.href}
-                    className={cn(
-                      navigationMenuTriggerStyle(),
-                      location.pathname === item.href && 'bg-accent text-accent-foreground'
-                    )}
-                  >
-                    {item.name}
-                  </Link>
+                  {item.subItems ? (
+                    <>
+                      <NavigationMenuTrigger>{item.name}</NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                           <li className="row-span-3">
+                            <NavigationMenuLink asChild>
+                              <a
+                                className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                                href={item.href}
+                              >
+                                {/* You can add an icon or image here */}
+                                <div className="mb-2 mt-4 text-lg font-medium">
+                                  {item.name}
+                                </div>
+                                <p className="text-sm leading-tight text-muted-foreground">
+                                  {/* Add a brief description for the main section if needed */}
+                                </p>
+                              </a>
+                            </NavigationMenuLink>
+                          </li>
+
+                          {item.subItems.map((subItem) => (
+                             <ListItem key={subItem.name} href={subItem.href} title={subItem.name}>
+                              {/* Add description for sub-item if needed */}
+                            </ListItem>
+                          ))}
+                        </ul>
+                      </NavigationMenuContent>
+                    </>
+                  ) : (
+                    <Link
+                      to={item.href}
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        location.pathname === item.href && 'bg-accent text-accent-foreground'
+                      )}
+                    >
+                      {item.name}
+                    </Link>
+                  )}
                 </NavigationMenuItem>
               ))}
             </NavigationMenuList>
