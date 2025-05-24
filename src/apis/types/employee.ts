@@ -4,6 +4,8 @@
 
 import { PageableObject, SortObject } from "./utility";
 
+export type EmployeeRole = 'SUPER_ADMIN' | 'STORE_MANAGER' | 'PHARMACIST' | 'INVENTORY_STAFF';
+
 export interface UpdateEmployeeRequest {
   fullName?: string;
   email?: string;

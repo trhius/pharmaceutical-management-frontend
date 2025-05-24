@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ColumnDef,
   flexRender,
@@ -80,6 +80,10 @@ export function DataTable<TData, TValue>({
     }));
   };
 
+  useEffect(() => {
+    setExpandedRows({});
+  }, [pageIndex]);
+
   return (
     <div className="space-y-4">
       {searchKey && (
@@ -111,7 +115,7 @@ export function DataTable<TData, TValue>({
                 <TableCell colSpan={columns.length + (expandedContent ? 1 : 0)} className="h-24 text-center">
                   <div className="flex items-center justify-center gap-2">
                     <Loader2 className="animate-spin" />
-                    <span>Đang tìm kiếm...</span>
+                    <span>Đang tải...</span>
                   </div>
                 </TableCell>
               </TableRow>

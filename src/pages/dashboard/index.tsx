@@ -8,8 +8,6 @@ import {
   CartesianGrid,
   Cell,
   Legend,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -18,7 +16,6 @@ import {
   YAxis,
 } from 'recharts';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { useAuthStore } from '@/store/auth-store';
 import { ArrowUpRight, Users, Package, ShoppingCart, AlertCircle } from 'lucide-react';
 
@@ -63,7 +60,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.name}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.role}</h1>
         <p className="text-muted-foreground">
           Here's an overview of your pharmacy's performance
         </p>
@@ -211,7 +208,7 @@ export default function DashboardPage() {
                             <div className="bg-card border border-border rounded-lg shadow-lg p-3">
                               <p className="text-sm font-medium">{payload[0].payload.name}</p>
                               <p className="text-sm font-semibold text-primary">
-                                ${payload[0].value.toLocaleString()}
+                                ${payload[0].value?.toLocaleString()}
                               </p>
                             </div>
                           );
@@ -251,7 +248,7 @@ export default function DashboardPage() {
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {productCategoryData.map((entry, index) => (
+                      {productCategoryData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>

@@ -28,12 +28,12 @@ import * as React from 'react';
 const ListItem = React.forwardRef<
   React.ElementRef<"a">,
   React.ComponentPropsWithoutRef<"a">
->(({ className, title, children, ...props }, ref) => {
+>(({ className, title, children, ...props }) => {
   return (
     <li>
       <NavigationMenuLink asChild>
         <Link
-          to={props.href}
+          to={props.href as string}
           className={cn(
             "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
             className
@@ -64,7 +64,7 @@ export function Navbar() {
       href: '/products', // Parent link, can be the default sub-item page
       subItems: [
         { name: 'Danh sách sản phẩm', href: '/products' },
-        { name: 'Giá sản phẩm', href: '/products/prices' },
+        { name: 'Giá sản phẩm', href: '/products/update-prices' },
         // Add more sub-items here
       ],
     },
@@ -145,15 +145,15 @@ export function Navbar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt={user?.name || 'Người dùng'} />
-                  <AvatarFallback>{user?.name?.charAt(0) || 'N'}</AvatarFallback>
+                  <AvatarImage src="/placeholder-avatar.jpg" alt={user?.role || 'Người dùng'} />
+                  <AvatarFallback>{user?.role?.charAt(0) || 'N'}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user?.name}</p>
+                  <p className="text-sm font-medium leading-none">{user?.role}</p>
                   <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                 </div>
               </DropdownMenuLabel>

@@ -11,10 +11,19 @@ import { useProducts } from '@/apis/hooks/product';
 import { GetProductRequest, ProductResponse } from '@/apis/types/product';
 import { Badge } from '@/components/ui/badge';
 
+interface FilterProduct {
+  sortBy?: string;
+  sortOrder?: string;
+  page: number;
+  size: number;
+  request: GetProductRequest;
+}
+
 export default function ProductsListPage() {
-  const [filter, setFilter] = useState<GetProductRequest>({
+  const [filter, setFilter] = useState<FilterProduct>({
     page: 0,
     size: 10,
+    request: {},
   });
   const { data: productsData, isLoading } = useProducts(filter);
   const products = productsData?.content;

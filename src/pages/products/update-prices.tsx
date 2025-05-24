@@ -7,7 +7,7 @@ export default function UpdatePricesPage() {
   return (
     <div className="container mx-auto py-6 space-y-4">
       <PageHeader
-        heading="Update Prices"
+        title="Update Prices"
         description="Update product prices in bulk"
       />
 

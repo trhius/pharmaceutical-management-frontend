@@ -1,22 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { auth, setAuthToken } from '../apis';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  avatar?: string;
-}
+import { UserInfoResponse } from '@/apis/types/auth';
 
 interface AuthState {
-  user: User | null;
+  user: UserInfoResponse | null;
   isAuthenticated: boolean;
-  accessToken: string | null;
+  accessToken?: string | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  updateUser: (user: Partial<User>) => void;
+  updateUser: (user: Partial<UserInfoResponse>) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -47,12 +40,14 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           const response = await auth.login({ email, password });
-          set({
-            isAuthenticated: true,
-            user: response.userInfo,
-            accessToken: response.accessToken,
-          });
-          setAuthToken(response.accessToken);
+          if (response) {
+            set({
+              isAuthenticated: true,
+              user: response.userInfo,
+              accessToken: response.accessToken,
+            });
+            setAuthToken(response.accessToken || null);
+          }
           return true;
         } catch (error) {
           console.error(error);

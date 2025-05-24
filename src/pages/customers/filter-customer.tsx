@@ -1,10 +1,8 @@
-import * as React from 'react';
-import { CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form'; // Added FormLabel
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form'; // Added FormLabel
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -146,7 +144,6 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
                               mode="single"
                               selected={form.watch('createdDateCustom')}
                               onSelect={(date) => form.setValue('createdDateCustom', date || undefined)}
-                              initialFocus
                             />
                           </PopoverContent>
                         </Popover>
@@ -241,7 +238,6 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
                               mode="single"
                               selected={form.watch('birthDateCustom')}
                               onSelect={(date) => form.setValue('birthDateCustom', date || undefined)}
-                              initialFocus
                             />
                           </PopoverContent>
                         </Popover>

@@ -22,14 +22,6 @@ export default function EmployeesListPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeResponse | null>(null);
 
-  // const { data: employees } = useQuery({
-  //   queryKey: ['employees'],
-  //   queryFn: async () => {
-  //     return new Promise<typeof employeesData>((resolve) => {
-  //       setTimeout(() => resolve(employeesData), 500);
-  //     });
-  //   },
-  // });
   const [filter, setFilter] = useState<ListEmployeeRequest>({});
   const listEmployeesData = useListEmployees({ request: filter });
   const employees = listEmployeesData.data?.content;
@@ -196,7 +188,7 @@ export default function EmployeesListPage() {
             {/* Row 5 - Notes (spans full width) */}
             <div className="space-y-1 md:col-span-3">
               <p className="text-xs text-gray-500">Ghi chú</p>
-              <p className="text-sm font-medium">{employee.note}</p>
+              <p className="text-sm font-medium"></p>
             </div>
           </div>
         </div>

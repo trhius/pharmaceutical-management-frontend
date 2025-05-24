@@ -1,12 +1,18 @@
 import { useQuery, useMutation, UseQueryResult, UseMutationResult } from '@tanstack/react-query';
-import * as Types from '../types';
 import { product } from '../services/product';
+import {
+  UpdateProductPriceRequest,
+  ProductDetailsResponse,
+  GetProductPriceRequest,
+  PageProductPriceListResponse,
+  MeasurementUnitResponse,
+  GetProductRequest,
+  PageProductResponse,
+  GetListCategoryResponse,
+} from '../types/product';
+import { StringResponse } from '../types/utility';
 
-export const useUpdateProductPrice = (): UseMutationResult<
-  Types.StringResponse,
-  Error,
-  Types.UpdateProductPriceRequest
-> =>
+export const useUpdateProductPrice = (): UseMutationResult<StringResponse, Error, UpdateProductPriceRequest> =>
   useMutation({
     mutationFn: product.updateProductPrice,
   });
@@ -14,7 +20,7 @@ export const useUpdateProductPrice = (): UseMutationResult<
 export const useProductDetails = (
   id: number,
   options?: { enabled?: boolean }
-): UseQueryResult<Types.ProductDetailsResponse, Error> =>
+): UseQueryResult<ProductDetailsResponse, Error> =>
   useQuery({
     queryKey: ['productDetails', id],
     queryFn: () => product.getProductDetails(id),
@@ -26,8 +32,8 @@ export const useProductPrices = (params: {
   sortOrder?: string;
   page?: number;
   size?: number;
-  request: Types.GetProductPriceRequest;
-}): UseQueryResult<Types.PageProductPriceListResponse, Error> =>
+  request: GetProductPriceRequest;
+}): UseQueryResult<PageProductPriceListResponse, Error> =>
   useQuery({
     queryKey: ['productPrices', params],
     queryFn: () => product.getProductPrices(params),
@@ -36,13 +42,13 @@ export const useProductPrices = (params: {
 export const useExportProductPrices = (): UseMutationResult<
   Blob,
   Error,
-  { request: Types.GetProductPriceRequest; lang?: string }
+  { request: GetProductPriceRequest; lang?: string }
 > =>
   useMutation({
     mutationFn: product.exportProductPrices,
   });
 
-export const useMeasurementUnits = (): UseQueryResult<Types.MeasurementUnitResponse[], Error> =>
+export const useMeasurementUnits = (): UseQueryResult<MeasurementUnitResponse[], Error> =>
   useQuery({
     queryKey: ['measurementUnits'],
     queryFn: product.getMeasurementUnits,
@@ -53,23 +59,19 @@ export const useProducts = (params: {
   sortOrder?: string;
   page?: number;
   size?: number;
-  request: Types.GetProductRequest;
-}): UseQueryResult<Types.PageProductResponse, Error> =>
+  request: GetProductRequest;
+}): UseQueryResult<PageProductResponse, Error> =>
   useQuery({
     queryKey: ['products', params],
     queryFn: () => product.getProducts(params),
   });
 
-export const useExportProducts = (): UseMutationResult<
-  Blob,
-  Error,
-  { request: Types.GetProductRequest; lang?: string }
-> =>
+export const useExportProducts = (): UseMutationResult<Blob, Error, { request: GetProductRequest; lang?: string }> =>
   useMutation({
     mutationFn: product.exportProducts,
   });
 
-export const useAllCategories = (): UseQueryResult<Types.GetListCategoryResponse[], Error> =>
+export const useAllCategories = (): UseQueryResult<GetListCategoryResponse[], Error> =>
   useQuery({
     queryKey: ['allCategories'],
     queryFn: product.getAllCategories,
@@ -78,7 +80,7 @@ export const useAllCategories = (): UseQueryResult<Types.GetListCategoryResponse
 export const useCategoriesByType = (
   slug: string,
   options?: { enabled?: boolean }
-): UseQueryResult<Types.GetListCategoryResponse[], Error> =>
+): UseQueryResult<GetListCategoryResponse[], Error> =>
   useQuery({
     queryKey: ['categoriesByType', slug],
     queryFn: () => product.getCategoriesByType(slug),

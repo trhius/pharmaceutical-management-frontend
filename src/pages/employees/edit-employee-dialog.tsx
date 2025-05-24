@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { CalendarIcon, ChevronsUpDown, Check } from 'lucide-react';
 import { format } from 'date-fns';
@@ -13,14 +13,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
@@ -36,8 +32,6 @@ interface EditEmployeeDialogProps {
 }
 
 export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmployeeDialogProps) {
-  const [branchOpen, setBranchOpen] = useState(false);
-  const [roleOpen, setRoleOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const storeRes = useAllStores();
@@ -277,7 +271,6 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
                           mode="single"
                           selected={field.value ? new Date(field.value) : undefined}
                           onSelect={(date) => field.onChange(date?.toISOString())}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -313,7 +306,6 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
                           mode="single"
                           selected={field.value ? new Date(field.value) : undefined}
                           onSelect={(date) => field.onChange(date?.toISOString())}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>

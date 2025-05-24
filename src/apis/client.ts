@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL from the Swagger JSON
-const BASE_URL = 'http://34.57.217.137:8080';
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 // Axios instance for API calls
 export const apiClient = axios.create({

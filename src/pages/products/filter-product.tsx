@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { format, startOfDay, endOfDay } from 'date-fns'; // Import format and date utility functions
+import { format } from 'date-fns'; // Import format and date utility functions
 import { GetProductRequest } from '@/apis/types/product';
 import * as z from 'zod';
 
@@ -30,6 +30,8 @@ const formSchema = z.object({
   brand: z.string().default(''),
   status: z.enum(['all', 'active', 'inactive']),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface TableFilterSidebarProps {
   onFilter: (values: GetProductRequest) => void;
@@ -53,10 +55,10 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
   function onSubmit(values: FormValues) {
     const apiFilter: GetProductRequest = {};
 
-    if (values.createdDateOption === 'custom' && values.createdDateCustom) {
-      apiFilter.createdDateFrom = format(startOfDay(values.createdDateCustom), "yyyy-MM-dd'T'HH:mm:ss");
-      apiFilter.createdDateTo = format(endOfDay(values.createdDateCustom), "yyyy-MM-dd'T'HH:mm:ss");
-    }
+    // if (values.createdDateOption === 'custom' && values.createdDateCustom) {
+    //   apiFilter.createdDateFrom = format(startOfDay(values.createdDateCustom), "yyyy-MM-dd'T'HH:mm:ss");
+    //   apiFilter.createdDateTo = format(endOfDay(values.createdDateCustom), "yyyy-MM-dd'T'HH:mm:ss");
+    // }
 
     if (values.status !== 'all') {
       apiFilter.isActive = values.status === 'active';
@@ -167,7 +169,6 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
                               mode="single"
                               selected={form.watch('createdDateCustom')}
                               onSelect={(date) => form.setValue('createdDateCustom', date || undefined)}
-                              initialFocus
                             />
                           </PopoverContent>
                         </Popover>
@@ -193,7 +194,6 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
                         <Button
                           variant="outline"
                           role="combobox"
-                          aria-expanded={open}
                           className="w-full justify-between"
                         >
                           {field.value ? users.find((user) => user.value === field.value)?.label : 'Chọn nhà cung cấp'}

@@ -4,7 +4,7 @@ export default function CreateOrderPage() {
   return (
     <div className="container py-6 space-y-6">
       <PageHeader
-        heading="Create Order"
+        title="Create Order"
         description="Create a new customer order"
       />
       

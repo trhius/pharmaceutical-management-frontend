@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { useForm } from 'react-hook-form';
-import { ListEmployeeRequest } from '@/apis/types';
+import { EmployeeRole, ListEmployeeRequest } from '@/apis/types';
 import { useAllStores } from '@/apis';
 import { roles } from '@/apis/types/transform';
 
@@ -171,7 +171,7 @@ export function FilterEmployee({ onFilter }: { onFilter?: (values: ListEmployeeR
                                   onSelect={(currentValue) => {
                                     form.setValue(
                                       'role',
-                                      currentValue === field.value ? undefined : currentValue
+                                      currentValue === field.value ? undefined : currentValue as EmployeeRole
                                     );
                                     setRoleOpen(false);
                                   }}

@@ -10,27 +10,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
+import { CalendarIcon, Check, ChevronsUpDown, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -38,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { CreateEmployeeRequest } from '@/apis/types/employee';
 import { useCreateEmployee } from '@/apis/hooks/employee';
 import { useAllStores } from '@/apis/hooks/employee';
+import { AddBranchDialog } from './add-branch-dialog';
 
 const roles = [
   { label: 'Quản trị viên', value: 'SUPER_ADMIN' },
@@ -56,7 +44,9 @@ const formSchema = z.object({
   fullName: z.string().min(2, 'Tên đầy đủ phải có ít nhất 2 ký tự.'),
   email: z.string().email('Vui lòng nhập địa chỉ email hợp lệ.'),
   phone: z.string().optional(),
-  role: z.enum(['SUPER_ADMIN', 'STORE_MANAGER', 'PHARMACIST', 'INVENTORY_STAFF'], { required_error: 'Vui lòng chọn chức danh.' }),
+  role: z.enum(['SUPER_ADMIN', 'STORE_MANAGER', 'PHARMACIST', 'INVENTORY_STAFF'], {
+    required_error: 'Vui lòng chọn chức danh.',
+  }),
   storeId: z.number().optional(),
   dateOfBirth: z.string().optional(), // Assuming date format is string for now
   identityCardNo: z.string().optional(),
@@ -76,7 +66,9 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
   const { toast } = useToast();
 
   const createEmployeeMutation = useCreateEmployee();
-  const { data: stores, isLoading: isLoadingStores } = useAllStores();
+  const { data: stores } = useAllStores();
+
+  const [isAddBranchDialogOpen, setIsAddBranchDialogOpen] = React.useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -123,9 +115,7 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Thêm Nhân Viên Mới</DialogTitle>
-          <DialogDescription>
-            Nhập thông tin chi tiết cho nhân viên mới.
-          </DialogDescription>
+          <DialogDescription>Nhập thông tin chi tiết cho nhân viên mới.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -199,63 +189,62 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
                 )}
               />
 
-              {/* Store */}
-              <FormField
-                control={form.control}
-                name="storeId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Chi nhánh</FormLabel>
-                    <Popover modal>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              "w-full justify-between",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value
-                              ? stores?.find((store) => store.id === field.value)?.name
-                              : "Chọn chi nhánh"}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                        <Command>
-                          <CommandInput placeholder="Tìm chi nhánh..." />
-                          <CommandList>
-                            <CommandEmpty>Không tìm thấy chi nhánh.</CommandEmpty>
-                            <CommandGroup>
-                              {stores?.map((store) => (
-                                <CommandItem
-                                  value={store.id?.toString()}
-                                  key={store.id}
-                                  onSelect={() => {
-                                    form.setValue("storeId", store.id);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      store.id === field.value ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                  {store.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="flex gap-2">
+                <FormField
+                  control={form.control}
+                  name="storeId"
+                  render={({ field }) => (
+                    <FormItem className="flex-grow">
+                      <FormLabel>Chi nhánh</FormLabel>
+                      <Popover modal>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn('w-full justify-between', !field.value && 'text-muted-foreground')}
+                            >
+                              {field.value ? stores?.find((store) => store.id === field.value)?.name : 'Chọn chi nhánh'}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent>
+                          <Command>
+                            <CommandInput placeholder="Tìm chi nhánh..." />
+                            <CommandList>
+                              <CommandEmpty>Không tìm thấy chi nhánh.</CommandEmpty>
+                              <CommandGroup>
+                                {stores?.map((store) => (
+                                  <CommandItem
+                                    value={store.id?.toString()}
+                                    key={store.id}
+                                    onSelect={() => {
+                                      form.setValue('storeId', store.id);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        'mr-2 h-4 w-4',
+                                        store.id === field.value ? 'opacity-100' : 'opacity-0'
+                                      )}
+                                    />
+                                    {store.name}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="button" className="mt-auto mb-2" variant="outline" size="icon" onClick={() => setIsAddBranchDialogOpen(true)}>
+                  <PlusCircle className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             <FormField
@@ -284,14 +273,14 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={"outline"}
+                            variant={'outline'}
                             className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              'w-full justify-start text-left font-normal',
+                              !field.value && 'text-muted-foreground'
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? format(new Date(field.value), "PPP") : <span>Chọn ngày</span>}
+                            {field.value ? format(new Date(field.value), 'PPP') : <span>Chọn ngày</span>}
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -300,7 +289,6 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
                           mode="single"
                           selected={field.value ? new Date(field.value) : undefined}
                           onSelect={(date) => field.onChange(date?.toISOString())}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -320,14 +308,14 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={"outline"}
+                            variant={'outline'}
                             className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              'w-full justify-start text-left font-normal',
+                              !field.value && 'text-muted-foreground'
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? format(new Date(field.value), "PPP") : <span>Chọn ngày</span>}
+                            {field.value ? format(new Date(field.value), 'PPP') : <span>Chọn ngày</span>}
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -336,7 +324,6 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
                           mode="single"
                           selected={field.value ? new Date(field.value) : undefined}
                           onSelect={(date) => field.onChange(date?.toISOString())}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -377,17 +364,19 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={createEmployeeMutation.isLoading}
+                disabled={createEmployeeMutation.isPending}
               >
                 Hủy
               </Button>
-              <Button type="submit" disabled={createEmployeeMutation.isLoading}>
-                {createEmployeeMutation.isLoading ? 'Đang thêm...' : 'Thêm Nhân Viên'}
+              <Button type="submit" disabled={createEmployeeMutation.isPending}>
+                {createEmployeeMutation.isPending ? 'Đang thêm...' : 'Thêm Nhân Viên'}
               </Button>
             </DialogFooter>
           </form>
         </Form>
       </DialogContent>
+
+      {isAddBranchDialogOpen && <AddBranchDialog open={true} onOpenChange={setIsAddBranchDialogOpen} />}
     </Dialog>
   );
 }

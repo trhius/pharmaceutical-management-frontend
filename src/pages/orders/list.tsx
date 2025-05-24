@@ -5,7 +5,7 @@ export default function OrdersListPage() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <PageHeader
-        heading="Orders"
+        title="Orders"
         description="View and manage customer orders"
       />
       
