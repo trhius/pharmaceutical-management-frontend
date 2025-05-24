@@ -12,12 +12,16 @@ import { GetProductRequest, ProductResponse } from '@/apis/types/product';
 import { Badge } from '@/components/ui/badge';
 
 export default function ProductsListPage() {
-  const [filter, setFilter] = useState<GetProductRequest>({});
-  const { data: productsData, isLoading } = useProducts({ request: filter });
+  const [filter, setFilter] = useState<GetProductRequest>({
+    page: 0,
+    size: 10,
+  });
+  const { data: productsData, isLoading } = useProducts(filter);
   const products = productsData?.content;
 
   const onFilter = useCallback((values: GetProductRequest) => {
-    setFilter(values);
+    console.log(values);
+    setFilter((prev) => ({ ...prev, request: values }));
   }, []);
 
   // Define columns for the DataTable
@@ -27,12 +31,20 @@ export default function ProductsListPage() {
       header: 'Mã sản phẩm',
     },
     {
-      accessorKey: 'name',
+      accessorKey: 'productName',
       header: 'Tên sản phẩm',
     },
     {
-      accessorKey: 'dosageForm',
+      accessorKey: 'shortenName',
       header: 'Tên viết tắt',
+    },
+    {
+      accessorKey: 'defaultPrice.purchasePrice',
+      header: 'Giá bán',
+    },
+    {
+      accessorKey: 'defaultPrice.price',
+      header: 'Giá vốn',
     },
     {
       accessorKey: 'brand',
@@ -68,19 +80,115 @@ export default function ProductsListPage() {
   // Function to render expanded content for a row (if needed)
   const renderExpandedContent = (product: ProductResponse) => {
     return (
-      <div className="space-y-4 p-4">
-        <h4 className="text-lg font-semibold">Chi tiết sản phẩm</h4>
-        {/* Display more product details here */}
-        <p>
-          <span className="font-medium">Thành phần:</span> {product.ingredients || 'N/A'}
-        </p>
-        <p>
-          <span className="font-medium">Dạng bào chế:</span> {product.dosageForm || 'N/A'}
-        </p>
-        <p>
-          <span className="font-medium">Quy cách đóng gói:</span> {product.specification || 'N/A'}
-        </p>
-        {/* Add other relevant fields from ProductResponse */}
+      <div className="space-y-4">
+        <div className="w-full rounded-md space-y-4 p-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+            {/* Row 1 */}
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Mã hàng</p>
+              <p className="text-sm font-medium">{product.productCode}</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Mã vạch</p>
+              <p className="text-sm font-medium"></p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Tên viết tắt</p>
+              <p className="text-sm font-medium">{product.shortenName}</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Định mức tồn</p>
+              <p className="text-sm font-medium"></p>
+            </div>
+
+            {/* Row 2 */}
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Giá vốn</p>
+              <p className="text-sm font-medium">{product.defaultPrice?.price}</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Giá bán</p>
+              <p className="text-sm font-medium">{product.defaultPrice?.purchasePrice}</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Vị trí</p>
+              <p className="text-sm font-medium"></p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Trọng lượng</p>
+              <p className="text-sm font-medium"></p>
+            </div>
+          </div>
+
+          {/* Row 3 */}
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle>Thông tin chi tiết</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-500">Mã thuốc</p>
+                  <p className="text-sm font-medium"></p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-500">Số đăng ký</p>
+                  <p className="text-sm font-medium"></p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-500">Hoạt chất</p>
+                  <p className="text-sm font-medium"></p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-500">Hàm lượng</p>
+                  <p className="text-sm font-medium"></p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-500">Đường dùng</p>
+                  <p className="text-sm font-medium"></p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-500">Quy cách đóng gói</p>
+                  <p className="text-sm font-medium"></p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-500">Hãng sản xuất</p>
+                  <p className="text-sm font-medium"></p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-500">Nước sản xuất</p>
+                  <p className="text-sm font-medium"></p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* <div className="flex justify-end"> */}
+        {/*   <div className="space-x-2"> */}
+        {/*     <Button variant="outline" onClick={() => handleEdit(employee)}> */}
+        {/*       Cập nhật thông tin */}
+        {/*     </Button> */}
+        {/*     {employee.status === 'ACTIVE' && ( */}
+        {/*       <Button variant="destructive" onClick={() => handleDelete(employee)}> */}
+        {/*         Vô hiệu hóa */}
+        {/*       </Button> */}
+        {/*     )} */}
+        {/*   </div> */}
+        {/* </div> */}
       </div>
     );
   };
@@ -115,6 +223,10 @@ export default function ProductsListPage() {
               searchPlaceholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
               expandedContent={renderExpandedContent}
               isLoading={isLoading}
+              pageCount={productsData?.totalPages || 0}
+              pageSize={filter.size || 10}
+              pageIndex={filter.page || 0}
+              onPageChange={(newPage) => setFilter((prev) => ({ ...prev, page: newPage }))}
             />
           </CardContent>
         </Card>

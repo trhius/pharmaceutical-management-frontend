@@ -23,6 +23,10 @@ interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void;
   expandedContent?: (row: TData) => React.ReactNode;
   isLoading?: boolean;
+  pageCount?: number;
+  pageSize?: number;
+  pageIndex?: number;
+  onPageChange?: (pageIndex: number) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -32,6 +36,10 @@ export function DataTable<TData, TValue>({
   searchPlaceholder = 'Tìm kiếm...',
   onRowClick,
   expandedContent,
+  pageCount,
+  pageIndex,
+  pageSize,
+  onPageChange,
   isLoading,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -47,10 +55,22 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
+    pageCount: pageCount,
     state: {
       sorting,
       globalFilter,
+      pagination: {
+        pageIndex: pageIndex || 0,
+        pageSize: pageSize || 10,
+      },
     },
+    onPaginationChange: (updater) => {
+      if (typeof updater === 'function') {
+        const newState = updater({ pageIndex: pageIndex || 0, pageSize: pageSize || 10 });
+        onPageChange?.(newState.pageIndex);
+      }
+    },
+    manualPagination: true,
   });
 
   const toggleRow = (id: string) => {
@@ -72,7 +92,6 @@ export function DataTable<TData, TValue>({
           />
         </div>
       )}
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -137,14 +156,23 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-
-      <div className="flex items-center justify-end space-x-2">
-        <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-          Trước
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-          Tiếp
-        </Button>
+      <div className="flex items-center justify-between space-x-2">
+        <div className="text-sm text-muted-foreground">
+          Trang {table.getState().pagination.pageIndex + 1} / {pageCount}
+        </div>
+        <div className="space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Trước
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+            Tiếp
+          </Button>
+        </div>
       </div>
     </div>
   );

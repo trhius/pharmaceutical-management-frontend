@@ -92,12 +92,15 @@ export interface GetProductRequest {
   searchBy?: 'NAME' | 'CODE' | 'PHONE';
   brand?: string;
   isActive?: boolean;
+  page?: number;
+  size?: number;
 }
 
 export interface ProductResponse {
   id?: number;
   productCode?: string;
-  name?: string;
+  productName?: string;
+  shortenName?: string;
   webName?: string;
   slug?: string;
   imageUrl?: string;
@@ -109,6 +112,7 @@ export interface ProductResponse {
   isActive?: boolean;
   categories?: CategoryResponse[];
   prices?: ProductPriceResponse[];
+  defaultPrice?: ProductPriceResponse;
 }
 
 export interface PageProductResponse {

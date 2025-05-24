@@ -250,6 +250,10 @@ export default function EmployeesListPage() {
               data={employees || []}
               expandedContent={renderExpandedContent}
               isLoading={listEmployeesData.isLoading}
+              pageCount={listEmployeesData.data?.totalPages || 1}
+              pageSize={10}
+              pageIndex={0}
+              onPageChange={(newPage) => setFilter((prev) => ({ ...prev, page: newPage }))}
             />
           </CardContent>
         </Card>
