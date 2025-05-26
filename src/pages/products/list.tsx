@@ -203,7 +203,7 @@ export default function ProductsListPage() {
   };
 
   return (
-    <div className="mx-auto py-6 space-y-4">
+    <div className="mx-auto space-y-4">
       <PageHeader
         title="Sản phẩm"
         description="Quản lý danh mục sản phẩm"
