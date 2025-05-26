@@ -1,24 +1,14 @@
 import * as React from 'react';
-import { Check, ChevronsUpDown } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
 import { useForm } from 'react-hook-form';
-import { GetProductRequest, GetProductPriceRequest } from '@/apis/types/product';
-import { useMeasurementUnits } from '@/apis';
+import { GetProductRequest, GetProductPriceRequest, GetListCategoryResponse } from '@/apis/types/product';
+import { useAllCategories, useMeasurementUnits } from '@/apis';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-
-// Sample users data
-const users = [
-  { label: 'John Doe', value: 'john' },
-  { label: 'Jane Smith', value: 'jane' },
-  { label: 'Robert Johnson', value: 'robert' },
-  { label: 'Emily Davis', value: 'emily' },
-];
+import { TreeDataItem, TreeView } from '@/components/tree-view';
 
 interface TableFilterSidebarProps {
   onFilter: (values: GetProductRequest) => void;
@@ -27,12 +17,50 @@ interface TableFilterSidebarProps {
 export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
   const form = useForm<GetProductPriceRequest>({
     defaultValues: {
-      categorySlug: 'all',
+      categorySlug: undefined,
       fromPrice: '',
       toPrice: '',
       measurementUnitId: undefined,
     },
   });
+
+  const { data: categories } = useAllCategories();
+
+  // Flatten categories
+  const flatCategories = React.useMemo(() => {
+    if (!categories) return [];
+    const flatCategories: GetListCategoryResponse[] = [];
+    function flatten(category: GetListCategoryResponse) {
+      if (!category) return;
+      const { children, ...rest } = category;
+      flatCategories.push(rest);
+      children?.forEach((child) => flatten(child));
+    }
+
+    categories.forEach((category) => flatten(category));
+    return flatCategories;
+  }, [categories]);
+
+  // TreeView data
+  const treeViewData = React.useMemo(() => {
+    if (!categories) return [];
+
+    function convertToTreeViewData(category: GetListCategoryResponse): TreeDataItem | undefined {
+      if (!category) return;
+      const { children, ...rest } = category;
+      const convertChildren = children?.length
+        ? children.map((child) => convertToTreeViewData(child)).filter((child) => !!child)
+        : undefined;
+
+      return {
+        id: rest.slug || '',
+        name: rest.name || '',
+        children: convertChildren,
+      };
+    }
+
+    return categories.map((category) => convertToTreeViewData(category));
+  }, [categories]);
 
   const { data: units } = useMeasurementUnits();
   const [groupOpen, setGroupOpen] = React.useState(false);
@@ -43,15 +71,7 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
     if (values.fromPrice) apiFilter.fromPrice = values.fromPrice;
     if (values.toPrice) apiFilter.toPrice = values.toPrice;
     if (values.measurementUnitId) apiFilter.measurementUnitId = values.measurementUnitId;
-
-    // if (values.createdDateOption === 'custom' && values.createdDateCustom) {
-    //   apiFilter.createdDateFrom = format(startOfDay(values.createdDateCustom), "yyyy-MM-dd'T'HH:mm:ss");
-    //   apiFilter.createdDateTo = format(endOfDay(values.createdDateCustom), "yyyy-MM-dd'T'HH:mm:ss");
-    // }
-
-    // if (values.status !== 'all') {
-    //   apiFilter.isActive = values.status === 'active';
-    // }
+    if (values.categorySlug) apiFilter.categorySlug = values.categorySlug;
 
     onFilter(apiFilter);
   }
@@ -69,45 +89,37 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Popover open={groupOpen} onOpenChange={setGroupOpen}>
+                    <Popover
+                      open={groupOpen}
+                      onOpenChange={(isOpen) => {
+                        // Prevent closing popover when expanding/collapsing tree items
+                        if (!isOpen && !groupOpen) {
+                          setGroupOpen(false);
+                        } else {
+                          setGroupOpen(isOpen);
+                        }
+                      }}
+                    >
                       <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={groupOpen}
-                          className="w-full justify-between"
+                        <button
+                          type="button"
+                          className="w-full rounded-md border px-3 py-2 text-left text-sm font-medium"
                         >
-                          {field.value ? users.find((user) => user.value === field.value)?.label : 'Chọn nhóm hàng'}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
+                          {flatCategories?.find((cat) => cat.slug === field.value)?.name || 'Chọn nhóm hàng'}
+                        </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandList>
-                            <CommandInput placeholder="Tìm nhóm hàng..." />
-                            <CommandGroup>
-                              {users.map((user) => (
-                                <CommandItem
-                                  key={user.value}
-                                  value={user.value}
-                                  onSelect={(currentValue) => {
-                                    form.setValue('categorySlug', currentValue === field.value ? '' : currentValue);
-                                    setGroupOpen(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      'mr-2 h-4 w-4',
-                                      field.value === user.value ? 'opacity-100' : 'opacity-0'
-                                    )}
-                                  />
-                                  {user.label}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                            <CommandEmpty>Ko thấy nhóm hàng nào.</CommandEmpty>
-                          </CommandList>
-                        </Command>
+                      <PopoverContent className="w-[300px] p-0">
+                        <TreeView
+                          data={treeViewData as unknown as TreeDataItem}
+                          initialSelectedItemId={field.value}
+                          onSelectChange={(item) => {
+                            if (item) {
+                              form.setValue('categorySlug', item.id);
+                              // setGroupOpen(false);
+                            }
+                          }}
+                          className="max-h-[400px] overflow-auto"
+                        />
                       </PopoverContent>
                     </Popover>
                   </FormControl>
@@ -118,7 +130,7 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
 
           {/* Unit */}
           <div className="space-y-2">
-            <h3 className="font-medium">Nhà cung cấp</h3>
+            <h3 className="font-medium">Đơn vị</h3>
             <FormField
               control={form.control}
               name="measurementUnitId"
@@ -127,7 +139,7 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
                   <Select onValueChange={field.onChange} value={field.value?.toString()}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn don vi" />
+                        <SelectValue placeholder="Chọn đơn vị" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -145,7 +157,7 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
 
           {/* Total Sales */}
           <div className="space-y-2">
-            <h3 className="font-medium">Tổng chi tiêu</h3>
+            <h3 className="font-medium">Giá</h3>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className="w-12 shrink-0 text-sm">Từ</div>

@@ -12,10 +12,10 @@ import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { format, startOfDay } from 'date-fns'; // Import format and date utility functions
-import { GetProductRequest } from '@/apis/types/product';
+import { GetListCategoryResponse, GetProductRequest } from '@/apis/types/product';
 import * as z from 'zod';
 import { useAllCategories, useBrands } from '@/apis/hooks/product';
-import { TreeView } from '@/components/tree-view';
+import { TreeDataItem, TreeView } from '@/components/tree-view';
 
 const formSchema = z.object({
   createdDateOption: z.enum(['all', 'custom']),
@@ -49,8 +49,8 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
   // Flatten categories
   const flatCategories = React.useMemo(() => {
     if (!categories) return [];
-    const flatCategories = [];
-    function flatten(category) {
+    const flatCategories: GetListCategoryResponse[] = [];
+    function flatten(category: GetListCategoryResponse) {
       if (!category) return;
       const { children, ...rest } = category;
       flatCategories.push(rest);
@@ -65,10 +65,12 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
   const treeViewData = React.useMemo(() => {
     if (!categories) return [];
 
-    function convertToTreeViewData(category) {
+    function convertToTreeViewData(category: GetListCategoryResponse): TreeDataItem | undefined {
       if (!category) return;
       const { children, ...rest } = category;
-      const convertChildren = children?.length ? children.map((child) => convertToTreeViewData(child)) : undefined;
+      const convertChildren = children?.length
+        ? children.map((child) => convertToTreeViewData(child)).filter((child) => !!child)
+        : undefined;
 
       return {
         id: rest.slug || '',
@@ -137,7 +139,7 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
                       </PopoverTrigger>
                       <PopoverContent className="w-[300px] p-0">
                         <TreeView
-                          data={treeViewData}
+                          data={treeViewData as unknown as TreeDataItem}
                           initialSelectedItemId={field.value}
                           onSelectChange={(item) => {
                             if (item) {
