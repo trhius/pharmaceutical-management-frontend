@@ -86,3 +86,9 @@ export const useCategoriesByType = (
     queryFn: () => product.getCategoriesByType(slug),
     enabled: options?.enabled ?? !!slug,
   });
+
+export const useBrands = (): UseQueryResult<string[], Error> =>
+  useQuery({
+    queryKey: ['brands'],
+    queryFn: product.getBrands,
+  });

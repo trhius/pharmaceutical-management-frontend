@@ -94,6 +94,7 @@ export interface GetProductRequest {
   isActive?: boolean;
   page?: number;
   size?: number;
+  createdAt?: string;
 }
 
 export interface ProductResponse {

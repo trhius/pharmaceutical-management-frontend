@@ -64,4 +64,7 @@ export const product = {
 
   getCategoriesByType: (slug: string): Promise<Types.GetListCategoryResponse[]> =>
     apiClient.get(`/api/products/categories/type?slug=${slug}`).then((res) => res.data),
+
+  getBrands: (): Promise<string[]> =>
+    apiClient.get('/api/products/brands').then((res) => res.data),
 };

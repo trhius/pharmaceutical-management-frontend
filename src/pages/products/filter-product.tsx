@@ -11,22 +11,15 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { format } from 'date-fns'; // Import format and date utility functions
+import { format, startOfDay } from 'date-fns'; // Import format and date utility functions
 import { GetProductRequest } from '@/apis/types/product';
 import * as z from 'zod';
-
-// Sample users data
-const users = [
-  { label: 'John Doe', value: 'john' },
-  { label: 'Jane Smith', value: 'jane' },
-  { label: 'Robert Johnson', value: 'robert' },
-  { label: 'Emily Davis', value: 'emily' },
-];
+import { useAllCategories, useBrands } from '@/apis/hooks/product';
 
 const formSchema = z.object({
   createdDateOption: z.enum(['all', 'custom']),
   createdDateCustom: z.date().optional(),
-  group: z.string().default(''),
+  categorySlug: z.string().default(''),
   brand: z.string().default(''),
   status: z.enum(['all', 'active', 'inactive']),
 });
@@ -43,11 +36,14 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
     defaultValues: {
       createdDateOption: 'all',
       createdDateCustom: undefined,
-      group: '',
+      categorySlug: '',
       brand: '',
       status: 'all',
     },
   });
+
+  const { data: brands } = useBrands();
+  const { data: categories } = useAllCategories();
 
   const [groupOpen, setGroupOpen] = React.useState(false);
   const [providerOpen, setProviderOpen] = React.useState(false);
@@ -55,10 +51,13 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
   function onSubmit(values: FormValues) {
     const apiFilter: GetProductRequest = {};
 
-    // if (values.createdDateOption === 'custom' && values.createdDateCustom) {
-    //   apiFilter.createdDateFrom = format(startOfDay(values.createdDateCustom), "yyyy-MM-dd'T'HH:mm:ss");
-    //   apiFilter.createdDateTo = format(endOfDay(values.createdDateCustom), "yyyy-MM-dd'T'HH:mm:ss");
-    // }
+    if (values.createdDateOption === 'custom' && values.createdDateCustom) {
+      apiFilter.createdAt = format(startOfDay(values.createdDateCustom), "yyyy-MM-dd'T'HH:mm:ss");
+    }
+
+    if (values.categorySlug) {
+      apiFilter.categorySlug = values.categorySlug;
+    }
 
     if (values.status !== 'all') {
       apiFilter.isActive = values.status === 'active';
@@ -78,7 +77,7 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
             <h3 className="font-medium">Nhóm hàng</h3>
             <FormField
               control={form.control}
-              name="group"
+              name="categorySlug"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
@@ -90,7 +89,9 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
                           aria-expanded={groupOpen}
                           className="w-full justify-between"
                         >
-                          {field.value ? users.find((user) => user.value === field.value)?.label : 'Chọn nhóm hàng'}
+                          {field.value
+                            ? categories?.find((category) => category.slug?.toString() === field.value)?.name
+                            : 'Chọn nhóm hàng'}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
@@ -99,22 +100,22 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
                           <CommandList>
                             <CommandInput placeholder="Tìm nhóm hàng..." />
                             <CommandGroup>
-                              {users.map((user) => (
+                              {categories?.map((category) => (
                                 <CommandItem
-                                  key={user.value}
-                                  value={user.value}
+                                  key={category.id}
+                                  value={category.slug?.toString()}
                                   onSelect={(currentValue) => {
-                                    form.setValue('group', currentValue === field.value ? '' : currentValue);
+                                    form.setValue('categorySlug', currentValue === field.value ? '' : currentValue);
                                     setGroupOpen(false);
                                   }}
                                 >
                                   <Check
                                     className={cn(
                                       'mr-2 h-4 w-4',
-                                      field.value === user.value ? 'opacity-100' : 'opacity-0'
+                                      field.value === category.id?.toString() ? 'opacity-100' : 'opacity-0'
                                     )}
                                   />
-                                  {user.label}
+                                  {category.name}
                                 </CommandItem>
                               ))}
                             </CommandGroup>
@@ -182,7 +183,7 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
 
           {/* Brand */}
           <div className="space-y-2">
-            <h3 className="font-medium">Nhà cung cấp</h3>
+            <h3 className="font-medium">Hãng sản xuất</h3>
             <FormField
               control={form.control}
               name="brand"
@@ -191,12 +192,8 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
                   <FormControl>
                     <Popover open={providerOpen} onOpenChange={setProviderOpen}>
                       <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className="w-full justify-between"
-                        >
-                          {field.value ? users.find((user) => user.value === field.value)?.label : 'Chọn nhà cung cấp'}
+                        <Button variant="outline" role="combobox" className="w-full justify-between">
+                          {field.value ? brands?.find((brand) => brand === field.value) : 'Chọn nhà cung cấp'}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
@@ -205,22 +202,19 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
                           <CommandList>
                             <CommandInput placeholder="Tìm nhà cung cấp..." />
                             <CommandGroup>
-                              {users.map((user) => (
+                              {brands?.map((brand) => (
                                 <CommandItem
-                                  key={user.value}
-                                  value={user.value}
+                                  key={brand}
+                                  value={brand}
                                   onSelect={(currentValue) => {
                                     form.setValue('brand', currentValue === field.value ? '' : currentValue);
                                     setProviderOpen(false);
                                   }}
                                 >
                                   <Check
-                                    className={cn(
-                                      'mr-2 h-4 w-4',
-                                      field.value === user.value ? 'opacity-100' : 'opacity-0'
-                                    )}
+                                    className={cn('mr-2 h-4 w-4', field.value === brand ? 'opacity-100' : 'opacity-0')}
                                   />
-                                  {user.label}
+                                  {brand}
                                 </CommandItem>
                               ))}
                             </CommandGroup>

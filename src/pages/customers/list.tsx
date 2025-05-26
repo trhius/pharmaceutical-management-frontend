@@ -199,7 +199,7 @@ export default function CustomersListPage() {
   };
 
   return (
-    <div className="container mx-auto">
+    <div className="mx-auto">
       <PageHeader
         title="Khách hàng"
         description="Xem và quản lý tất cả khách hàng"
