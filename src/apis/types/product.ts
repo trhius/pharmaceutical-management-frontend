@@ -15,6 +15,7 @@ export interface CategoryResponse {
   name?: string;
   slug?: string;
   level?: number;
+  children?: CategoryResponse[];
 }
 
 export interface ProductDetailsResponse {
@@ -135,4 +136,5 @@ export interface GetListCategoryResponse {
   name?: string;
   slug?: string;
   level?: number;
+  children?: GetListCategoryResponse[];
 }

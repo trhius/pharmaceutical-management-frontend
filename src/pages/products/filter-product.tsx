@@ -15,6 +15,7 @@ import { format, startOfDay } from 'date-fns'; // Import format and date utility
 import { GetProductRequest } from '@/apis/types/product';
 import * as z from 'zod';
 import { useAllCategories, useBrands } from '@/apis/hooks/product';
+import { TreeView } from '@/components/tree-view';
 
 const formSchema = z.object({
   createdDateOption: z.enum(['all', 'custom']),
@@ -44,6 +45,40 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
 
   const { data: brands } = useBrands();
   const { data: categories } = useAllCategories();
+
+  // Flatten categories
+  const flatCategories = React.useMemo(() => {
+    if (!categories) return [];
+    const flatCategories = [];
+    function flatten(category) {
+      if (!category) return;
+      const { children, ...rest } = category;
+      flatCategories.push(rest);
+      children?.forEach((child) => flatten(child));
+    }
+
+    categories.forEach((category) => flatten(category));
+    return flatCategories;
+  }, [categories]);
+
+  // TreeView data
+  const treeViewData = React.useMemo(() => {
+    if (!categories) return [];
+
+    function convertToTreeViewData(category) {
+      if (!category) return;
+      const { children, ...rest } = category;
+      const convertChildren = children?.length ? children.map((child) => convertToTreeViewData(child)) : undefined;
+
+      return {
+        id: rest.slug || '',
+        name: rest.name || '',
+        children: convertChildren,
+      };
+    }
+
+    return categories.map((category) => convertToTreeViewData(category));
+  }, [categories]);
 
   const [groupOpen, setGroupOpen] = React.useState(false);
   const [providerOpen, setProviderOpen] = React.useState(false);
@@ -81,47 +116,37 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Popover open={groupOpen} onOpenChange={setGroupOpen}>
+                    <Popover
+                      open={groupOpen}
+                      onOpenChange={(isOpen) => {
+                        // Prevent closing popover when expanding/collapsing tree items
+                        if (!isOpen && !groupOpen) {
+                          setGroupOpen(false);
+                        } else {
+                          setGroupOpen(isOpen);
+                        }
+                      }}
+                    >
                       <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={groupOpen}
-                          className="w-full justify-between"
+                        <button
+                          type="button"
+                          className="w-full rounded-md border px-3 py-2 text-left text-sm font-medium"
                         >
-                          {field.value
-                            ? categories?.find((category) => category.slug?.toString() === field.value)?.name
-                            : 'Chọn nhóm hàng'}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
+                          {flatCategories?.find((cat) => cat.slug === field.value)?.name || 'Chọn nhóm hàng'}
+                        </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandList>
-                            <CommandInput placeholder="Tìm nhóm hàng..." />
-                            <CommandGroup>
-                              {categories?.map((category) => (
-                                <CommandItem
-                                  key={category.id}
-                                  value={category.slug?.toString()}
-                                  onSelect={(currentValue) => {
-                                    form.setValue('categorySlug', currentValue === field.value ? '' : currentValue);
-                                    setGroupOpen(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      'mr-2 h-4 w-4',
-                                      field.value === category.id?.toString() ? 'opacity-100' : 'opacity-0'
-                                    )}
-                                  />
-                                  {category.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                            <CommandEmpty>Ko thấy nhóm hàng nào.</CommandEmpty>
-                          </CommandList>
-                        </Command>
+                      <PopoverContent className="w-[300px] p-0">
+                        <TreeView
+                          data={treeViewData}
+                          initialSelectedItemId={field.value}
+                          onSelectChange={(item) => {
+                            if (item) {
+                              form.setValue('categorySlug', item.id);
+                              // setGroupOpen(false);
+                            }
+                          }}
+                          className="max-h-[400px] overflow-auto"
+                        />
                       </PopoverContent>
                     </Popover>
                   </FormControl>
