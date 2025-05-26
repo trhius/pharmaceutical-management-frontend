@@ -35,10 +35,8 @@ function App() {
 
   // Redirect to login if not authenticated and not on auth pages
   useEffect(() => {
-    const isAuthPage = 
-      location.pathname === '/login' || 
-      location.pathname === '/forgot-password';
-    
+    const isAuthPage = location.pathname === '/login' || location.pathname === '/forgot-password';
+
     if (!isAuthenticated && !isAuthPage) {
       navigate('/login');
     }
@@ -49,28 +47,41 @@ function App() {
       {/* Auth Routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      
+
       {/* Protected Routes */}
-      <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+      <Route
+        element={
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route path="/" element={<DashboardPage />} />
-        
+
         {/* Employee Routes */}
         <Route path="/employees" element={<EmployeesListPage />} />
-        
+
         {/* Customer Routes */}
         <Route path="/customers" element={<CustomersListPage />} />
-        
+
         {/* Product Routes */}
         <Route path="/products" element={<ProductsListPage />} />
         <Route path="/products/update-prices" element={<UpdatePricesPage />} />
-        
+
         {/* Provider Routes */}
         <Route path="/providers" element={<ProvidersListPage />} />
-        
+
         {/* Order Routes */}
         <Route path="/orders" element={<OrdersListPage />} />
-        <Route path="/orders/create" element={<CreateOrderPage />} />
       </Route>
+      <Route
+        path="/orders/create"
+        element={
+          <ProtectedRoute>
+            <CreateOrderPage />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
