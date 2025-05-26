@@ -42,7 +42,7 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
       searchBy: initialFilters.searchBy || 'all-search',
       fromDate: initialFilters.fromDate ? new Date(initialFilters.fromDate) : undefined,
       toDate: initialFilters.toDate ? new Date(initialFilters.toDate) : undefined,
-      isActive: initialFilters.isActive === undefined ? 'all-status' : initialFilters.isActive.toString(),
+      isActive: initialFilters.isActive ? 'true' : undefined,
     },
   });
 
@@ -52,7 +52,7 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
       searchBy: initialFilters.searchBy || 'all-search',
       fromDate: initialFilters.fromDate ? new Date(initialFilters.fromDate) : undefined,
       toDate: initialFilters.toDate ? new Date(initialFilters.toDate) : undefined,
-      isActive: initialFilters.isActive === undefined ? 'all-status' : initialFilters.isActive.toString(),
+      isActive: initialFilters.isActive ? 'true' : undefined,
     });
   }, [initialFilters, form]);
 
@@ -73,7 +73,7 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
       searchBy: 'all-search',
       fromDate: undefined,
       toDate: undefined,
-      isActive: 'all-status',
+      isActive: undefined,
     };
     form.reset(resetValues);
     onApplyFilters({}); // Apply empty filters
@@ -148,7 +148,7 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
                     </PopoverContent>
                   </Popover>
                 </FormItem>
@@ -177,7 +177,7 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
                     </PopoverContent>
                   </Popover>
                 </FormItem>
@@ -193,7 +193,7 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
               name="isActive"
               render={({ field }) => (
                 <FormItem>
-                  <Select onValueChange={field.onChange} value={field.value || 'all-status'}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger id="isActive">
                         <SelectValue placeholder="Chọn trạng thái" />

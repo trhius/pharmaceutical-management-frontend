@@ -9,7 +9,6 @@ import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
 
 import { useAllStores } from '@/apis';
-import { StoreResponse } from '@/apis/types'; // Assuming StoreResponse type exists
 
 interface StoreSelectProps {
   name: string; // The name of the form field (e.g., 'storeId')

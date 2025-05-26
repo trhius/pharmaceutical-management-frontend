@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 import { Button } from '@/components/ui/button';
 import { CalendarIcon } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
@@ -8,38 +6,54 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
-import { GetOrderListRequest } from '@/apis/types/sales';
+import { OrderListRequest } from '@/apis/types/sales';
 import { format } from 'date-fns'; // Import format and date utility functions
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const formSchema = z.object({
+  search: z.string().optional(),
+  searchBy: z.string().optional(),
+  createdDateFrom: z.date().optional(),
+  createdDateTo: z.date().optional(),
+  status: z.enum(['NEW', 'COMPLETED', 'CANCELLED', 'RETURNED']).optional(),
+  paymentMethod: z.enum(['CASH', 'CREDIT_CARD', 'BANK_TRANSFER', 'MOBILE_PAYMENT', 'OTHER']).optional(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface OrderFilterProps {
-  onFilter: (values: GetOrderListRequest) => void;
+  onFilter: (values: OrderListRequest) => void;
 }
 
 export function OrderFilter({ onFilter }: OrderFilterProps) {
-  const form = useForm<GetOrderListRequest>({
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      search: '',
+      search: undefined,
       searchBy: undefined,
-      createdDateFrom: '',
-      createdDateTo: '',
+      createdDateFrom: undefined,
+      createdDateTo: undefined,
       status: undefined,
       paymentMethod: undefined,
     },
   });
 
-  function onSubmit(values: GetOrderListRequest) {
-    const apiFilter: GetOrderListRequest = {};
+  function onSubmit(values: FormValues) {
+    const apiFilter: OrderListRequest = {};
 
     if (values.search) apiFilter.search = values.search;
-    if (values.searchBy) apiFilter.searchBy = values.searchBy;
+    if (values.searchBy) apiFilter.searchBy = values.searchBy as OrderListRequest['searchBy'];
     if (values.createdDateFrom) {
       apiFilter.createdDateFrom = format(values.createdDateFrom, "yyyy-MM-dd'T'HH:mm:ss");
     }
     if (values.createdDateTo) {
       apiFilter.createdDateTo = format(values.createdDateTo, "yyyy-MM-dd'T'HH:mm:ss");
     }
-    if (values.status) apiFilter.status = values.status;
-    if (values.paymentMethod) apiFilter.paymentMethod = values.paymentMethod;
+    if (values.status) apiFilter.status = values.status as OrderListRequest['status'];
+    if (values.paymentMethod) apiFilter.paymentMethod = values.paymentMethod as OrderListRequest['paymentMethod'];
+
+    console.log({ apiFilter })
 
     onFilter(apiFilter);
   }
@@ -119,7 +133,7 @@ export function OrderFilter({ onFilter }: OrderFilterProps) {
                             <Calendar
                               mode="single"
                               selected={form.watch('createdDateFrom')}
-                              onSelect={(date) => form.setValue('createdDateFrom', date || undefined)}
+                              onSelect={(date) => form.setValue('createdDateFrom', date)}
                             />
                           </PopoverContent>
                         </Popover>

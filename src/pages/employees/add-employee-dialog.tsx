@@ -11,35 +11,23 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Check, ChevronsUpDown, PlusCircle } from 'lucide-react';
+import { CalendarIcon, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 
 import { CreateEmployeeRequest } from '@/apis/types/employee';
 import { useCreateEmployee } from '@/apis/hooks/employee';
-import { useAllStores } from '@/apis/hooks/employee';
 import { AddBranchDialog } from './add-branch-dialog';
 import { StoreSelect } from '@/components/store-select';
+import { roles, genders } from '@/apis/types/transform';
 
-const roles = [
-  { label: 'Quản trị viên', value: 'SUPER_ADMIN' },
-  { label: 'Quản lý cửa hàng', value: 'STORE_MANAGER' },
-  { label: 'Dược sĩ', value: 'PHARMACIST' },
-  { label: 'Nhân viên hàng hóa', value: 'INVENTORY_STAFF' },
-];
 
-const genderOptions = [
-  { label: 'Nam', value: 'MALE' },
-  { label: 'Nữ', value: 'FEMALE' },
-  { label: 'Khác', value: 'OTHER' },
-];
 
 const formSchema = z.object({
   fullName: z.string().min(2, 'Tên đầy đủ phải có ít nhất 2 ký tự.'),
@@ -306,7 +294,7 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {genderOptions.map((gender) => (
+                      {genders.map((gender) => (
                         <SelectItem key={gender.value} value={gender.value}>
                           {gender.label}
                         </SelectItem>

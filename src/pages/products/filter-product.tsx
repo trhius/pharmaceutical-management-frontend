@@ -1,10 +1,8 @@
-import * as React from 'react';
-import { CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Form, FormField, FormItem } from '@/components/ui/form';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -12,10 +10,8 @@ import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { format, startOfDay } from 'date-fns'; // Import format and date utility functions
-import { GetListCategoryResponse, GetProductRequest } from '@/apis/types/product';
+import { GetProductRequest } from '@/apis/types/product';
 import * as z from 'zod';
-import { useAllCategories, useBrands } from '@/apis/hooks/product';
-import { TreeDataItem, TreeView } from '@/components/tree-view';
 import { CategorySelect } from '@/components/category-select';
 import { BrandSelect } from '@/components/brand-select';
 
@@ -44,8 +40,6 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
       status: 'all',
     },
   });
-
-  const [providerOpen, setProviderOpen] = React.useState(false);
 
   function onSubmit(values: FormValues) {
     const apiFilter: GetProductRequest = {};

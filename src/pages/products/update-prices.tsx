@@ -101,15 +101,16 @@ export default function ProductsListPrices() {
             </div>
             <Button
               onClick={() => {
-                const pricesToUpdate: UpdateProductPriceRequest = Object.entries(editedPrices).map(
+                const pricesToUpdate: UpdateProductPriceRequest[] = Object.entries(editedPrices).map(
                   ([productId, price]) => ({
-                    productId: productId,
+                    productId: Number.parseInt(productId),
                     measurementUnitId: 1,
-                    sellingPrice: price,
+                    sellingPrice: price.toString(),
                   })
                 );
                 if (pricesToUpdate.length > 0) {
-                  updatePrices(pricesToUpdate);
+                  // TODO: Update all prices at once
+                  updatePrices(pricesToUpdate[0]);
                 }
               }}
               disabled={Object.keys(editedPrices).length === 0 || isUpdating}
