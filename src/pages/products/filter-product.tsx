@@ -16,6 +16,8 @@ import { GetListCategoryResponse, GetProductRequest } from '@/apis/types/product
 import * as z from 'zod';
 import { useAllCategories, useBrands } from '@/apis/hooks/product';
 import { TreeDataItem, TreeView } from '@/components/tree-view';
+import { CategorySelect } from '@/components/category-select';
+import { BrandSelect } from '@/components/brand-select';
 
 const formSchema = z.object({
   createdDateOption: z.enum(['all', 'custom']),
@@ -43,46 +45,6 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
     },
   });
 
-  const { data: brands } = useBrands();
-  const { data: categories } = useAllCategories();
-
-  // Flatten categories
-  const flatCategories = React.useMemo(() => {
-    if (!categories) return [];
-    const flatCategories: GetListCategoryResponse[] = [];
-    function flatten(category: GetListCategoryResponse) {
-      if (!category) return;
-      const { children, ...rest } = category;
-      flatCategories.push(rest);
-      children?.forEach((child) => flatten(child));
-    }
-
-    categories.forEach((category) => flatten(category));
-    return flatCategories;
-  }, [categories]);
-
-  // TreeView data
-  const treeViewData = React.useMemo(() => {
-    if (!categories) return [];
-
-    function convertToTreeViewData(category: GetListCategoryResponse): TreeDataItem | undefined {
-      if (!category) return;
-      const { children, ...rest } = category;
-      const convertChildren = children?.length
-        ? children.map((child) => convertToTreeViewData(child)).filter((child) => !!child)
-        : undefined;
-
-      return {
-        id: rest.slug || '',
-        name: rest.name || '',
-        children: convertChildren,
-      };
-    }
-
-    return categories.map((category) => convertToTreeViewData(category));
-  }, [categories]);
-
-  const [groupOpen, setGroupOpen] = React.useState(false);
   const [providerOpen, setProviderOpen] = React.useState(false);
 
   function onSubmit(values: FormValues) {
@@ -112,49 +74,7 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
           {/* Group */}
           <div className="space-y-2">
             <h3 className="font-medium">Nhóm hàng</h3>
-            <FormField
-              control={form.control}
-              name="categorySlug"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Popover
-                      open={groupOpen}
-                      onOpenChange={(isOpen) => {
-                        // Prevent closing popover when expanding/collapsing tree items
-                        if (!isOpen && !groupOpen) {
-                          setGroupOpen(false);
-                        } else {
-                          setGroupOpen(isOpen);
-                        }
-                      }}
-                    >
-                      <PopoverTrigger asChild>
-                        <button
-                          type="button"
-                          className="w-full rounded-md border px-3 py-2 text-left text-sm font-medium"
-                        >
-                          {flatCategories?.find((cat) => cat.slug === field.value)?.name || 'Chọn nhóm hàng'}
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[300px] p-0">
-                        <TreeView
-                          data={treeViewData as unknown as TreeDataItem}
-                          initialSelectedItemId={field.value}
-                          onSelectChange={(item) => {
-                            if (item) {
-                              form.setValue('categorySlug', item.id);
-                              // setGroupOpen(false);
-                            }
-                          }}
-                          className="max-h-[400px] overflow-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <CategorySelect name="categorySlug" />
           </div>
 
           {/* Creation Date */}
@@ -211,49 +131,7 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
           {/* Brand */}
           <div className="space-y-2">
             <h3 className="font-medium">Hãng sản xuất</h3>
-            <FormField
-              control={form.control}
-              name="brand"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Popover open={providerOpen} onOpenChange={setProviderOpen}>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" role="combobox" className="w-full justify-between">
-                          {field.value ? brands?.find((brand) => brand === field.value) : 'Chọn nhà cung cấp'}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandList>
-                            <CommandInput placeholder="Tìm nhà cung cấp..." />
-                            <CommandGroup>
-                              {brands?.map((brand) => (
-                                <CommandItem
-                                  key={brand}
-                                  value={brand}
-                                  onSelect={(currentValue) => {
-                                    form.setValue('brand', currentValue === field.value ? '' : currentValue);
-                                    setProviderOpen(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn('mr-2 h-4 w-4', field.value === brand ? 'opacity-100' : 'opacity-0')}
-                                  />
-                                  {brand}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                            <CommandEmpty>No creator found.</CommandEmpty>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <BrandSelect name="brand" />
           </div>
 
           {/* Status */}

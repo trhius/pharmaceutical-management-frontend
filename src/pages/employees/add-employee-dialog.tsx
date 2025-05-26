@@ -26,6 +26,7 @@ import { CreateEmployeeRequest } from '@/apis/types/employee';
 import { useCreateEmployee } from '@/apis/hooks/employee';
 import { useAllStores } from '@/apis/hooks/employee';
 import { AddBranchDialog } from './add-branch-dialog';
+import { StoreSelect } from '@/components/store-select';
 
 const roles = [
   { label: 'Quản trị viên', value: 'SUPER_ADMIN' },
@@ -66,7 +67,6 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
   const { toast } = useToast();
 
   const createEmployeeMutation = useCreateEmployee();
-  const { data: stores } = useAllStores();
 
   const [isAddBranchDialogOpen, setIsAddBranchDialogOpen] = React.useState(false);
 
@@ -112,7 +112,7 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] md:max-w-xl">
         <DialogHeader>
           <DialogTitle>Thêm Nhân Viên Mới</DialogTitle>
           <DialogDescription>Nhập thông tin chi tiết cho nhân viên mới.</DialogDescription>
@@ -190,58 +190,17 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
               />
 
               <div className="flex gap-2">
-                <FormField
-                  control={form.control}
-                  name="storeId"
-                  render={({ field }) => (
-                    <FormItem className="flex-grow">
-                      <FormLabel>Chi nhánh</FormLabel>
-                      <Popover modal>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              className={cn('w-full justify-between', !field.value && 'text-muted-foreground')}
-                            >
-                              {field.value ? stores?.find((store) => store.id === field.value)?.name : 'Chọn chi nhánh'}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent>
-                          <Command>
-                            <CommandInput placeholder="Tìm chi nhánh..." />
-                            <CommandList>
-                              <CommandEmpty>Không tìm thấy chi nhánh.</CommandEmpty>
-                              <CommandGroup>
-                                {stores?.map((store) => (
-                                  <CommandItem
-                                    value={store.id?.toString()}
-                                    key={store.id}
-                                    onSelect={() => {
-                                      form.setValue('storeId', store.id);
-                                    }}
-                                  >
-                                    <Check
-                                      className={cn(
-                                        'mr-2 h-4 w-4',
-                                        store.id === field.value ? 'opacity-100' : 'opacity-0'
-                                      )}
-                                    />
-                                    {store.name}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="button" className="mt-auto mb-2" variant="outline" size="icon" onClick={() => setIsAddBranchDialogOpen(true)}>
+                <div className="grow-1">
+                  <FormLabel>Chức danh</FormLabel>
+                  <StoreSelect name="storeId" />
+                </div>
+                <Button
+                  type="button"
+                  className="mt-auto mb-2"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setIsAddBranchDialogOpen(true)}
+                >
                   <PlusCircle className="h-4 w-4" />
                 </Button>
               </div>

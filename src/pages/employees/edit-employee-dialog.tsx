@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { CalendarIcon, ChevronsUpDown, Check } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 
@@ -17,12 +17,12 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
-import { useAllStores, useUpdateEmployeeDetails } from '@/apis/hooks/employee';
+import { useUpdateEmployeeDetails } from '@/apis/hooks/employee';
 import { roles, genders } from '@/apis/types/transform';
 import { EmployeeResponse, UpdateEmployeeRequest } from '@/apis/types/employee';
+import { StoreSelect } from '@/components/store-select';
 
 interface EditEmployeeDialogProps {
   open: boolean;
@@ -33,9 +33,6 @@ interface EditEmployeeDialogProps {
 
 export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmployeeDialogProps) {
   const queryClient = useQueryClient();
-
-  const storeRes = useAllStores();
-  const stores = storeRes.data;
 
   const updateEmployeeMutation = useUpdateEmployeeDetails();
 
@@ -161,7 +158,6 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
               )}
             />
 
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Role */}
               <FormField
@@ -190,57 +186,10 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
               />
 
               {/* Store */}
-              <FormField
-                control={form.control}
-                name="storeId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Chi nhánh</FormLabel>
-                    <Popover modal>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn('w-full justify-between', !field.value && 'text-muted-foreground')}
-                          >
-                            {field.value ? stores?.find((store) => store.id === field.value)?.name : 'Chọn chi nhánh'}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                        <Command>
-                          <CommandInput placeholder="Tìm chi nhánh..." />
-                          <CommandList>
-                            <CommandEmpty>Không tìm thấy chi nhánh.</CommandEmpty>
-                            <CommandGroup>
-                              {stores?.map((store) => (
-                                <CommandItem
-                                  value={store.id?.toString()}
-                                  key={store.id}
-                                  onSelect={() => {
-                                    form.setValue('storeId', store.id);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      'mr-2 h-4 w-4',
-                                      store.id === field.value ? 'opacity-100' : 'opacity-0'
-                                    )}
-                                  />
-                                  {store.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div>
+                <FormLabel>Chức danh</FormLabel>
+                <StoreSelect name="storeId" placeholder="Chon chi nhanh" prefetch />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

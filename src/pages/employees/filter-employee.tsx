@@ -8,14 +8,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { useForm } from 'react-hook-form';
 import { EmployeeRole, ListEmployeeRequest } from '@/apis/types';
-import { useAllStores } from '@/apis';
 import { roles } from '@/apis/types/transform';
-
+import { StoreSelect } from '@/components/store-select';
 
 export function FilterEmployee({ onFilter }: { onFilter?: (values: ListEmployeeRequest) => void }) {
-  const storeRes = useAllStores();
-  const stores = storeRes.data;
-
   const form = useForm<ListEmployeeRequest>({
     defaultValues: {
       role: undefined,
@@ -24,7 +20,6 @@ export function FilterEmployee({ onFilter }: { onFilter?: (values: ListEmployeeR
     },
   });
 
-  const [branchOpen, setBranchOpen] = React.useState(false);
   const [roleOpen, setRoleOpen] = React.useState(false);
 
   function onSubmit(values: ListEmployeeRequest) {
@@ -82,59 +77,7 @@ export function FilterEmployee({ onFilter }: { onFilter?: (values: ListEmployeeR
           {/* Store */}
           <div className="space-y-2">
             <h3 className="font-medium">Chi nhánh</h3>
-            <FormField
-              control={form.control}
-              name="storeId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Popover open={branchOpen} onOpenChange={setBranchOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={branchOpen}
-                          className="w-full justify-between"
-                        >
-                          {field.value ? stores?.find((store) => store.id === field.value)?.name : 'Chọn chi nhánh'}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandList>
-                            <CommandInput placeholder="Tìm chi nhánh..." />
-                            <CommandGroup>
-                              {stores?.map((store) => (
-                                <CommandItem
-                                  key={store.id}
-                                  keywords={[store.name || '']}
-                                  value={store.id?.toString()}
-                                  onSelect={(currentValue) => {
-                                    const storeId = currentValue === field.value?.toString() ? undefined : Number(currentValue);
-                                    form.setValue('storeId', storeId);
-                                    setBranchOpen(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      'mr-2 h-4 w-4',
-                                      field.value === store.id ? 'opacity-100' : 'opacity-0'
-                                    )}
-                                  />
-                                  {store.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                            <CommandEmpty>Ko thấy nhóm hàng nào.</CommandEmpty>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <StoreSelect name="storeId" />
           </div>
 
           {/* Role */}
@@ -171,7 +114,7 @@ export function FilterEmployee({ onFilter }: { onFilter?: (values: ListEmployeeR
                                   onSelect={(currentValue) => {
                                     form.setValue(
                                       'role',
-                                      currentValue === field.value ? undefined : currentValue as EmployeeRole
+                                      currentValue === field.value ? undefined : (currentValue as EmployeeRole)
                                     );
                                     setRoleOpen(false);
                                   }}

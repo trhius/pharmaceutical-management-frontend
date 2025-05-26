@@ -36,10 +36,11 @@ export const useDeleteEmployee = (): UseMutationResult<Types.StringResponse, Err
     mutationFn: employee.deleteEmployee,
   });
 
-export const useAllStores = (): UseQueryResult<Types.StoreResponse[], Error> =>
+export const useAllStores = ({ enabled }: { enabled?: boolean }): UseQueryResult<Types.StoreResponse[], Error> =>
   useQuery({
     queryKey: ['allStores'],
     queryFn: employee.getAllStores,
+    enabled: enabled ?? true,
   });
 
 export const useListEmployees = (params: {

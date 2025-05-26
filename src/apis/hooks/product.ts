@@ -71,10 +71,15 @@ export const useExportProducts = (): UseMutationResult<Blob, Error, { request: G
     mutationFn: product.exportProducts,
   });
 
-export const useAllCategories = (): UseQueryResult<GetListCategoryResponse[], Error> =>
+export const useAllCategories = ({
+  enabled,
+}: {
+  enabled?: boolean;
+}): UseQueryResult<GetListCategoryResponse[], Error> =>
   useQuery({
     queryKey: ['allCategories'],
     queryFn: product.getAllCategories,
+    enabled,
   });
 
 export const useCategoriesByType = (
@@ -87,8 +92,9 @@ export const useCategoriesByType = (
     enabled: options?.enabled ?? !!slug,
   });
 
-export const useBrands = (): UseQueryResult<string[], Error> =>
+export const useBrands = ({ enabled }: { enabled?: boolean }): UseQueryResult<string[], Error> =>
   useQuery({
     queryKey: ['brands'],
     queryFn: product.getBrands,
+    enabled,
   });
