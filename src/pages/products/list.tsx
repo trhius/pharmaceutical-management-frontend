@@ -29,7 +29,6 @@ export default function ProductsListPage() {
   const products = productsData?.content;
 
   const onFilter = useCallback((values: GetProductRequest) => {
-    console.log(values);
     setFilter((prev) => ({ ...prev, request: values }));
   }, []);
 

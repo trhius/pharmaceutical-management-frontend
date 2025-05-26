@@ -223,10 +223,10 @@ export default function EmployeesListPage() {
       />
 
       <div className="flex min-h-screen items-start gap-8 py-8">
-        <div className="sticky top-8">
+        <div className="sticky top-8 max-w-xs">
           <FilterEmployee onFilter={onFilter} />
         </div>
-        <Card className="w-full">
+        <Card className="w-full flex-grow">
           <CardHeader>
             <CardTitle>Danh sách nhân viên</CardTitle>
             <CardDescription>Quản lý danh sách nhân viên.</CardDescription>

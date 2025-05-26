@@ -101,7 +101,7 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
   }
 
   return (
-    <div className="w-full max-w-xs space-y-6 rounded-lg border bg-background p-4">
+    <div className="w-full max-w-xs flex-shrink-0 space-y-6 rounded-lg border bg-background p-4">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Creation Date */}
