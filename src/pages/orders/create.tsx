@@ -226,21 +226,21 @@ export default function Component() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Header */}
-      <div className="bg-blue-600 text-white px-3">
-        <div className="flex items-center justify-between">
+      <div className="h-[60px] text-white dark:bg-gray-800">
+        <div className="flex items-center justify-between bg-blue-600 dark:bg-blue-800 px-3">
           <div className="flex items-center space-x-4">
             {/* Search Bar */}
-            <div className="flex items-center space-x-2 bg-white rounded px-3 my-2">
-              <Search className="h-4 w-4 text-gray-500" />
+            <div className="flex items-center space-x-2 bg-white dark:bg-gray-700 rounded px-3 my-2">
+              <Search className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               <Input
                 placeholder="Tìm hàng hóa (F3)"
-                className="border-0 bg-transparent text-black placeholder:text-gray-500 focus-visible:ring-0 w-64"
+                className="border-0 bg-transparent text-black dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:ring-0 w-64"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Button size="sm" variant="ghost" className="text-gray-500 p-1">
+              <Button size="sm" variant="ghost" className="text-gray-500 dark:text-gray-400 p-1">
                 <Filter className="h-4 w-4" />
               </Button>
             </div>
@@ -251,7 +251,9 @@ export default function Component() {
                 <div
                   key={tab.id}
                   className={`flex items-center space-x-2 px-3 py-2 rounded-t cursor-pointer self-end font-medium ${
-                    tab.active ? 'bg-white text-blue-600' : 'bg-blue-500 text-white hover:bg-blue-400'
+                    tab.active
+                      ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400'
+                      : 'bg-blue-500 dark:bg-gray-600/80 text-gray-400 hover:bg-blue-400 dark:hover:bg-gray-600'
                   }`}
                   onClick={() => switchTab(tab.id)}
                 >
@@ -269,38 +271,43 @@ export default function Component() {
                   </Button>
                 </div>
               ))}
-              <Button size="sm" variant="ghost" className="text-white p-1 hover:bg-blue-500" onClick={addNewTab}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-white p-1 hover:bg-blue-500 dark:hover:bg-gray-700"
+                onClick={addNewTab}
+              >
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm" className="text-white">
+            <Button variant="ghost" size="sm" className="text-white dark:text-gray-100">
               <Lock className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="text-white">
+            <Button variant="ghost" size="sm" className="text-white dark:text-gray-100">
               <RotateCcw className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="text-white">
+            <Button variant="ghost" size="sm" className="text-white dark:text-gray-100">
               <RefreshCw className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="text-white">
+            <Button variant="ghost" size="sm" className="text-white dark:text-gray-100">
               <Printer className="h-4 w-4" />
             </Button>
-            <span className="text-white">0911881741</span>
+            <span className="text-white dark:text-gray-100">0911881741</span>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-5 h-[calc(100vh-60px)] overflow-hidden">
         {/* Main Content - Selected Products for Checkout */}
-        <div className="col-span-3 bg-gray-50 overflow-y-auto">
-          <div className="bg-white flex flex-col rounded-lg h-full">
+        <div className="col-span-3 bg-gray-50 dark:bg-gray-900 overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 flex flex-col rounded-lg h-full">
             {/* Scrollable content area */}
             <div className="flex-grow overflow-y-auto p-4">
               {selectedProducts.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-gray-500">
+                <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
                   <div className="text-center">
                     <p className="text-lg mb-2">Chưa có sản phẩm nào được chọn</p>
                     <p className="text-sm">Chọn sản phẩm từ danh sách bên phải để thêm vào hóa đơn</p>
@@ -309,7 +316,10 @@ export default function Component() {
               ) : (
                 <div className="space-y-2">
                   {selectedProducts.map((product) => (
-                    <div key={product.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div
+                      key={product.id}
+                      className="flex items-center justify-between p-3 border rounded-lg dark:border-gray-700"
+                    >
                       <div className="flex items-center space-x-3">
                         <div
                           className={`w-8 h-8 rounded ${product.color} flex items-center justify-center text-white text-xs`}
@@ -317,12 +327,12 @@ export default function Component() {
                           {product.image}
                         </div>
                         <div>
-                          <h3 className="font-medium">{product.name}</h3>
-                          <p className="text-sm text-gray-600">{product.price} VND</p>
+                          <h3 className="font-medium text-gray-900 dark:text-gray-100">{product.name}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{product.price} VND</p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm">Số lượng: {product.quantity}</span>
+                        <span className="text-sm text-gray-900 dark:text-gray-100">Số lượng: {product.quantity}</span>
                         <Badge variant="secondary">
                           {(Number.parseInt(product.price.replace(/,/g, '')) * product.quantity).toLocaleString()} VND
                         </Badge>
@@ -334,26 +344,35 @@ export default function Component() {
             </div>
 
             {/* Bottom Section */}
-            <div className="shrink-0 h-18 bg-white w-full flex items-center justify-between border-t px-4">
-              <div className="text-sm text-gray-600">Ghi chú đơn hàng</div>
+            <div className="shrink-0 h-18 bg-white dark:bg-gray-800 w-full flex items-center justify-between border-t dark:border-gray-700 px-4">
+              <div className="text-sm text-gray-600 dark:text-gray-400">Ghi chú đơn hàng</div>
               <div className="flex items-center space-x-4">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
                   Tổng tiền hàng: <span className="font-semibold">{selectedProducts.length}</span>
                 </div>
-                <div className="text-lg font-semibold">{totalAmount.toLocaleString()}</div>
+                <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {totalAmount.toLocaleString()}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Right Sidebar */}
-        <div className="col-span-2 bg-white border-l flex flex-col">
+        <div className="overflow-y-auto col-span-2 bg-white dark:bg-gray-800 border-l dark:border-gray-700 flex flex-col">
           {/* Customer Search */}
-          <div className="p-4 border-b">
+          <div className="p-4 border-b dark:border-gray-700">
             <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input placeholder="Tìm khách hàng (F4)" className="pl-10" />
-              <Button size="sm" variant="ghost" className="absolute right-2 top-1/2 transform -translate-y-1/2">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <Input
+                placeholder="Tìm khách hàng (F4)"
+                className="pl-10 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 border-gray-300 dark:border-gray-600"
+              />
+              <Button
+                size="sm"
+                variant="ghost"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400"
+              >
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
@@ -380,7 +399,7 @@ export default function Component() {
                 .map((product) => (
                   <Card
                     key={product.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    className="cursor-pointer hover:shadow-md transition-shadow bg-white dark:bg-gray-700 dark:border-gray-600 dark:hover:shadow-xl"
                     onClick={() => addProductToCart(product)}
                   >
                     <CardContent className="p-3">
@@ -391,8 +410,10 @@ export default function Component() {
                           {product.image}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-xs font-medium text-gray-900 line-clamp-2 mb-1">{product.name}</h3>
-                          <p className="text-sm font-semibold text-blue-600">{product.price}</p>
+                          <h3 className="text-xs font-medium text-gray-900 dark:text-gray-100 line-clamp-2 mb-1">
+                            {product.name}
+                          </h3>
+                          <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">{product.price}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -402,7 +423,7 @@ export default function Component() {
           </div>
 
           {/* Pagination and Checkout */}
-          <div className="p-4 border-t">
+          <div className="p-4 border-t dark:border-gray-700">
             {/* Pagination */}
             <div className="flex items-center justify-center space-x-2 mb-4">
               <Button
@@ -413,7 +434,7 @@ export default function Component() {
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="text-sm">
+              <span className="text-sm text-gray-900 dark:text-gray-100">
                 {currentPage}/{totalPages}
               </span>
               <Button
@@ -427,7 +448,9 @@ export default function Component() {
             </div>
 
             {/* Checkout Button */}
-            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3">THANH TOÁN</Button>
+            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 dark:bg-blue-700 dark:hover:bg-blue-800">
+              THANH TOÁN
+            </Button>
           </div>
         </div>
       </div>

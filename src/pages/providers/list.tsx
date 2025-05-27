@@ -1,18 +1,22 @@
 import { useState, useCallback } from 'react';
+import { PlusCircle } from 'lucide-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { DataTable } from '@/components/ui/data-table';
+import { Button } from '@/components/ui/button';
 import { useSuppliers } from '@/apis/hooks/supplier';
 import { SupplierResponse, SupplierListRequest } from '@/apis/types/supplier';
 import { ProviderFilterSidebar } from './filter-provider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AddProviderDialog } from './add-provider-dialog';
 
 export default function ProvidersListPage() {
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize] = useState(10);
   // const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
   const [filter, setFilter] = useState<SupplierListRequest>({});
 
-  const { data, isLoading } = useSuppliers({
+  const { data, isLoading, refetch } = useSuppliers({
     page: pageIndex,
     size: pageSize,
     request: filter,
@@ -48,7 +52,16 @@ export default function ProvidersListPage() {
 
   return (
     <div className="mx-auto">
-      <PageHeader title="Providers" description="Manage your providers and their information.">
+      <PageHeader
+        title="Providers"
+        description="Manage your providers and their information."
+        actions={
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Thêm nhà cung cấp
+          </Button>
+        }
+      >
         {/* Add a button to open filter sidebar if needed */}
       </PageHeader>
 
@@ -84,6 +97,8 @@ export default function ProvidersListPage() {
           </CardContent>
         </Card>
       </div>
+
+      <AddProviderDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onProviderAdded={refetch} />
     </div>
   );
 }
