@@ -18,7 +18,25 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-const products = [
+interface ProductItem {
+  id: number;
+  name: string;
+  price: string;
+  image: string;
+  color: string;
+}
+
+interface CartItem extends ProductItem {
+  quantity: number;
+}
+
+interface TabItem {
+  id: number;
+  name: string;
+  active: boolean;
+}
+
+const products: ProductItem[] = [
   {
     id: 1,
     name: 'Dầu Gấc Vinaga - VN - H1Lọ100Viên',
@@ -168,18 +186,16 @@ const products = [
   },
 ];
 
-const tabs = [{ id: 1, name: 'Hóa đơn 1', active: true }];
-
 export default function Component() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [selectedProducts, setSelectedProducts] = useState<CartItem[]>([]);
   const [activeTab, setActiveTab] = useState(1);
   const totalPages = 2;
-  const [tabs, setTabs] = useState([{ id: 1, name: 'Hóa đơn 1', active: true }]);
+  const [tabs, setTabs] = useState<TabItem[]>([{ id: 1, name: 'Hóa đơn 1', active: true }]);
   const [nextTabId, setNextTabId] = useState(2);
 
-  const addProductToCart = (product) => {
+  const addProductToCart = (product: ProductItem) => {
     setSelectedProducts((prev) => {
       const existing = prev.find((p) => p.id === product.id);
       if (existing) {
@@ -205,7 +221,7 @@ export default function Component() {
     setSelectedProducts([]); // Clear products for new tab
   };
 
-  const closeTab = (tabId) => {
+  const closeTab = (tabId: number) => {
     if (tabs.length === 1) return; // Don't close if it's the last tab
 
     setTabs((prev) => {
@@ -219,7 +235,7 @@ export default function Component() {
     });
   };
 
-  const switchTab = (tabId) => {
+  const switchTab = (tabId: number) => {
     setTabs((prev) => prev.map((tab) => ({ ...tab, active: tab.id === tabId })));
     setActiveTab(tabId);
     // Here you could load the products for this specific tab if you store them per tab

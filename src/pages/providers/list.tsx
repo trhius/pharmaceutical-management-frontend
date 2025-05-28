@@ -30,15 +30,15 @@ export default function ProvidersListPage() {
   const columns = [
     {
       accessorKey: 'name',
-      header: 'Name',
+      header: 'Tên',
     },
     {
       accessorKey: 'contactPerson',
-      header: 'Contact Person',
+      header: 'Người liên hệ',
     },
     {
       accessorKey: 'phone',
-      header: 'Phone',
+      header: 'Số điện thoại',
     },
     {
       accessorKey: 'email',
@@ -46,15 +46,15 @@ export default function ProvidersListPage() {
     },
     {
       accessorKey: 'address',
-      header: 'Address',
+      header: 'Địa chỉ',
     },
   ];
 
   return (
     <div className="mx-auto">
       <PageHeader
-        title="Providers"
-        description="Manage your providers and their information."
+        title="Nhà cung cấp"
+        description="Quản lý các nhà cung cấp và thông tin của họ."
         actions={
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -78,8 +78,8 @@ export default function ProvidersListPage() {
 
         <Card className="w-full">
           <CardHeader>
-            <CardTitle>Provider List</CardTitle>
-            <CardDescription>Manage your suppliers and their information.</CardDescription>
+            <CardTitle>Danh sách nhà cung cấp</CardTitle>
+            <CardDescription>Quản lý các nhà cung cấp và thông tin của họ.</CardDescription>
           </CardHeader>
           <CardContent>
             <DataTable<SupplierResponse, unknown>
@@ -91,7 +91,7 @@ export default function ProvidersListPage() {
               pageSize={pageSize}
               onPageChange={setPageIndex}
               searchKey="name" // Assuming search by name is the default/most common
-              searchPlaceholder="Search providers..."
+              searchPlaceholder="Tìm kiếm nhà cung cấp..."
               // expandedContent prop can be added here if needed later
             />
           </CardContent>

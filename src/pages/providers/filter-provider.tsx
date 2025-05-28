@@ -10,7 +10,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
 import { CalendarIcon } from 'lucide-react';
 
 interface ProviderFilterSidebarProps {
@@ -67,17 +66,17 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
     onApplyFilters(apiFilters);
   };
 
-  const handleReset = () => {
-    const resetValues: FilterFormValues = {
-      search: '',
-      searchBy: 'all-search',
-      fromDate: undefined,
-      toDate: undefined,
-      isActive: undefined,
-    };
-    form.reset(resetValues);
-    onApplyFilters({}); // Apply empty filters
-  };
+  // const handleReset = () => {
+  //   const resetValues: FilterFormValues = {
+  //     search: '',
+  //     searchBy: 'all-search',
+  //     fromDate: undefined,
+  //     toDate: undefined,
+  //     isActive: undefined,
+  //   };
+  //   form.reset(resetValues);
+  //   onApplyFilters({}); // Apply empty filters
+  // };
 
   if (!isOpen) return null;
 
@@ -127,62 +126,81 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
             />
           </div>
 
-          {/* From Date */}
+          {/* Date Range */}
           <div className="space-y-2">
-            <h3 className="font-medium">Từ ngày</h3>
-            <FormField
-              control={form.control}
-              name="fromDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <Popover>
-                    <PopoverTrigger asChild>
+            <h3 className="font-medium">Khoảng ngày tạo</h3>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-12 shrink-0 text-sm">Từ</div>
+                <FormField
+                  control={form.control}
+                  name="fromDate"
+                  render={() => (
+                    <FormItem className="flex-1 w-full">
                       <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
-                        >
-                          {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Chọn ngày</span>}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              className="w-full"
+                              variant="outline"
+                            >
+                              {form.watch('fromDate') ? (
+                                <span>{format(form.watch('fromDate')!, 'dd/MM/yyyy')}</span>
+                              ) : (
+                                <span>Chọn ngày</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                              mode="single"
+                              selected={form.watch('fromDate')}
+                              onSelect={(date) => form.setValue('fromDate', date)}
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
-                    </PopoverContent>
-                  </Popover>
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* To Date */}
-          <div className="space-y-2">
-            <h3 className="font-medium">Đến ngày</h3>
-            <FormField
-              control={form.control}
-              name="toDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <Popover>
-                    <PopoverTrigger asChild>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-12 shrink-0 text-sm">Đến</div>
+                <FormField
+                  control={form.control}
+                  name="toDate"
+                  render={() => (
+                    <FormItem className="flex-1 w-full">
                       <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
-                        >
-                          {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Chọn ngày</span>}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              className="w-full"
+                              variant="outline"
+                            >
+                              {form.watch('toDate') ? (
+                                <span>{format(form.watch('toDate')!, 'dd/MM/yyyy')}</span>
+                              ) : (
+                                <span>Chọn ngày</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                              mode="single"
+                              selected={form.watch('toDate')}
+                              onSelect={(date) => form.setValue('toDate', date || undefined)}
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
-                    </PopoverContent>
-                  </Popover>
-                </FormItem>
-              )}
-            />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Status */}
@@ -210,12 +228,7 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
             />
           </div>
 
-          <div className="flex justify-between mt-6">
-            <Button variant="outline" type="button" onClick={handleReset}>
-              Đặt lại
-            </Button>
-            <Button type="submit">Áp dụng bộ lọc</Button>
-          </div>
+          <Button className="w-full" type="submit">Áp dụng bộ lọc</Button>
         </form>
       </Form>
     </div>
