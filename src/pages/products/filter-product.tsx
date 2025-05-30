@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormField, FormItem } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { format, startOfDay } from 'date-fns'; // Import format and date utility functions
+import { endOfDay, format, startOfDay } from 'date-fns'; // Import format and date utility functions
 import { GetProductRequest } from '@/apis/types/product';
 import * as z from 'zod';
 import { CategorySelect } from '@/components/category-select';
@@ -50,8 +50,11 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
   function onSubmit(values: FormValues) {
     const apiFilter: GetProductRequest = {};
 
-    if (values.createdDateOption === 'custom' && values.createdDateCustom) {
-      apiFilter.createdAt = format(startOfDay(values.createdDateCustom.from), "yyyy-MM-dd'T'HH:mm:ss");
+    if (values.createdDateOption === 'custom' && values.createdDateCustom?.from) {
+      apiFilter.createdDateFrom = format(startOfDay(values.createdDateCustom.from), "yyyy-MM-dd'T'HH:mm:ss");
+      if (values.createdDateCustom.to) {
+        apiFilter.createdDateTo = format(endOfDay(values.createdDateCustom.to), "yyyy-MM-dd'T'HH:mm:ss");
+      }
     }
 
     if (values.categorySlug) {
