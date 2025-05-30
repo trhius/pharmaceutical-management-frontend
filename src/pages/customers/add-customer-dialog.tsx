@@ -141,7 +141,7 @@ export function AddCustomerDialog({ open, onOpenChange, onCustomerAdded }: AddCu
                 control={form.control}
                 name="dayOfBirth"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem>
                     <FormLabel>Ngày sinh</FormLabel>
                     <Popover modal={true}>
                       <PopoverTrigger asChild>
@@ -163,7 +163,6 @@ export function AddCustomerDialog({ open, onOpenChange, onCustomerAdded }: AddCu
                           mode="single"
                           selected={field.value ? new Date(field.value) : undefined}
                           onSelect={(date) => field.onChange(date?.toISOString())}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>
