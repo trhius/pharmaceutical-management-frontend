@@ -13,7 +13,7 @@ import { roles } from '@/apis/types/transform';
 import { StoreSelect } from '@/components/store-select';
 
 const statusOptions = [
-  { label: 'Tất cả', value: 'all' },
+  { label: 'Tất cả', value: "all" },
   { label: 'Đang hoạt động', value: 'ACTIVE' },
   { label: 'Ngừng hoạt động', value: 'INACTIVE' },
   { label: 'Đình chỉ', value: 'SUSPENDED' },
@@ -25,7 +25,7 @@ export function FilterEmployee({ onFilter }: { onFilter?: (values: ListEmployeeR
     defaultValues: {
       role: undefined,
       storeId: undefined,
-      status: 'all',
+      status: undefined,
     },
   });
 
@@ -36,7 +36,6 @@ export function FilterEmployee({ onFilter }: { onFilter?: (values: ListEmployeeR
       ...values,
       status: values.status === 'all' ? undefined : values.status,
     };
-    console.log(apiFilter);
     if (onFilter) onFilter(apiFilter);
   }
 

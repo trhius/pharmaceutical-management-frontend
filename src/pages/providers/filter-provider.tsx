@@ -1,4 +1,3 @@
-import { DateRange } from 'react-day-picker';
 import React, { useEffect } from 'react';
 import { SupplierListRequest } from '@/apis/types/supplier';
 import { Input } from '@/components/ui/input';
@@ -25,8 +24,8 @@ const filterSchema = z.object({
   searchBy: z.enum(['NAME', 'CODE', 'PHONE', 'all-search']).optional(),
   dateRange: z
     .object({
-      from: z.date().optional(),
-      to: z.date().optional(),
+      from: z.date(),
+      to: z.date(),
     })
     .optional(),
   isActive: z.enum(['true', 'false', 'all-status']).optional(),
@@ -45,8 +44,8 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
       search: initialFilters.search || '',
       searchBy: initialFilters.searchBy || 'all-search',
       dateRange: {
-        from: initialFilters.fromDate ? new Date(initialFilters.fromDate) : undefined,
-        to: initialFilters.toDate ? new Date(initialFilters.toDate) : undefined,
+        from: initialFilters.fromDate ? new Date(initialFilters.fromDate) : new Date(),
+        to: initialFilters.toDate ? new Date(initialFilters.toDate) : new Date(),
       },
       isActive: initialFilters.isActive ? 'true' : undefined,
     },
@@ -57,8 +56,8 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
       search: initialFilters.search || '',
       searchBy: initialFilters.searchBy || 'all-search',
       dateRange: {
-        from: initialFilters.fromDate ? new Date(initialFilters.fromDate) : undefined,
-        to: initialFilters.toDate ? new Date(initialFilters.toDate) : undefined,
+        from: initialFilters.fromDate ? new Date(initialFilters.fromDate) : new Date(),
+        to: initialFilters.toDate ? new Date(initialFilters.toDate) : new Date(),
       },
       isActive: initialFilters.isActive ? 'true' : undefined,
     });
@@ -75,16 +74,16 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
     onApplyFilters(apiFilters);
   };
 
-  const handleReset = () => {
-    const resetValues: FilterFormValues = {
-      search: '',
-      searchBy: 'all-search',
-      dateRange: { from: undefined, to: undefined },
-      isActive: undefined,
-    };
-    form.reset(resetValues);
-    onApplyFilters({}); // Apply empty filters
-  };
+  // const handleReset = () => {
+  //   const resetValues: FilterFormValues = {
+  //     search: '',
+  //     searchBy: 'all-search',
+  //     dateRange: { from: new Date(), to: new Date() },
+  //     isActive: undefined,
+  //   };
+  //   form.reset(resetValues);
+  //   onApplyFilters({}); // Apply empty filters
+  // };
 
   if (!isOpen) return null;
 

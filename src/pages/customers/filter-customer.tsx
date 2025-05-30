@@ -1,5 +1,4 @@
 import { CalendarIcon } from 'lucide-react';
-import { DateRange } from 'react-day-picker';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -33,17 +32,21 @@ const statusOptions = [
 
 const formSchema = z.object({
   createdDateOption: z.enum(['all', 'custom']),
-  createdDateCustom: z.object({
-    from: z.date().optional(),
-    to: z.date().optional(),
-  }).optional(),
+  createdDateCustom: z
+    .object({
+      from: z.date(),
+      to: z.date().optional(),
+    })
+    .optional(),
   createBy: z.string().optional(),
   gender: z.enum(['all', 'MALE', 'FEMALE', 'OTHER']),
   birthDateOption: z.enum(['all', 'custom']),
-  birthDateCustom: z.object({
-    from: z.date().optional(),
-    to: z.date().optional(),
-  }).optional(),
+  birthDateCustom: z
+    .object({
+      from: z.date(),
+      to: z.date().optional(),
+    })
+    .optional(),
   spentAmountFrom: z.string().optional(),
   spentAmountTo: z.string().optional(),
   status: z.enum(['all', 'ACTIVE', 'INACTIVE', 'DEACTIVATED']),
@@ -60,10 +63,10 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       createdDateOption: 'all',
-      createdDateCustom: { from: undefined, to: undefined },
+      createdDateCustom: { from: new Date(), to: new Date() },
       gender: 'all',
       birthDateOption: 'all',
-      birthDateCustom: { from: undefined, to: undefined },
+      birthDateCustom: { from: new Date(), to: new Date() },
       status: 'all',
       spentAmountFrom: '',
       spentAmountTo: '',
@@ -145,7 +148,8 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
                               {form.watch('createdDateCustom.from') ? (
                                 form.watch('createdDateCustom.to') ? (
                                   <>
-                                    {format(form.watch('createdDateCustom.from')!, 'dd/MM/yyyy')} - {format(form.watch('createdDateCustom.to')!, 'dd/MM/yyyy')}
+                                    {format(form.watch('createdDateCustom.from')!, 'dd/MM/yyyy')} -{' '}
+                                    {format(form.watch('createdDateCustom.to')!, 'dd/MM/yyyy')}
                                   </>
                                 ) : (
                                   format(form.watch('createdDateCustom.from')!, 'dd/MM/yyyy')
@@ -160,7 +164,9 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
                             <Calendar
                               mode="range"
                               selected={form.watch('createdDateCustom')}
-                              onSelect={(range) => form.setValue('createdDateCustom', range || { from: undefined, to: undefined })}
+                              onSelect={(range) =>
+                                form.setValue('createdDateCustom', { from: range?.from || new Date(), to: range?.to })
+                              }
                             />
                           </PopoverContent>
                         </Popover>
@@ -245,7 +251,8 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
                               {form.watch('birthDateCustom.from') ? (
                                 form.watch('birthDateCustom.to') ? (
                                   <>
-                                    {format(form.watch('birthDateCustom.from')!, 'dd/MM/yyyy')} - {format(form.watch('birthDateCustom.to')!, 'dd/MM/yyyy')}
+                                    {format(form.watch('birthDateCustom.from')!, 'dd/MM/yyyy')} -{' '}
+                                    {format(form.watch('birthDateCustom.to')!, 'dd/MM/yyyy')}
                                   </>
                                 ) : (
                                   format(form.watch('birthDateCustom.from')!, 'dd/MM/yyyy')
@@ -260,7 +267,9 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
                             <Calendar
                               mode="range"
                               selected={form.watch('birthDateCustom')}
-                              onSelect={(date) => form.setValue('birthDateCustom', date || undefined)}
+                              onSelect={(range) =>
+                                form.setValue('birthDateCustom', { from: range?.from || new Date(), to: range?.to })
+                              }
                             />
                           </PopoverContent>
                         </Popover>
