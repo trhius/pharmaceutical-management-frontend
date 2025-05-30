@@ -170,7 +170,7 @@ export function UserProfileDialog({ onClose }: UserProfileDialogProps) {
               control={form.control}
               name="dateOfBirth"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
+                <FormItem>
                   <FormLabel>Ngày sinh</FormLabel>
                   <Popover modal={true}>
                     <PopoverTrigger asChild>
