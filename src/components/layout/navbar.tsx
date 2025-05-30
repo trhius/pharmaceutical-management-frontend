@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/navigation-menu';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LogOut } from 'lucide-react';
+import { ChevronDown, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 import {
@@ -21,8 +21,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/store/auth-store';
 import { useNavigate } from 'react-router-dom';
-
-
 
 export function Navbar() {
   const location = useLocation();
@@ -72,6 +70,9 @@ export function Navbar() {
                       )}
                     >
                       {item.name}
+                      {item.subItems && (
+                        <ChevronDown size={16} className="ml-2" />
+                      )}
                     </Link>
                     {item.subItems && (
                       <ul className="invisible group-hover/item:visible absolute top-full left-0 flex-col gap-3 p-2 w-fit min-w-[200px] bg-popover border border-border rounded-md shadow-md z-50">
