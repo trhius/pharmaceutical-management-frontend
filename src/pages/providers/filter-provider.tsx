@@ -3,14 +3,12 @@ import { SupplierListRequest } from '@/apis/types/supplier';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
+import { format, startOfDay, endOfDay } from 'date-fns'; // Import startOfDay and endOfDay
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { DateRangeSelector } from '@/components/date-range-selector'; // Import the new DateRangeSelector component
 
 interface ProviderFilterSidebarProps {
   isOpen: boolean;
@@ -22,10 +20,12 @@ interface ProviderFilterSidebarProps {
 const filterSchema = z.object({
   search: z.string().optional(),
   searchBy: z.enum(['NAME', 'CODE', 'PHONE', 'all-search']).optional(),
-  dateRange: z
+  // Updated schema for date range
+  dateRangeOption: z.enum(['all', 'custom']),
+  dateRangeCustom: z
     .object({
       from: z.date(),
-      to: z.date(),
+      to: z.date().optional(),
     })
     .optional(),
   isActive: z.enum(['true', 'false', 'all-status']).optional(),
@@ -43,23 +43,27 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
     defaultValues: {
       search: initialFilters.search || '',
       searchBy: initialFilters.searchBy || 'all-search',
-      dateRange: {
+      // Set default values for the new date range fields
+      dateRangeOption: 'all', // Default to 'all'
+      dateRangeCustom: {
         from: initialFilters.fromDate ? new Date(initialFilters.fromDate) : new Date(),
-        to: initialFilters.toDate ? new Date(initialFilters.toDate) : new Date(),
+        to: initialFilters.toDate ? new Date(initialFilters.toDate) : undefined, // 'to' can be optional
       },
-      isActive: initialFilters.isActive ? 'true' : undefined,
+      isActive: initialFilters.isActive === true ? 'true' : initialFilters.isActive === false ? 'false' : 'all-status', // Handle initial boolean
     },
   });
 
   useEffect(() => {
+    // Reset form values when initialFilters change
     form.reset({
       search: initialFilters.search || '',
       searchBy: initialFilters.searchBy || 'all-search',
-      dateRange: {
+      dateRangeOption: initialFilters.fromDate || initialFilters.toDate ? 'custom' : 'all',
+      dateRangeCustom: {
         from: initialFilters.fromDate ? new Date(initialFilters.fromDate) : new Date(),
-        to: initialFilters.toDate ? new Date(initialFilters.toDate) : new Date(),
+        to: initialFilters.toDate ? new Date(initialFilters.toDate) : undefined,
       },
-      isActive: initialFilters.isActive ? 'true' : undefined,
+      isActive: initialFilters.isActive === true ? 'true' : initialFilters.isActive === false ? 'false' : 'all-status',
     });
   }, [initialFilters, form]);
 
@@ -67,10 +71,17 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
     const apiFilters: SupplierListRequest = {
       search: values.search || undefined,
       searchBy: values.searchBy === 'all-search' ? undefined : values.searchBy,
-      fromDate: values.dateRange?.from ? format(values.dateRange.from, 'yyyy-MM-dd') : undefined,
-      toDate: values.dateRange?.to ? format(values.dateRange.to, 'yyyy-MM-dd') : undefined,
       isActive: values.isActive === 'all-status' ? undefined : values.isActive === 'true',
     };
+
+    // Apply date range filters based on the selected option
+    if (values.dateRangeOption === 'custom' && values.dateRangeCustom?.from) {
+      apiFilters.fromDate = format(startOfDay(values.dateRangeCustom.from), "yyyy-MM-dd'T'HH:mm:ss");
+      if (values.dateRangeCustom.to) {
+        apiFilters.toDate = format(endOfDay(values.dateRangeCustom.to), "yyyy-MM-dd'T'HH:mm:ss");
+      }
+    }
+
     onApplyFilters(apiFilters);
   };
 
@@ -78,8 +89,9 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
   //   const resetValues: FilterFormValues = {
   //     search: '',
   //     searchBy: 'all-search',
-  //     dateRange: { from: new Date(), to: new Date() },
-  //     isActive: undefined,
+  //     dateRangeOption: 'all', // Reset to 'all'
+  //     dateRangeCustom: { from: new Date(), to: new Date() }, // Reset custom date range
+  //     isActive: 'all-status', // Reset status
   //   };
   //   form.reset(resetValues);
   //   onApplyFilters({}); // Apply empty filters
@@ -133,41 +145,12 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
             />
           </div>
 
-          {/* Date Range */}
-          <div className="space-y-2">
-            <h3 className="font-medium">Khoảng ngày tạo</h3>
-            <FormField
-              control={form.control}
-              name="dateRange"
-              render={({ field }) => (
-                <FormItem className="flex-1 w-full">
-                  <FormControl>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button className="w-full" variant="outline">
-                          {field.value?.from ? (
-                            field.value.to ? (
-                              <>
-                                {format(field.value.from, 'dd/MM/yyyy')} - {format(field.value.to, 'dd/MM/yyyy')}
-                              </>
-                            ) : (
-                              format(field.value.from, 'dd/MM/yyyy')
-                            )
-                          ) : (
-                            <span>Chọn khoảng ngày</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="end">
-                        <Calendar mode="range" selected={field.value} onSelect={field.onChange} />
-                      </PopoverContent>
-                    </Popover>
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
+          {/* Date Range - Using the new DateRangeSelector component */}
+          <DateRangeSelector
+            namePrefix="dateRange"
+            label="Khoảng ngày tạo"
+            dateFormat="dd/MM/yyyy"
+          />
 
           {/* Status */}
           <div className="space-y-2">
@@ -177,7 +160,7 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
               name="isActive"
               render={({ field }) => (
                 <FormItem>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || 'all-status'}>
                     <FormControl>
                       <SelectTrigger id="isActive">
                         <SelectValue placeholder="Chọn trạng thái" />

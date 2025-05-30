@@ -1,21 +1,25 @@
 import { Button } from '@/components/ui/button';
-import { CalendarIcon } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
-import { Calendar } from '@/components/ui/calendar';
 import { OrderListRequest } from '@/apis/types/sales';
-import { format } from 'date-fns'; // Import format and date utility functions
+import { format, startOfDay, endOfDay } from 'date-fns'; // Import format, startOfDay, and endOfDay
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { DateRangeSelector } from '@/components/date-range-selector'; // Import the new DateRangeSelector component
 
 const formSchema = z.object({
   search: z.string().optional(),
   searchBy: z.string().optional(),
-  createdDateFrom: z.date().optional(),
-  createdDateTo: z.date().optional(),
+  // Updated schema for date range
+  createdDateOption: z.enum(['all', 'custom']),
+  createdDateCustom: z
+    .object({
+      from: z.date(),
+      to: z.date().optional(),
+    })
+    .optional(),
   status: z.enum(['NEW', 'COMPLETED', 'CANCELLED', 'RETURNED']).optional(),
   paymentMethod: z.enum(['CASH', 'CREDIT_CARD', 'BANK_TRANSFER', 'MOBILE_PAYMENT', 'OTHER']).optional(),
 });
@@ -32,8 +36,9 @@ export function OrderFilter({ onFilter }: OrderFilterProps) {
     defaultValues: {
       search: undefined,
       searchBy: undefined,
-      createdDateFrom: undefined,
-      createdDateTo: undefined,
+      // Set default values for the new date range fields
+      createdDateOption: 'all',
+      createdDateCustom: { from: new Date(), to: undefined },
       status: undefined,
       paymentMethod: undefined,
     },
@@ -44,12 +49,15 @@ export function OrderFilter({ onFilter }: OrderFilterProps) {
 
     if (values.search) apiFilter.search = values.search;
     if (values.searchBy) apiFilter.searchBy = values.searchBy as OrderListRequest['searchBy'];
-    if (values.createdDateFrom) {
-      apiFilter.createdDateFrom = format(values.createdDateFrom, "yyyy-MM-dd'T'HH:mm:ss");
+
+    // Apply date range filters based on the selected option
+    if (values.createdDateOption === 'custom' && values.createdDateCustom?.from) {
+      apiFilter.createdDateFrom = format(startOfDay(values.createdDateCustom.from), "yyyy-MM-dd'T'HH:mm:ss");
+      if (values.createdDateCustom.to) {
+        apiFilter.createdDateTo = format(endOfDay(values.createdDateCustom.to), "yyyy-MM-dd'T'HH:mm:ss");
+      }
     }
-    if (values.createdDateTo) {
-      apiFilter.createdDateTo = format(values.createdDateTo, "yyyy-MM-dd'T'HH:mm:ss");
-    }
+
     if (values.status) apiFilter.status = values.status as OrderListRequest['status'];
     if (values.paymentMethod) apiFilter.paymentMethod = values.paymentMethod as OrderListRequest['paymentMethod'];
 
@@ -103,49 +111,12 @@ export function OrderFilter({ onFilter }: OrderFilterProps) {
             />
           </div>
 
-          {/* Date Range */}
-          <div className="space-y-2">
-            <h3 className="font-medium">Khoảng ngày tạo</h3>
-            <FormField
-              control={form.control}
-              name="createdDateFrom" // Use createdDateFrom for the range picker
-              render={() => (
-                <FormItem className="flex-1 w-full">
-                  <FormControl>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button className="w-full justify-start text-left font-normal" variant="outline">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {form.watch('createdDateFrom') && form.watch('createdDateTo') ? (
-                            <>
-                              {format(form.watch('createdDateFrom')!, 'dd/MM/yyyy')} -{' '}
-                              {format(form.watch('createdDateTo')!, 'dd/MM/yyyy')}
-                            </>
-                          ) : (
-                            <span>Chọn khoảng ngày</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="range"
-                          selected={{
-                            from: form.watch('createdDateFrom'),
-                            to: form.watch('createdDateTo'),
-                          }}
-                          onSelect={(range) => {
-                            form.setValue('createdDateFrom', range?.from);
-                            form.setValue('createdDateTo', range?.to);
-                          }}
-                          numberOfMonths={2}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
+          {/* Date Range - Using the new DateRangeSelector component */}
+          <DateRangeSelector
+            namePrefix="createdDate"
+            label="Khoảng ngày tạo"
+            dateFormat="dd/MM/yyyy"
+          />
 
           {/* Status */}
           <div className="space-y-2">

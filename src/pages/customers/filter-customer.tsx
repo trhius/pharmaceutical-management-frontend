@@ -1,20 +1,15 @@
-import { CalendarIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form'; // Added FormLabel
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { format, startOfDay, endOfDay } from 'date-fns'; // Import format and date utility functions
-import { cn } from '@/lib/utils';
 
 import { CustomerListRequest } from '@/apis/types/customer';
+import { DateRangeSelector } from '@/components/date-range-selector';
 
 const genderOptions = [
   { label: 'Tất cả', value: 'all' },
@@ -119,64 +114,11 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Creation Date */}
-          <div className="space-y-2">
-            <h3 className="font-medium">Ngày tạo</h3>
-            <FormField
-              control={form.control}
-              name="createdDateOption"
-              render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value="all" id="creation-date-all-time" />
-                      <Label htmlFor="creation-date-all-time">Toàn thời gian</Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value="custom" id="creation-date-custom-radio" />
-                      <div className="flex w-full items-center gap-2">
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !form.watch('createdDateCustom') && 'text-muted-foreground'
-                              )}
-                              onClick={() => form.setValue('createdDateOption', 'custom')}
-                              disabled={form.watch('createdDateOption') !== 'custom'}
-                            >
-                              {form.watch('createdDateCustom.from') ? (
-                                form.watch('createdDateCustom.to') ? (
-                                  <>
-                                    {format(form.watch('createdDateCustom.from')!, 'dd/MM/yyyy')} -{' '}
-                                    {format(form.watch('createdDateCustom.to')!, 'dd/MM/yyyy')}
-                                  </>
-                                ) : (
-                                  format(form.watch('createdDateCustom.from')!, 'dd/MM/yyyy')
-                                )
-                              ) : (
-                                <span>Chọn khoảng ngày</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="end">
-                            <Calendar
-                              mode="range"
-                              selected={form.watch('createdDateCustom')}
-                              onSelect={(range) =>
-                                form.setValue('createdDateCustom', { from: range?.from || new Date(), to: range?.to })
-                              }
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
-                  </RadioGroup>
-                </FormItem>
-              )}
-            />
-          </div>
+          <DateRangeSelector
+            namePrefix="createdDate"
+            label="Ngày tạo"
+            dateFormat="dd/MM/yyyy"
+          />
 
           {/* Creator */}
           <div className="space-y-2">
@@ -222,64 +164,11 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
           </div>
 
           {/* Birthday */}
-          <div className="space-y-2">
-            <h3 className="font-medium">Ngày sinh</h3>
-            <FormField
-              control={form.control}
-              name="birthDateOption"
-              render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value="all" id="birthday-all-time" />
-                      <Label htmlFor="birthday-all-time">Toàn thời gian</Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value="custom" id="birthday-custom-radio" />
-                      <div className="flex w-full items-center gap-2">
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !form.watch('birthDateCustom') && 'text-muted-foreground'
-                              )}
-                              onClick={() => form.setValue('birthDateOption', 'custom')}
-                              disabled={form.watch('birthDateOption') !== 'custom'}
-                            >
-                              {form.watch('birthDateCustom.from') ? (
-                                form.watch('birthDateCustom.to') ? (
-                                  <>
-                                    {format(form.watch('birthDateCustom.from')!, 'dd/MM/yyyy')} -{' '}
-                                    {format(form.watch('birthDateCustom.to')!, 'dd/MM/yyyy')}
-                                  </>
-                                ) : (
-                                  format(form.watch('birthDateCustom.from')!, 'dd/MM/yyyy')
-                                )
-                              ) : (
-                                <span>Chọn khoảng ngày</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="end">
-                            <Calendar
-                              mode="range"
-                              selected={form.watch('birthDateCustom')}
-                              onSelect={(range) =>
-                                form.setValue('birthDateCustom', { from: range?.from || new Date(), to: range?.to })
-                              }
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
-                  </RadioGroup>
-                </FormItem>
-              )}
-            />
-          </div>
+          <DateRangeSelector
+            namePrefix="birthDate"
+            label="Ngày sinh"
+            dateFormat="dd/MM/yyyy"
+          />
 
           {/* Total Sales */}
           <div className="space-y-2">
@@ -351,3 +240,4 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
     </div>
   );
 }
+

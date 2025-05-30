@@ -31,6 +31,7 @@ export interface UserInfoResponse {
   id?: number;
   email?: string;
   role?: 'SUPER_ADMIN' | 'STORE_MANAGER' | 'PHARMACIST' | 'INVENTORY_STAFF';
+  name?: string;
   firstTimeLogin?: boolean;
 }
 
