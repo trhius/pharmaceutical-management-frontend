@@ -1,41 +1,55 @@
-import * as React from 'react';
-import { Check, ChevronsUpDown } from 'lucide-react';
-
-import { Button } from '@/components/ui/button';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-import { useForm } from 'react-hook-form';
-import { EmployeeRole, ListEmployeeRequest } from '@/apis/types';
+import { EmployeeRole, EmployeeStatus, ListEmployeeRequest } from '@/apis/types';
+import * as z from 'zod';
 import { roles } from '@/apis/types/transform';
 import { StoreSelect } from '@/components/store-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Form, FormField, FormItem, FormControl } from '@/components/ui/form';
+import { cn } from '@/lib/utils';
+import { Popover, PopoverTrigger, PopoverContent } from '@radix-ui/react-popover';
+import { CommandList, CommandInput, CommandGroup, CommandItem, CommandEmpty } from 'cmdk';
+import { ChevronsUpDown, Command, Check } from 'lucide-react';
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 const statusOptions = [
-  { label: 'Tất cả', value: "all" },
+  { label: 'Tất cả', value: 'all' },
   { label: 'Đang hoạt động', value: 'ACTIVE' },
   { label: 'Ngừng hoạt động', value: 'INACTIVE' },
   { label: 'Đình chỉ', value: 'SUSPENDED' },
   { label: 'Đang nghỉ phép', value: 'ON_LEAVE' },
 ];
 
+const statuses = ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'ON_LEAVE'];
+
+const formSchema = z.object({
+  role: z.enum(['SUPER_ADMIN', 'STORE_MANAGER', 'PHARMACIST', 'INVENTORY_STAFF']).optional().nullable(),
+  storeId: z.number().optional().nullable(),
+  status: z.enum(['all', ...statuses]).optional().nullable(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 export function FilterEmployee({ onFilter }: { onFilter?: (values: ListEmployeeRequest) => void }) {
-  const form = useForm<ListEmployeeRequest>({
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      role: undefined,
-      storeId: undefined,
-      status: undefined,
+      role: null,
+      storeId: null,
+      status: 'all',
     },
   });
 
   const [roleOpen, setRoleOpen] = React.useState(false);
 
-  function onSubmit(values: ListEmployeeRequest) {
+  function onSubmit(values: FormValues) {
     const apiFilter: ListEmployeeRequest = {
-      ...values,
-      status: values.status === 'all' ? undefined : values.status,
+      role: values.role === null ? undefined : values.role,
+      storeId: values.storeId === null ? undefined : values.storeId,
+      status: values.status === 'all' ? undefined : values.status as EmployeeStatus,
     };
+    console.log(apiFilter);
     if (onFilter) onFilter(apiFilter);
   }
 
@@ -51,14 +65,14 @@ export function FilterEmployee({ onFilter }: { onFilter?: (values: ListEmployeeR
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value?.toString()}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Chọn trạng thái" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {statusOptions.map((option) => (
+                      {statusOptions.slice(0).map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>

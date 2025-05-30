@@ -5,6 +5,7 @@
 import { PageableObject, SortObject } from "./utility";
 
 export type EmployeeRole = 'SUPER_ADMIN' | 'STORE_MANAGER' | 'PHARMACIST' | 'INVENTORY_STAFF';
+export type EmployeeStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'ON_LEAVE';
 
 export interface UpdateEmployeeRequest {
   fullName?: string;
