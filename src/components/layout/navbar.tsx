@@ -11,8 +11,14 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { ChevronDown, LogOut, PencilLine } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { UserProfileDialog } from '@/components/user-profile-dialog';
 import { useAuthStore } from '@/store/auth-store';
 import { useNavigate } from 'react-router-dom';
@@ -69,9 +75,7 @@ export function Navbar() {
                       )}
                     >
                       {item.name}
-                      {item.subItems && (
-                        <ChevronDown size={16} className="ml-2" />
-                      )}
+                      {item.subItems && <ChevronDown size={16} className="ml-2" />}
                     </Link>
                     {item.subItems && (
                       <ul className="invisible group-hover/item:visible absolute top-full left-0 flex-col gap-3 p-2 w-fit min-w-[200px] bg-popover border border-border rounded-md shadow-md z-50">
@@ -114,18 +118,15 @@ export function Navbar() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
-                <DialogTrigger asChild>
-                  <DropdownMenuItem onSelect={(e) => {
-                    e.preventDefault();
-                    setIsProfileDialogOpen(true);
-                  }}>
-                    <PencilLine className="mr-2 h-4 w-4" />
-                    Thông tin cá nhân
-                  </DropdownMenuItem>
-                </DialogTrigger>
-                <UserProfileDialog onClose={() => setIsProfileDialogOpen(false)} />
-              </Dialog>
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                  setIsProfileDialogOpen(true);
+                }}
+              >
+                <PencilLine className="mr-2 h-4 w-4" />
+                Thông tin cá nhân
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Đăng xuất
@@ -134,6 +135,7 @@ export function Navbar() {
           </DropdownMenu>
         </div>
       </div>
+      {isProfileDialogOpen && <UserProfileDialog onClose={() => setIsProfileDialogOpen(false)} />}
     </div>
   );
 }
