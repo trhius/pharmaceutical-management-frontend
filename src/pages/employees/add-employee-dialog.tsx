@@ -179,7 +179,7 @@ export function AddEmployeeDialog({ open, onOpenChange, onEmployeeAdded }: AddEm
 
               <div className="flex gap-2">
                 <div className="grow-1">
-                  <FormLabel>Chức danh</FormLabel>
+                  <FormLabel>Chi nhánh</FormLabel>
                   <StoreSelect name="storeId" />
                 </div>
                 <Button

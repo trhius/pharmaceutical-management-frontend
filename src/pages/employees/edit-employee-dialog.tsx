@@ -118,6 +118,7 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
               <FormField
                 control={form.control}
                 name="email"
+                disabled={true}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
@@ -187,8 +188,8 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
 
               {/* Store */}
               <div>
-                <FormLabel>Chức danh</FormLabel>
-                <StoreSelect name="storeId" placeholder="Chon chi nhanh" prefetch />
+                <FormLabel>Chi nhánh</FormLabel>
+                <StoreSelect name="storeId" disabled={form.watch("role") === "SUPER_ADMIN"} prefetch />
               </div>
             </div>
 
@@ -211,7 +212,7 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? format(new Date(field.value), 'PPP') : <span>Chọn ngày</span>}
+                            {field.value ? format(new Date(field.value), 'dd-MM-yyyy') : <span>Chọn ngày</span>}
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -232,11 +233,12 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
               <FormField
                 control={form.control}
                 name="joinDate"
+                disabled
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Ngày bắt đầu làm việc</FormLabel>
                     <Popover modal>
-                      <PopoverTrigger asChild>
+                      <PopoverTrigger disabled asChild>
                         <FormControl>
                           <Button
                             variant={'outline'}
@@ -297,7 +299,7 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
                 <FormItem>
                   <FormLabel>Địa chỉ</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ví dụ: Nguyễn Văn A" {...field} />
+                    <Input placeholder="Ví dụ: 123 Nguyễn Văn A, Đức Thắng, Quận 1, TP HCM" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

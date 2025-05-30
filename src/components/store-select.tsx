@@ -14,10 +14,16 @@ interface StoreSelectProps {
   name: string; // The name of the form field (e.g., 'storeId')
   prefetch?: boolean;
   placeholder?: string;
+  disabled?: boolean;
   // Any other props you might need for customization
 }
 
-export function StoreSelect({ name, prefetch = false, placeholder = 'Chọn chi nhánh' }: StoreSelectProps) {
+export function StoreSelect({
+  name,
+  prefetch = false,
+  disabled = false,
+  placeholder = 'Chọn chi nhánh',
+}: StoreSelectProps) {
   const { control } = useFormContext();
   const [popoverOpen, setPopoverOpen] = React.useState(false);
   const [search, setSearch] = React.useState('');
@@ -38,6 +44,7 @@ export function StoreSelect({ name, prefetch = false, placeholder = 'Chọn chi 
     <FormField
       control={control}
       name={name}
+      disabled={disabled}
       render={({ field }) => (
         <FormItem>
           <FormControl>
@@ -52,12 +59,13 @@ export function StoreSelect({ name, prefetch = false, placeholder = 'Chọn chi 
                 }
               }}
             >
-              <PopoverTrigger asChild>
+              <PopoverTrigger disabled={disabled} className={cn('w-full justify-between', disabled && 'opacity-50')}>
                 <Button
                   variant="outline"
                   role="combobox"
+                  type="button"
                   aria-expanded={popoverOpen}
-                  className="w-full justify-between"
+                  className={cn("w-full justify-between", disabled && 'cursor-not-allowed')}
                 >
                   {field.value ? stores?.find((store) => store.id === field.value)?.name : placeholder}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

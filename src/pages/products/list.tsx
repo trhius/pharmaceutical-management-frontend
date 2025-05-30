@@ -41,6 +41,16 @@ export default function ProductsListPage() {
     {
       accessorKey: 'productName',
       header: 'Tên sản phẩm',
+      cell: ({ row }: { row: { original: ProductResponse } }) => {
+        const product = row.original;
+        const imageUrl = product.imageUrl || '/placeholder-product.png'; // Use a placeholder if no image
+        return (
+          <div className="flex items-center gap-2">
+            <img src={imageUrl} alt={product.productName} className="h-8 w-8 rounded-md object-cover" />
+            <span>{product.productName}</span>
+          </div>
+        );
+      },
     },
     {
       accessorKey: 'shortenName',
@@ -90,6 +100,17 @@ export default function ProductsListPage() {
     return (
       <div className="space-y-4">
         <div className="w-full rounded-md space-y-4 p-2">
+          <div className="flex gap-4">
+            <img src={product.imageUrl} alt={product.productName} className="h-36 w-36 rounded-md object-cover" />
+            <div className="flex flex-col gap-1">
+              <p className="font-bold text-lg">{product.productName}</p>
+              <p>
+                <Badge variant={product.type === 'DRUG' ? 'default' : 'secondary'}>
+                  {product.type === 'DRUG' ? 'Thuốc' : 'Thực phẩm chức năng'}
+                </Badge>
+              </p>
+            </div>
+          </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
             {/* Row 1 */}
             <div className="space-y-1">
