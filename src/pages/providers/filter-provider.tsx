@@ -18,8 +18,6 @@ interface ProviderFilterSidebarProps {
 }
 
 const filterSchema = z.object({
-  search: z.string().optional(),
-  searchBy: z.enum(['NAME', 'CODE', 'PHONE', 'all-search']).optional(),
   // Updated schema for date range
   dateRangeOption: z.enum(['all', 'custom']),
   dateRangeCustom: z
@@ -41,8 +39,6 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
   const form = useForm<FilterFormValues>({
     resolver: zodResolver(filterSchema),
     defaultValues: {
-      search: initialFilters.search || '',
-      searchBy: initialFilters.searchBy || 'all-search',
       // Set default values for the new date range fields
       dateRangeOption: 'all', // Default to 'all'
       dateRangeCustom: {
@@ -56,8 +52,6 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
   useEffect(() => {
     // Reset form values when initialFilters change
     form.reset({
-      search: initialFilters.search || '',
-      searchBy: initialFilters.searchBy || 'all-search',
       dateRangeOption: initialFilters.fromDate || initialFilters.toDate ? 'custom' : 'all',
       dateRangeCustom: {
         from: initialFilters.fromDate ? new Date(initialFilters.fromDate) : new Date(),
@@ -69,8 +63,6 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
 
   const onSubmit = (values: FilterFormValues) => {
     const apiFilters: SupplierListRequest = {
-      search: values.search || undefined,
-      searchBy: values.searchBy === 'all-search' ? undefined : values.searchBy,
       isActive: values.isActive === 'all-status' ? undefined : values.isActive === 'true',
     };
 
@@ -103,54 +95,8 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
     <div className="w-full min-w-xs flex-shrink-0 space-y-6 rounded-lg border bg-background p-4">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Search */}
-          <div className="space-y-2">
-            <h3 className="font-medium">Tìm kiếm</h3>
-            <FormField
-              control={form.control}
-              name="search"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="Nhập từ khóa tìm kiếm" {...field} value={field.value || ''} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Search By */}
-          <div className="space-y-2">
-            <h3 className="font-medium">Tìm kiếm theo</h3>
-            <FormField
-              control={form.control}
-              name="searchBy"
-              render={({ field }) => (
-                <FormItem>
-                  <Select onValueChange={field.onChange} value={field.value || 'all-search'}>
-                    <FormControl>
-                      <SelectTrigger id="searchBy">
-                        <SelectValue placeholder="Chọn trường" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="all-search">Tất cả</SelectItem>
-                      <SelectItem value="NAME">Tên</SelectItem>
-                      <SelectItem value="CODE">Mã</SelectItem>
-                      <SelectItem value="PHONE">Số điện thoại</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
-          </div>
-
           {/* Date Range - Using the new DateRangeSelector component */}
-          <DateRangeSelector
-            namePrefix="dateRange"
-            label="Khoảng ngày tạo"
-            dateFormat="dd/MM/yyyy"
-          />
+          <DateRangeSelector namePrefix="dateRange" label="Khoảng ngày tạo" dateFormat="dd/MM/yyyy" />
 
           {/* Status */}
           <div className="space-y-2">

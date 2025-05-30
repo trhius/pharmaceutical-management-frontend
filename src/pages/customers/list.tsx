@@ -15,6 +15,16 @@ import { useToast } from '@/hooks/use-toast';
 import { CustomerResponse, CustomerListRequest } from '@/apis/types/customer';
 import { format } from 'date-fns';
 import { ageGroups } from '@/apis/types/transform';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const searchByOptions = [
+  { label: 'Mã khách hàng', value: 'CUSTOMER_CODE' },
+  { label: 'Tên khách hàng', value: 'NAME' },
+  { label: 'Số điện thoại', value: 'PHONE_NUMBER' },
+  { label: 'Email', value: 'EMAIL' },
+  { label: 'Địa chỉ', value: 'ADDRESS' },
+];
 
 export default function CustomersListPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -22,16 +32,26 @@ export default function CustomersListPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerResponse | null>(null);
 
+  const [filter, setFilter] = useState<CustomerListRequest>({});
+  const [searchBy, setSearchBy] = useState<string | undefined>(undefined);
+
   const deleteCustomerMutation = useDeactivateCustomer();
   const { toast } = useToast();
 
-  const [filter, setFilter] = useState<CustomerListRequest>({});
   const { data: customersData, isLoading, refetch } = useCustomers({ request: filter });
   const customers = customersData?.content;
 
   const handleEdit = (customer: CustomerResponse) => {
     setSelectedCustomer(customer);
     setIsEditDialogOpen(true);
+  };
+
+  const handleSearch = (value: string) => {
+    setFilter((prev) => ({
+      ...prev,
+      search: value,
+      searchBy: searchBy as CustomerListRequest['searchBy'], // Use the current searchBy state
+    }));
   };
 
   const onFilter = useCallback((values: CustomerListRequest) => {
@@ -221,13 +241,35 @@ export default function CustomersListPage() {
             <CardDescription>Quản lý khách hàng lẻ và khách hàng sỉ.</CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="flex gap-2 w-1/2 min-w-xs mb-4">
+              {/* Added flex container */}
+              <Input
+                placeholder="Tìm khách hàng..."
+                className="flex-grow" // Make Input take available space
+                onChange={(e) => handleSearch(e.target.value)}
+              />
+              <div className="w-1/3 min-w-[150px]">
+                {/* Added container for Select */}
+                <Select onValueChange={(value) => setSearchBy(value)} defaultValue="NAME">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tìm kiếm theo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {searchByOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <DataTable
               columns={columns}
               data={customers || []}
-              searchKey="name"
-              searchPlaceholder="Tìm kiếm khách hàng..."
               expandedContent={renderExpandedContent}
               isLoading={isLoading}
+              // searchKey and searchPlaceholder removed as filtering is now handled via filter state
             />
           </CardContent>
         </Card>
@@ -262,7 +304,11 @@ export default function CustomersListPage() {
                   console.error('Failed to deactivate customer:', error);
                   setIsDeleteDialogOpen(false);
                   setSelectedCustomer(null); // Clear selected customer even on error
-                  // Optionally show an error toast here
+                  toast({
+                    title: 'Vô hiệu hóa khách hàng thất bại',
+                    description: 'Đã xảy ra lỗi khi vô hiệu hóa khách hàng.',
+                    variant: 'destructive',
+                  });
                 },
               });
             }

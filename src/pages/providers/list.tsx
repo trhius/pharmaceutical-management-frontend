@@ -5,6 +5,14 @@ import { DataTable } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
 import { useSuppliers } from '@/apis/hooks/supplier';
 import { SupplierResponse, SupplierListRequest } from '@/apis/types/supplier';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const searchByOptions = [
+  { label: 'Tên', value: 'NAME' },
+  { label: 'Mã', value: 'CODE' },
+  { label: 'Số điện thoại', value: 'PHONE' },
+];
 import { ProviderFilterSidebar } from './filter-provider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddProviderDialog } from './add-provider-dialog';
@@ -15,6 +23,7 @@ export default function ProvidersListPage() {
   const [pageSize] = useState(10);
   // const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
   const [filter, setFilter] = useState<SupplierListRequest>({});
+  const [searchBy, setSearchBy] = useState<string | undefined>(undefined);
 
   const { data, isLoading, refetch } = useSuppliers({
     page: pageIndex,
@@ -26,6 +35,14 @@ export default function ProvidersListPage() {
     setFilter(values);
     setPageIndex(0); // Reset to first page when filters change
   }, []);
+
+  const handleSearch = (value: string) => {
+    setFilter((prev) => ({
+      ...prev,
+      search: value,
+      searchBy: searchBy as SupplierListRequest['searchBy'], // Use the current searchBy state
+    }));
+  };
 
   const columns = [
     {
@@ -82,6 +99,31 @@ export default function ProvidersListPage() {
             <CardDescription>Quản lý các nhà cung cấp và thông tin của họ.</CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="flex gap-2 w-1/2 min-w-xs mb-4">
+              {' '}
+              {/* Added flex container */}
+              <Input
+                placeholder="Tìm nhà cung cấp..."
+                className="flex-grow" // Make Input take available space
+                onChange={(e) => handleSearch(e.target.value)}
+              />
+              <div className="w-1/3 min-w-[150px]">
+                {' '}
+                {/* Added container for Select */}
+                <Select onValueChange={(value) => setSearchBy(value)} defaultValue="NAME">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tìm kiếm theo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {searchByOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <DataTable<SupplierResponse, unknown>
               columns={columns}
               data={data?.content || []}
@@ -90,9 +132,7 @@ export default function ProvidersListPage() {
               pageIndex={pageIndex}
               pageSize={pageSize}
               onPageChange={setPageIndex}
-              searchKey="name" // Assuming search by name is the default/most common
-              searchPlaceholder="Tìm kiếm nhà cung cấp..."
-              // expandedContent prop can be added here if needed later
+              // searchKey and searchPlaceholder removed as filtering is now handled via filter state
             />
           </CardContent>
         </Card>
