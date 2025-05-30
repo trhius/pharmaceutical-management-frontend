@@ -103,7 +103,7 @@ export default function LoginPage() {
                     <FormControl>
                       <div className="relative">
                         <Input
-                          placeholder="mật khẩu"
+                          placeholder="Mật khẩu"
                           type={showPassword ? "text" : "password"}
                           disabled={isLoading}
                           {...field}

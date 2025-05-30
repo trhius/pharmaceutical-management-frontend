@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Please enter a valid email.'),
+  email: z.string().email('Vui lòng nhập email hợp lệ.'),
 });
 
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
@@ -67,12 +67,12 @@ export default function ForgotPasswordPage() {
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
-          Reset your password
+          Đặt lại mật khẩu của bạn
         </h2>
         <p className="mt-2 text-center text-sm text-muted-foreground">
           {isSubmitted 
-            ? "Check your email for a reset link" 
-            : "Enter your email address and we'll send you a link to reset your password"}
+            ? "Kiểm tra email của bạn để nhận liên kết đặt lại" 
+            : "Nhập địa chỉ email của bạn và chúng tôi sẽ gửi cho bạn một liên kết để đặt lại mật khẩu"}
         </p>
       </div>
 
@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
                 </svg>
               </div>
               <p className="mt-3 text-sm text-muted-foreground">
-                If an account exists with that email, we've sent a password reset link.
+                Nếu một tài khoản tồn tại với email đó, chúng tôi đã gửi một liên kết đặt lại mật khẩu.
               </p>
               <Button
                 className="mt-6 w-full"
@@ -95,7 +95,7 @@ export default function ForgotPasswordPage() {
               >
                 <Link to="/login">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to login
+                  Quay lại đăng nhập
                 </Link>
               </Button>
             </div>
@@ -127,7 +127,7 @@ export default function ForgotPasswordPage() {
                   disabled={isLoading}
                 >
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Send reset link
+                  Gửi liên kết đặt lại
                 </Button>
 
                 <div className="text-center mt-4">
@@ -136,7 +136,7 @@ export default function ForgotPasswordPage() {
                     className="text-sm font-medium text-primary hover:text-primary/80"
                   >
                     <ArrowLeft className="inline mr-1 h-4 w-4" />
-                    Back to login
+                      Quay lại đăng nhập
                   </Link>
                 </div>
               </form>
