@@ -5,26 +5,39 @@ import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useForm } from 'react-hook-form';
 import { EmployeeRole, ListEmployeeRequest } from '@/apis/types';
 import { roles } from '@/apis/types/transform';
 import { StoreSelect } from '@/components/store-select';
 
+const statusOptions = [
+  { label: 'Tất cả', value: 'all' },
+  { label: 'Đang hoạt động', value: 'ACTIVE' },
+  { label: 'Ngừng hoạt động', value: 'INACTIVE' },
+  { label: 'Đình chỉ', value: 'SUSPENDED' },
+  { label: 'Đang nghỉ phép', value: 'ON_LEAVE' },
+];
+
 export function FilterEmployee({ onFilter }: { onFilter?: (values: ListEmployeeRequest) => void }) {
   const form = useForm<ListEmployeeRequest>({
     defaultValues: {
       role: undefined,
       storeId: undefined,
-      status: 'ACTIVE',
+      status: 'all',
     },
   });
 
   const [roleOpen, setRoleOpen] = React.useState(false);
 
   function onSubmit(values: ListEmployeeRequest) {
-    console.log(values);
-    if (onFilter) onFilter(values);
+    const apiFilter: ListEmployeeRequest = {
+      ...values,
+      status: values.status === 'all' ? undefined : values.status,
+    };
+    console.log(apiFilter);
+    if (onFilter) onFilter(apiFilter);
   }
 
   return (
@@ -39,36 +52,20 @@ export function FilterEmployee({ onFilter }: { onFilter?: (values: ListEmployeeR
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      variant={field.value === 'ACTIVE' ? 'default' : 'outline'}
-                      onClick={() => form.setValue('status', 'ACTIVE')}
-                    >
-                      Đang hoạt động
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={field.value === 'INACTIVE' ? 'default' : 'outline'}
-                      onClick={() => form.setValue('status', 'INACTIVE')}
-                    >
-                      Ngừng hoạt động
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={field.value === 'SUSPENDED' ? 'default' : 'outline'}
-                      onClick={() => form.setValue('status', 'SUSPENDED')}
-                    >
-                      Đình chỉ
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={field.value === 'ON_LEAVE' ? 'default' : 'outline'}
-                      onClick={() => form.setValue('status', 'ON_LEAVE')}
-                    >
-                      Đang nghỉ phép
-                    </Button>
-                  </div>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn trạng thái" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {statusOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </FormItem>
               )}
             />

@@ -1,3 +1,4 @@
+import { DateRange } from 'react-day-picker';
 import React, { useEffect } from 'react';
 import { SupplierListRequest } from '@/apis/types/supplier';
 import { Input } from '@/components/ui/input';
@@ -22,8 +23,12 @@ interface ProviderFilterSidebarProps {
 const filterSchema = z.object({
   search: z.string().optional(),
   searchBy: z.enum(['NAME', 'CODE', 'PHONE', 'all-search']).optional(),
-  fromDate: z.date().optional(),
-  toDate: z.date().optional(),
+  dateRange: z
+    .object({
+      from: z.date().optional(),
+      to: z.date().optional(),
+    })
+    .optional(),
   isActive: z.enum(['true', 'false', 'all-status']).optional(),
 });
 
@@ -39,8 +44,10 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
     defaultValues: {
       search: initialFilters.search || '',
       searchBy: initialFilters.searchBy || 'all-search',
-      fromDate: initialFilters.fromDate ? new Date(initialFilters.fromDate) : undefined,
-      toDate: initialFilters.toDate ? new Date(initialFilters.toDate) : undefined,
+      dateRange: {
+        from: initialFilters.fromDate ? new Date(initialFilters.fromDate) : undefined,
+        to: initialFilters.toDate ? new Date(initialFilters.toDate) : undefined,
+      },
       isActive: initialFilters.isActive ? 'true' : undefined,
     },
   });
@@ -49,8 +56,10 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
     form.reset({
       search: initialFilters.search || '',
       searchBy: initialFilters.searchBy || 'all-search',
-      fromDate: initialFilters.fromDate ? new Date(initialFilters.fromDate) : undefined,
-      toDate: initialFilters.toDate ? new Date(initialFilters.toDate) : undefined,
+      dateRange: {
+        from: initialFilters.fromDate ? new Date(initialFilters.fromDate) : undefined,
+        to: initialFilters.toDate ? new Date(initialFilters.toDate) : undefined,
+      },
       isActive: initialFilters.isActive ? 'true' : undefined,
     });
   }, [initialFilters, form]);
@@ -59,24 +68,23 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
     const apiFilters: SupplierListRequest = {
       search: values.search || undefined,
       searchBy: values.searchBy === 'all-search' ? undefined : values.searchBy,
-      fromDate: values.fromDate ? format(values.fromDate, 'yyyy-MM-dd') : undefined,
-      toDate: values.toDate ? format(values.toDate, 'yyyy-MM-dd') : undefined,
+      fromDate: values.dateRange?.from ? format(values.dateRange.from, 'yyyy-MM-dd') : undefined,
+      toDate: values.dateRange?.to ? format(values.dateRange.to, 'yyyy-MM-dd') : undefined,
       isActive: values.isActive === 'all-status' ? undefined : values.isActive === 'true',
     };
     onApplyFilters(apiFilters);
   };
 
-  // const handleReset = () => {
-  //   const resetValues: FilterFormValues = {
-  //     search: '',
-  //     searchBy: 'all-search',
-  //     fromDate: undefined,
-  //     toDate: undefined,
-  //     isActive: undefined,
-  //   };
-  //   form.reset(resetValues);
-  //   onApplyFilters({}); // Apply empty filters
-  // };
+  const handleReset = () => {
+    const resetValues: FilterFormValues = {
+      search: '',
+      searchBy: 'all-search',
+      dateRange: { from: undefined, to: undefined },
+      isActive: undefined,
+    };
+    form.reset(resetValues);
+    onApplyFilters({}); // Apply empty filters
+  };
 
   if (!isOpen) return null;
 
@@ -129,78 +137,37 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
           {/* Date Range */}
           <div className="space-y-2">
             <h3 className="font-medium">Khoảng ngày tạo</h3>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="w-12 shrink-0 text-sm">Từ</div>
-                <FormField
-                  control={form.control}
-                  name="fromDate"
-                  render={() => (
-                    <FormItem className="flex-1 w-full">
-                      <FormControl>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              className="w-full"
-                              variant="outline"
-                            >
-                              {form.watch('fromDate') ? (
-                                <span>{format(form.watch('fromDate')!, 'dd/MM/yyyy')}</span>
-                              ) : (
-                                <span>Chọn ngày</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="end">
-                            <Calendar
-                              mode="single"
-                              selected={form.watch('fromDate')}
-                              onSelect={(date) => form.setValue('fromDate', date)}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-12 shrink-0 text-sm">Đến</div>
-                <FormField
-                  control={form.control}
-                  name="toDate"
-                  render={() => (
-                    <FormItem className="flex-1 w-full">
-                      <FormControl>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              className="w-full"
-                              variant="outline"
-                            >
-                              {form.watch('toDate') ? (
-                                <span>{format(form.watch('toDate')!, 'dd/MM/yyyy')}</span>
-                              ) : (
-                                <span>Chọn ngày</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="end">
-                            <Calendar
-                              mode="single"
-                              selected={form.watch('toDate')}
-                              onSelect={(date) => form.setValue('toDate', date || undefined)}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+            <FormField
+              control={form.control}
+              name="dateRange"
+              render={({ field }) => (
+                <FormItem className="flex-1 w-full">
+                  <FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button className="w-full" variant="outline">
+                          {field.value?.from ? (
+                            field.value.to ? (
+                              <>
+                                {format(field.value.from, 'dd/MM/yyyy')} - {format(field.value.to, 'dd/MM/yyyy')}
+                              </>
+                            ) : (
+                              format(field.value.from, 'dd/MM/yyyy')
+                            )
+                          ) : (
+                            <span>Chọn khoảng ngày</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <Calendar mode="range" selected={field.value} onSelect={field.onChange} />
+                      </PopoverContent>
+                    </Popover>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
           </div>
 
           {/* Status */}
@@ -228,7 +195,9 @@ export const ProviderFilterSidebar: React.FC<ProviderFilterSidebarProps> = ({
             />
           </div>
 
-          <Button className="w-full" type="submit">Áp dụng bộ lọc</Button>
+          <Button className="w-full" type="submit">
+            Áp dụng bộ lọc
+          </Button>
         </form>
       </Form>
     </div>

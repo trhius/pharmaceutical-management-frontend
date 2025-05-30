@@ -14,6 +14,13 @@ import { GetProductRequest } from '@/apis/types/product';
 import * as z from 'zod';
 import { CategorySelect } from '@/components/category-select';
 import { BrandSelect } from '@/components/brand-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const statusOptions = [
+  { label: 'Tất cả', value: 'all' },
+  { label: 'Đang kinh doanh', value: 'active' },
+  { label: 'Ngừng kinh doanh', value: 'inactive' },
+];
 
 const formSchema = z.object({
   createdDateOption: z.enum(['all', 'custom']),
@@ -136,29 +143,18 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      variant={field.value === 'all' ? 'default' : 'outline'}
-                      onClick={() => form.setValue('status', 'all')}
-                    >
-                      Tất cả
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={field.value === 'active' ? 'default' : 'outline'}
-                      onClick={() => form.setValue('status', 'active')}
-                    >
-                      Đang kinh doanh
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={field.value === 'inactive' ? 'default' : 'outline'}
-                      onClick={() => form.setValue('status', 'inactive')}
-                    >
-                      Ngừng kinh doanh
-                    </Button>
-                  </div>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn trạng thái" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </FormItem>
               )}
             />
