@@ -53,7 +53,7 @@ export function OrderFilter({ onFilter }: OrderFilterProps) {
     if (values.status) apiFilter.status = values.status as OrderListRequest['status'];
     if (values.paymentMethod) apiFilter.paymentMethod = values.paymentMethod as OrderListRequest['paymentMethod'];
 
-    console.log({ apiFilter })
+    console.log({ apiFilter });
 
     onFilter(apiFilter);
   }
@@ -106,78 +106,45 @@ export function OrderFilter({ onFilter }: OrderFilterProps) {
           {/* Date Range */}
           <div className="space-y-2">
             <h3 className="font-medium">Khoảng ngày tạo</h3>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="w-12 shrink-0 text-sm">Từ</div>
-                <FormField
-                  control={form.control}
-                  name="createdDateFrom"
-                  render={() => (
-                    <FormItem className="flex-1 w-full">
-                      <FormControl>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              className="w-full"
-                              variant="outline"
-                            >
-                              {form.watch('createdDateFrom') ? (
-                                <span>{format(form.watch('createdDateFrom')!, 'dd/MM/yyyy')}</span>
-                              ) : (
-                                <span>Chọn ngày</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="end">
-                            <Calendar
-                              mode="single"
-                              selected={form.watch('createdDateFrom')}
-                              onSelect={(date) => form.setValue('createdDateFrom', date)}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-12 shrink-0 text-sm">Đến</div>
-                <FormField
-                  control={form.control}
-                  name="createdDateTo"
-                  render={() => (
-                    <FormItem className="flex-1 w-full">
-                      <FormControl>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              className="w-full"
-                              variant="outline"
-                            >
-                              {form.watch('createdDateTo') ? (
-                                <span>{format(form.watch('createdDateTo')!, 'dd/MM/yyyy')}</span>
-                              ) : (
-                                <span>Chọn ngày</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="end">
-                            <Calendar
-                              mode="single"
-                              selected={form.watch('createdDateTo')}
-                              onSelect={(date) => form.setValue('createdDateTo', date || undefined)}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+            <FormField
+              control={form.control}
+              name="createdDateFrom" // Use createdDateFrom for the range picker
+              render={() => (
+                <FormItem className="flex-1 w-full">
+                  <FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button className="w-full justify-start text-left font-normal" variant="outline">
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {form.watch('createdDateFrom') && form.watch('createdDateTo') ? (
+                            <>
+                              {format(form.watch('createdDateFrom')!, 'dd/MM/yyyy')} -{' '}
+                              {format(form.watch('createdDateTo')!, 'dd/MM/yyyy')}
+                            </>
+                          ) : (
+                            <span>Chọn khoảng ngày</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="range"
+                          selected={{
+                            from: form.watch('createdDateFrom'),
+                            to: form.watch('createdDateTo'),
+                          }}
+                          onSelect={(range) => {
+                            form.setValue('createdDateFrom', range?.from);
+                            form.setValue('createdDateTo', range?.to);
+                          }}
+                          numberOfMonths={2}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
           </div>
 
           {/* Status */}

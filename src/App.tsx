@@ -7,6 +7,7 @@ import { ProtectedRoute } from '@/components/auth/protected-route';
 // Auth Pages
 import LoginPage from '@/pages/auth/login';
 import ForgotPasswordPage from '@/pages/auth/forgot-password';
+import ResetPasswordPage from '@/pages/auth/reset-password';
 
 // Dashboard Pages
 import DashboardPage from '@/pages/dashboard';
@@ -35,7 +36,7 @@ function App() {
 
   // Redirect to login if not authenticated and not on auth pages
   useEffect(() => {
-    const isAuthPage = location.pathname === '/login' || location.pathname === '/forgot-password';
+    const isAuthPage = location.pathname === '/login' || location.pathname === '/forgot-password' || location.pathname.startsWith('/reset-password');
 
     if (!isAuthenticated && !isAuthPage) {
       navigate('/login');
@@ -47,6 +48,7 @@ function App() {
       {/* Auth Routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* Protected Routes */}
       <Route

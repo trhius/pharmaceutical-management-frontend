@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -12,8 +13,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email.'),
-  password: z.string().min(6, 'Password must be at least 6 characters.'),
+  email: z.string().email('Vui lòng nhập email hợp lệ.'),
+  password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự.'),
   rememberMe: z.boolean().default(false),
 });
 
@@ -21,6 +22,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuthStore();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -40,18 +42,18 @@ export default function LoginPage() {
       const success = await login(data.email, data.password);
       if (success) {
         toast({
-          title: 'Welcome back!',
-          description: 'You have successfully logged in.',
+          title: 'Chào mừng trở lại!',
+          description: 'Bạn đã đăng nhập thành công.',
         });
         navigate('/');
       } else {
         toast({
           variant: 'destructive',
-          title: 'Login failed',
-          description: 'Invalid email or password. Please try again.',
+          title: 'Đăng nhập thất bại',
+          description: 'Email hoặc mật khẩu không hợp lệ. Vui lòng thử lại.',
         });
       }
-    } catch (error) {
+    } catch (e) {
       toast({
         variant: 'destructive',
         title: 'Login error',
@@ -70,8 +72,8 @@ export default function LoginPage() {
             <Pill className="h-8 w-8" />
           </div>
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">PharmaPlus Management</h2>
-        <p className="mt-2 text-center text-sm text-muted-foreground">Sign in to your account</p>
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">Quản lý PharmaPlus</h2>
+        <p className="mt-2 text-center text-sm text-muted-foreground">Đăng nhập vào tài khoản của bạn</p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -97,9 +99,31 @@ export default function LoginPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Mật khẩu</FormLabel>
                     <FormControl>
-                      <Input placeholder="password" type="password" disabled={isLoading} {...field} />
+                      <div className="relative">
+                        <Input
+                          placeholder="mật khẩu"
+                          type={showPassword ? "text" : "password"}
+                          disabled={isLoading}
+                          {...field}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          disabled={isLoading}
+                        >
+                          {showPassword ? (
+                            <EyeIcon className="h-4 w-4" aria-hidden="true" />
+                          ) : (
+                            <EyeOffIcon className="h-4 w-4" aria-hidden="true" />
+                          )}
+                          <span className="sr-only">Hiện/ẩn mật khẩu</span>
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -116,20 +140,20 @@ export default function LoginPage() {
                         <Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isLoading} />
                       </FormControl>
                       <FormLabel className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        Remember me
+                        Ghi nhớ đăng nhập
                       </FormLabel>
                     </FormItem>
                   )}
                 />
 
                 <Link to="/forgot-password" className="text-sm font-medium text-primary hover:text-primary/80">
-                  Forgot your password?
+                  Quên mật khẩu?
                 </Link>
               </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Sign in
+                Đăng nhập
               </Button>
 
               <div className="text-sm text-center mt-4 text-muted-foreground">

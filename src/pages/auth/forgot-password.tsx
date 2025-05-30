@@ -13,6 +13,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { useForgotPassword } from '@/apis/hooks/auth';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
@@ -26,6 +27,7 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
+  const forgotPasswordMutation = useForgotPassword();
 
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -37,20 +39,19 @@ export default function ForgotPasswordPage() {
   async function onSubmit(data: ForgotPasswordFormValues) {
     setIsLoading(true);
     try {
-      // In a real app, this would call an API
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await forgotPasswordMutation.mutateAsync({ email: data.email });
       
       toast({
-        title: 'Reset link sent',
-        description: `We've sent a password reset link to ${data.email}`,
+        title: 'Link đặt lại đã được gửi',
+        description: `Chúng tôi đã gửi một liên kết đặt lại mật khẩu đến ${data.email}`,
       });
       
       setIsSubmitted(true);
-    } catch (error) {
+    } catch (e) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'There was a problem sending the reset link.',
+        title: 'Lỗi',
+        description: 'Đã xảy ra sự cố khi gửi liên kết đặt lại.',
       });
     } finally {
       setIsLoading(false);
