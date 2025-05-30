@@ -1,12 +1,5 @@
-import { CalendarIcon } from 'lucide-react';
-
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Form, FormField, FormItem } from '@/components/ui/form';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { format, startOfDay } from 'date-fns'; // Import format and date utility functions
@@ -15,6 +8,7 @@ import * as z from 'zod';
 import { CategorySelect } from '@/components/category-select';
 import { BrandSelect } from '@/components/brand-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DateRangeSelector } from '@/components/date-range-selector';
 
 const statusOptions = [
   { label: 'Tất cả', value: 'all' },
@@ -24,7 +18,12 @@ const statusOptions = [
 
 const formSchema = z.object({
   createdDateOption: z.enum(['all', 'custom']),
-  createdDateCustom: z.date().optional(),
+  createdDateCustom: z
+    .object({
+      from: z.date(),
+      to: z.date().optional(),
+    })
+    .optional(),
   categorySlug: z.string().default(''),
   brand: z.string().default(''),
   status: z.enum(['all', 'active', 'inactive']),
@@ -41,7 +40,7 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       createdDateOption: 'all',
-      createdDateCustom: undefined,
+      createdDateCustom: { from: new Date(), to: new Date() },
       categorySlug: '',
       brand: '',
       status: 'all',
@@ -52,7 +51,7 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
     const apiFilter: GetProductRequest = {};
 
     if (values.createdDateOption === 'custom' && values.createdDateCustom) {
-      apiFilter.createdAt = format(startOfDay(values.createdDateCustom), "yyyy-MM-dd'T'HH:mm:ss");
+      apiFilter.createdAt = format(startOfDay(values.createdDateCustom.from), "yyyy-MM-dd'T'HH:mm:ss");
     }
 
     if (values.categorySlug) {
@@ -80,53 +79,7 @@ export function TableFilterSidebar({ onFilter }: TableFilterSidebarProps) {
 
           {/* Creation Date */}
           <div className="space-y-2">
-            <h3 className="font-medium">Ngày tạo</h3>
-            <FormField
-              control={form.control}
-              name="createdDateOption"
-              render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value="all" id="creation-date-all-time" />
-                      <Label htmlFor="creation-date-all-time">Toàn thời gian</Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value="custom" id="creation-date-custom-radio" />
-                      <div className="flex w-full items-center gap-2">
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !form.watch('createdDateCustom') && 'text-muted-foreground'
-                              )}
-                              onClick={() => form.setValue('createdDateOption', 'custom')}
-                              disabled={form.watch('createdDateOption') !== 'custom'}
-                            >
-                              {form.watch('createdDateCustom') ? (
-                                <span>{format(form.watch('createdDateCustom')!, 'dd/MM/yyyy')}</span>
-                              ) : (
-                                <span>Chọn ngày</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="end">
-                            <Calendar
-                              mode="single"
-                              selected={form.watch('createdDateCustom')}
-                              onSelect={(date) => form.setValue('createdDateCustom', date || undefined)}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
-                  </RadioGroup>
-                </FormItem>
-              )}
-            />
+            <DateRangeSelector namePrefix="createdDate" label="Ngày tạo" dateFormat="dd/MM/yyyy" />
           </div>
 
           {/* Brand */}

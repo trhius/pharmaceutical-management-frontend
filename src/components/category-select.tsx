@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { TreeDataItem, TreeView } from '@/components/tree-view'; // Assuming TreeView and TreeDataItem types are correct
 import { useAllCategories } from '@/apis/hooks/product';
 import { GetListCategoryResponse } from '@/apis/types/product';
+import { Button } from './ui/button';
 
 interface CategorySelectProps {
   name: string; // The name of the form field (e.g., 'categorySlug')
@@ -75,9 +76,15 @@ export function CategorySelect({ name }: CategorySelectProps) {
           <FormControl>
             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
               <PopoverTrigger asChild>
-                <button type="button" className="w-full rounded-md border px-3 py-2 text-left text-sm font-medium">
+                <Button
+                  variant="outline"
+                  type="button"
+                  role="combobox"
+                  aria-expanded={popoverOpen}
+                  className="w-full justify-between"
+                >
                   {getCategoryName(field.value)}
-                </button>
+                </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[300px] p-0">
                 {/* Render TreeView only if categories data is available */}

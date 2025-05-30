@@ -15,6 +15,13 @@ import { roles, genders, employeeStatuses } from '@/apis/types/transform';
 import { Input } from '@/components/ui/input';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const searchByOptions = [
+  { label: 'Tên nhân viên', value: 'NAME' },
+  { label: 'Mã chấm công', value: 'CODE' },
+  { label: 'Số điện thoại', value: 'PHONE' },
+];
 
 export default function EmployeesListPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -23,6 +30,7 @@ export default function EmployeesListPage() {
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeResponse | null>(null);
 
   const [filter, setFilter] = useState<ListEmployeeRequest>({});
+  const [searchBy, setSearchBy] = useState<string | undefined>(undefined);
   const listEmployeesData = useListEmployees({ request: filter });
   const employees = listEmployeesData.data?.content;
   const deleteEmployeeMutation = useDeleteEmployee();
@@ -43,7 +51,7 @@ export default function EmployeesListPage() {
     const applyFilter: Partial<ListEmployeeRequest> = value
       ? { search: value, searchBy: 'NAME' }
       : { search: undefined, searchBy: undefined };
-    setFilter({ ...filter, ...applyFilter });
+    setFilter({ ...filter, ...applyFilter, searchBy: searchBy as ListEmployeeRequest['searchBy'] });
   };
 
   const onDelete = useCallback(() => {
@@ -232,11 +240,27 @@ export default function EmployeesListPage() {
             <CardDescription>Quản lý danh sách nhân viên.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Input
-              placeholder="Tìm nhân viên..."
-              className="mb-4 w-fit"
-              onChange={(e) => handleSearch(e.target.value)}
-            />
+            <div className="flex gap-2 w-1/3 min-w-xs">
+              <Input
+                placeholder="Tìm nhân viên..."
+                className="mb-4 w-2/3 flex-grow"
+                onChange={(e) => handleSearch(e.target.value)}
+              />
+              <div className="w-1/3">
+                <Select onValueChange={(value) => setSearchBy(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tìm kiếm theo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {searchByOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <DataTable
               columns={columns}
               data={employees || []}
