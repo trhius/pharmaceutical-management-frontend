@@ -1,12 +1,15 @@
 import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table';
-import { useListOrders } from '@/apis/hooks/sales';
+import { useListOrders, useExportOrders } from '@/apis/hooks/sales'; // Import useExportOrders
 import { useCallback } from 'react';
 import { OrderFilter } from './filter-order';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { OrderListRequest } from '@/apis/types/sales';
+import { FileOutput } from 'lucide-react'; // Import FileOutput icon
+import { Button } from '@/components/ui/button'; // Import Button component
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 import useListPageState from '@/hooks/useListPageState'; // Assuming the path to your custom hook
 
@@ -39,6 +42,10 @@ export default function OrdersListPage() {
     size: filter.size,
     request: filter,
   });
+
+  const exportOrdersMutation = useExportOrders(); // Initialize export hook
+  const { toast } = useToast(); // Initialize toast hook
+  const isExporting = exportOrdersMutation.isPending; // Get export loading state
 
   const columns = [
     {
@@ -82,6 +89,40 @@ export default function OrdersListPage() {
     [setExternalFilters]
   );
 
+  // Handle export button click
+  const handleExportClick = () => {
+    exportOrdersMutation.mutate(
+      { request: filter as OrderListRequest }, // Pass the filtered request
+      {
+        onSuccess: (blob) => {
+          // Create a URL for the blob
+          const url = window.URL.createObjectURL(blob);
+          // Create a temporary link element
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', 'orders_export.xlsx'); // Set the desired filename
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          toast({
+            title: 'Xuất dữ liệu thành công',
+            description: 'Tệp dữ liệu đơn hàng đã được tải xuống.',
+          });
+        },
+        onError: (error) => {
+          console.error('Export failed:', error);
+          toast({
+            title: 'Xuất dữ liệu thất bại',
+            description: 'Đã xảy ra lỗi khi xuất dữ liệu đơn hàng.',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
+  };
+
   return (
     <div className="mx-auto">
       <PageHeader
@@ -102,27 +143,38 @@ export default function OrdersListPage() {
             <CardDescription>Quản lý đơn hàng.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-2 w-1/2 min-w-xs mb-4">
-              <Input
-                placeholder="Tìm đơn hàng..." // Translated: Find order...
-                className="flex-grow"
-                value={searchTerm}
-                onChange={(e) => handleSearchInputChange(e.target.value)}
-              />
-              <div className="w-1/3 min-w-[150px]">
-                <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'ORDER_CODE'}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tìm kiếm theo" /> {/* Translated: Search by */}
-                  </SelectTrigger>
-                  <SelectContent>
-                    {searchByOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="flex items-center justify-between gap-2 mb-4">
+              {' '}
+              {/* Added flex container */}
+              <div className="flex gap-2 w-1/2 min-w-xs">
+                {' '}
+                {/* Container for search input and select */}
+                <Input
+                  placeholder="Tìm đơn hàng..." // Translated: Find order...
+                  className="flex-grow"
+                  value={searchTerm}
+                  onChange={(e) => handleSearchInputChange(e.target.value)}
+                />
+                <div className="w-1/3 min-w-[150px]">
+                  <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'ORDER_CODE'}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tìm kiếm theo" /> {/* Translated: Search by */}
+                    </SelectTrigger>
+                    <SelectContent>
+                      {searchByOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              {/* Export Button */}
+              <Button onClick={handleExportClick} disabled={isLoading || isExporting}>
+                <FileOutput className="mr-2 h-4 w-4" /> {/* Added icon */}
+                {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
+              </Button>
             </div>
             <DataTable
               columns={columns}

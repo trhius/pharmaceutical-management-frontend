@@ -1,4 +1,4 @@
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, FileOutput } from 'lucide-react';
 
 import { PageHeader } from '@/components/layout/page-header';
 import { DataTable } from '@/components/ui/data-table';
@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 import { TableFilterSidebar } from './filter-product';
-import { useProducts } from '@/apis/hooks/product';
+import { useProducts, useExportProducts } from '@/apis/hooks/product';
 import { GetProductRequest, ProductResponse } from '@/apis/types/product';
 import { Badge } from '@/components/ui/badge';
 import useListPageState from '@/hooks/useListPageState'; // Assuming the path to your custom hook
@@ -36,12 +37,16 @@ export default function ProductsListPage() {
     resetPageIndexOnFilterChange: true,
   });
 
+  const { toast } = useToast(); // Initialize useToast
+
   const { data: productsData, isLoading } = useProducts({
     page: filter.page,
     size: filter.size,
     request: filter,
   });
   const products = productsData?.content;
+
+  const exportProductsMutation = useExportProducts();
 
   // The onFilter callback now directly uses setExternalFilters
   const onFilter = (values: Omit<GetProductRequest, 'page' | 'size' | 'search' | 'searchBy'>) => {
@@ -55,6 +60,42 @@ export default function ProductsListPage() {
 
   const handleSearchByChange = (value: string) => {
     setSearchByValue(value as GetProductRequest['searchBy']);
+  };
+
+  const handleExportClick = () => {
+    exportProductsMutation.mutate(
+      { request: filter as GetProductRequest },
+      {
+        onSuccess: (blob) => {
+          // Create a URL for the blob
+          const url = window.URL.createObjectURL(blob);
+          // Create a temporary link element
+          const link = document.createElement('a');
+          link.href = url;
+          // Set the download attribute with a desired filename
+          link.setAttribute('download', 'products_export.xlsx'); // You can adjust the filename and extension
+          // Append the link to the body and click it programmatically
+          document.body.appendChild(link);
+          link.click();
+          // Clean up by removing the link and revoking the blob URL
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          toast({
+            title: 'Xuất dữ liệu thành công',
+            description: 'Tệp dữ liệu sản phẩm đã được tải xuống.',
+          });
+        },
+        onError: (error) => {
+          console.error('Export failed:', error);
+          toast({
+            title: 'Xuất dữ liệu thất bại',
+            description: 'Đã xảy ra lỗi khi xuất dữ liệu sản phẩm.',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
   };
 
   // Define columns for the DataTable
@@ -258,27 +299,35 @@ export default function ProductsListPage() {
             <CardDescription>Xem và quản lý thông tin chi tiết sản phẩm.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-2 w-1/2 min-w-xs mb-4">
-              <Input
-                placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
-                className="flex-grow"
-                value={searchTerm} // Bind input value to searchTerm from hook
-                onChange={(e) => handleSearchInputChange(e.target.value)}
-              />
-              <div className="w-1/3 min-w-[150px]">
-                <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'NAME'}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tìm kiếm theo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {searchByOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="flex items-center justify-between gap-2 mb-4">
+              {/* Use flex and justify-between */}
+              <div className="flex gap-2 w-1/2 min-w-sm">
+                {/* Container for search input and select */}
+                <Input
+                  placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
+                  className="flex-grow"
+                  value={searchTerm} // Bind input value to searchTerm from hook
+                  onChange={(e) => handleSearchInputChange(e.target.value)}
+                />
+                <div className="w-1/3 min-w-[150px]">
+                  <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'NAME'}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tìm kiếm theo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {searchByOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              <Button onClick={handleExportClick} disabled={isLoading || exportProductsMutation.isPending}>
+                <FileOutput className="mr-2 w-4 h-4" />
+                {exportProductsMutation.isPending ? 'Đang xuất...' : 'Xuất dữ liệu'}
+              </Button>
             </div>
             <DataTable
               columns={columns}

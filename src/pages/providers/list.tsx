@@ -1,13 +1,14 @@
 import { useState, useCallback } from 'react';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, FileOutput } from 'lucide-react';
 import { PageHeader } from '@/components/layout/page-header';
 import useListPageState from '@/hooks/useListPageState';
 import { DataTable } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
-import { useSuppliers } from '@/apis/hooks/supplier';
+import { useSuppliers, useExportSuppliers } from '@/apis/hooks/supplier'; // Import useExportSuppliers
 import { SupplierResponse, SupplierListRequest } from '@/apis/types/supplier';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 const searchByOptions = [
   { label: 'Tên', value: 'NAME' },
@@ -20,7 +21,7 @@ import { AddProviderDialog } from './add-provider-dialog';
 
 export default function ProvidersListPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  // const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
+  const { toast } = useToast(); // Initialize useToast hook
 
   const {
     filter,
@@ -32,18 +33,68 @@ export default function ProvidersListPage() {
     setSearchTerm,
     setSearchByValue,
     setExternalFilters,
-  } = useListPageState<SupplierListRequest>({ initialSize: 10, initialSearchBy: 'NAME' });
+  } = useListPageState<SupplierListRequest>({
+    initialSize: 10,
+    initialSearchBy: 'NAME',
+    resetPageIndexOnFilterChange: true,
+    debounceDelay: 500,
+  });
 
   const { data, isLoading, refetch } = useSuppliers({
     request: filter,
   });
 
-  const onApplyFilters = useCallback((values: SupplierListRequest) => {
-    setExternalFilters(values);
-  }, [setExternalFilters]);
+  // Initialize the export mutation hook without onSuccess/onError here
+  const exportSuppliersMutation = useExportSuppliers();
+  const isExporting = exportSuppliersMutation.isPending; // Use isPending from the mutation object
+
+  const onApplyFilters = useCallback(
+    (values: Omit<SupplierListRequest, 'page' | 'size' | 'search' | 'searchBy'>) => {
+      setExternalFilters(values);
+    },
+    [setExternalFilters]
+  );
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
+  };
+
+  const handleSearchByChange = (value: string) => {
+    setSearchByValue(value as SupplierListRequest['searchBy']);
+  };
+
+  // Handle export button click with dynamic onSuccess/onError callbacks
+  const handleExportClick = () => {
+    exportSuppliersMutation.mutate(
+      { request: filter as SupplierListRequest }, // Pass the filtered request
+      {
+        onSuccess: (blob) => {
+          // Create a URL for the blob
+          const url = window.URL.createObjectURL(blob);
+          // Create a temporary link element
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', 'suppliers_export.xlsx'); // Set the desired filename
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          toast({
+            title: 'Xuất dữ liệu thành công',
+            description: 'Tệp dữ liệu nhà cung cấp đã được tải xuống.',
+          });
+        },
+        onError: (error) => {
+          console.error('Export failed:', error);
+          toast({
+            title: 'Xuất dữ liệu thất bại',
+            description: 'Đã xảy ra lỗi khi xuất dữ liệu nhà cung cấp.',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
   };
 
   const columns = [
@@ -80,18 +131,15 @@ export default function ProvidersListPage() {
             Thêm nhà cung cấp
           </Button>
         }
-      >
-        {/* Add a button to open filter sidebar if needed */}
-      </PageHeader>
+      />
 
       <div className="flex min-h-screen items-start gap-8 py-8">
-        {/* Filter Sidebar - Currently always visible for simplicity */}
         <div className="sticky top-8">
           <ProviderFilterSidebar
-            isOpen={true} // Adjust based on filter button state if added
-            onClose={() => {}} // Adjust based on filter button state if added
+            isOpen={true}
+            onClose={() => {}}
             onApplyFilters={onApplyFilters}
-            initialFilters={filter} // Pass current filters to initialize sidebar
+            initialFilters={filter}
           />
         </div>
 
@@ -101,31 +149,41 @@ export default function ProvidersListPage() {
             <CardDescription>Quản lý các nhà cung cấp và thông tin của họ.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-2 w-1/2 min-w-xs mb-4">
-              {' '}
+            <div className="flex items-center justify-between gap-2 mb-4">
               {/* Added flex container */}
-            <Input
-              placeholder="Tìm nhà cung cấp..."
-              className="flex-grow" // Make Input take available space
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-            />
-            <div className="w-1/3 min-w-[150px]">
-              {' '}
-              {/* Added container for Select */}
-              <Select onValueChange={(value) => setSearchByValue(value as SupplierListRequest['searchBy'])} defaultValue="NAME" value={searchByValue}>
-                <SelectTrigger>
-                    <SelectValue placeholder="Tìm kiếm theo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {searchByOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="flex gap-2 w-1/2 min-w-sm">
+                {' '}
+                {/* Added container for search input and select */}
+                <Input
+                  placeholder="Tìm nhà cung cấp..."
+                  className="flex-grow"
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                />
+                <div className="w-1/3 min-w-[150px]">
+                  <Select
+                    onValueChange={(value) => handleSearchByChange(value)}
+                    defaultValue="NAME"
+                    value={searchByValue}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tìm kiếm theo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {searchByOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              {/* Export Button */}
+              <Button onClick={handleExportClick} disabled={isLoading || isExporting}>
+                <FileOutput className="mr-2 h-4 w-4" />
+                {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
+              </Button>
             </div>
             <DataTable<SupplierResponse, unknown>
               columns={columns}
@@ -135,7 +193,6 @@ export default function ProvidersListPage() {
               pageIndex={pageIndex}
               pageSize={pageSize}
               onPageChange={setPageIndex}
-              // searchKey and searchPlaceholder removed as filtering is now handled via filter state
             />
           </CardContent>
         </Card>

@@ -1,14 +1,16 @@
 import { useState, useCallback, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
+import { FileOutput } from 'lucide-react'; // Import FileOutput icon
 
 import { PageHeader } from '@/components/layout/page-header';
 import { DataTable } from '@/components/ui/data-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 import { EditablePriceCell } from '@/components/products/editable-price-cell';
 import { TableFilterSidebar } from './filter-product-price';
-import { useProductPrices, useUpdateProductPrice } from '@/apis/hooks/product';
+import { useProductPrices, useUpdateProductPrice, useExportProductPrices } from '@/apis/hooks/product'; // Import useExportProductPrices
 import { GetProductPriceRequest, UpdateProductPriceRequest } from '@/apis/types/product';
 
 import useListPageState from '@/hooks/useListPageState'; // Import the custom hook
@@ -23,6 +25,8 @@ const searchByOptions = [
 export default function ProductsListPrices() {
   const [editedPrices, setEditedPrices] = useState<{ [productId: string]: number }>({});
   const { mutate: updatePrices, isPending: isUpdating } = useUpdateProductPrice();
+  const exportProductPricesMutation = useExportProductPrices(); // Initialize export hook
+  const { toast } = useToast(); // Initialize toast hook
 
   // Use the custom hook for managing list state
   const {
@@ -43,16 +47,17 @@ export default function ProductsListPrices() {
   });
 
   // Fetch product prices using the filter from the hook
-  const { page, size, ...requestParams } = filter;
   const productPricesParams = {
-    page,
-    size,
-    request: requestParams, // Pass the rest of the filter as the 'request' object
+    page: pageIndex,
+    size: pageSize,
+    request: filter, // Pass the rest of the filter as the 'request' object
   };
 
   // Fetch product prices using the correctly formatted parameters
   const { data: productsData, isLoading } = useProductPrices(productPricesParams);
   const products = productsData?.content;
+
+  const isExporting = exportProductPricesMutation.isPending; // Get export loading state
 
   // Clear edited prices when product data changes (e.g., on pagination or filter)
   useEffect(() => {
@@ -84,6 +89,40 @@ export default function ProductsListPrices() {
       [productId]: newPrice,
     }));
   }, []);
+
+  // Handle export button click
+  const handleExportClick = () => {
+    exportProductPricesMutation.mutate(
+      { request: filter as GetProductPriceRequest }, // Pass the filtered request
+      {
+        onSuccess: (blob) => {
+          // Create a URL for the blob
+          const url = window.URL.createObjectURL(blob);
+          // Create a temporary link element
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', 'product_prices_export.xlsx'); // Set the desired filename
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          toast({
+            title: 'Xuất dữ liệu thành công',
+            description: 'Tệp dữ liệu giá sản phẩm đã được tải xuống.',
+          });
+        },
+        onError: (error) => {
+          console.error('Export failed:', error);
+          toast({
+            title: 'Xuất dữ liệu thất bại',
+            description: 'Đã xảy ra lỗi khi xuất dữ liệu giá sản phẩm.',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
+  };
 
   // Define columns for the DataTable
   const columns: ColumnDef<any>[] = [
@@ -140,53 +179,66 @@ export default function ProductsListPrices() {
               <CardTitle>Danh sách sản phẩm</CardTitle>
               <CardDescription>Xem và quản lý thông tin chi tiết sản phẩm.</CardDescription>
             </div>
-            <Button
-              onClick={() => {
-                const pricesToUpdate: UpdateProductPriceRequest[] = Object.entries(editedPrices).map(
-                  ([productId, price]) => ({
-                    productId: Number.parseInt(productId), // productId here is actually prices.id
-                    measurementUnitId: 1, // Assuming a default measurementUnitId or get it from product.prices
-                    sellingPrice: price.toString(),
-                  })
-                );
-                if (pricesToUpdate.length > 0) {
-                  // TODO: Update all prices at once
-                  // The useUpdateProductPrice hook seems to update one at a time.
-                  // If it's a batch update, the API hook needs to support it.
-                  // For now, it's calling for the first item only.
-                  updatePrices(pricesToUpdate[0]);
-                  // You might want to iterate and call updatePrices for each,
-                  // or have a separate batch update mutation.
-                }
-              }}
-              disabled={Object.keys(editedPrices).length === 0 || isUpdating}
-            >
-              {isUpdating ? 'Đang cập nhật...' : 'Cập nhật giá bán'}
-            </Button>
+            <div className="flex gap-2">
+              {/* Added a div to group buttons */}
+              {/* Export Button */}
+              {/* Update Prices Button */}
+              <Button
+                onClick={() => {
+                  const pricesToUpdate: UpdateProductPriceRequest[] = Object.entries(editedPrices).map(
+                    ([productId, price]) => ({
+                      productId: Number.parseInt(productId), // productId here is actually prices.id
+                      measurementUnitId: 1, // Assuming a default measurementUnitId or get it from product.prices
+                      sellingPrice: price.toString(),
+                    })
+                  );
+                  if (pricesToUpdate.length > 0) {
+                    // TODO: Update all prices at once
+                    // The useUpdateProductPrice hook seems to update one at a time.
+                    // If it's a batch update, the API hook needs to support it.
+                    // For now, it's calling for the first item only.
+                    updatePrices(pricesToUpdate[0]);
+                    // You might want to iterate and call updatePrices for each,
+                    // or have a separate batch update mutation.
+                  }
+                }}
+                disabled={Object.keys(editedPrices).length === 0 || isUpdating}
+              >
+                {isUpdating ? 'Đang cập nhật...' : 'Cập nhật giá bán'}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {/* Added search input and select for searchBy */}
-            <div className="flex gap-2 w-1/2 min-w-xs mb-4">
-              <Input
-                placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
-                className="flex-grow"
-                value={searchTerm}
-                onChange={(e) => handleSearchInputChange(e.target.value)}
-              />
-              <div className="w-1/3 min-w-[150px]">
-                <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'NAME'}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tìm kiếm theo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {searchByOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="flex items-center justify-between gap-2 mb-4">
+              {/* Added flex container */}
+              <div className="flex gap-2 w-1/2 min-w-sm">
+                <Input
+                  placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
+                  className="flex-grow"
+                  value={searchTerm}
+                  onChange={(e) => handleSearchInputChange(e.target.value)}
+                />
+                <div className="w-1/3 min-w-[150px]">
+                  <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'NAME'}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tìm kiếm theo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {searchByOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+
+              <Button onClick={handleExportClick} disabled={isLoading || isExporting}>
+                <FileOutput className="mr-2 h-4 w-4" />
+                {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
+              </Button>
             </div>
 
             <DataTable

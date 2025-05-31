@@ -10,13 +10,14 @@ import { EditEmployeeDialog } from './edit-employee-dialog';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PageHeader } from '@/components/layout/page-header';
 import { FilterEmployee } from './filter-employee';
-import { useListEmployees, useDeleteEmployee } from '@/apis';
+import { useListEmployees, useDeleteEmployee, useExportEmployees } from '@/apis'; // Import useExportEmployees
 import { EmployeeResponse, ListEmployeeRequest } from '@/apis/types';
 import { roles, genders, employeeStatuses } from '@/apis/types/transform';
 import { Input } from '@/components/ui/input';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FileOutput } from 'lucide-react'; // Import FileOutput icon
 
 const searchByOptions = [
   { label: 'Tên nhân viên', value: 'NAME' },
@@ -45,8 +46,11 @@ export default function EmployeesListPage() {
   const listEmployeesData = useListEmployees({ request: filter });
   const employees = listEmployeesData.data?.content;
   const deleteEmployeeMutation = useDeleteEmployee();
+  const exportEmployeesMutation = useExportEmployees(); // Initialize export hook
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const isExporting = exportEmployeesMutation.isPending; // Get export loading state
 
   const handleEdit = (employee: EmployeeResponse) => {
     setSelectedEmployee(employee);
@@ -83,9 +87,46 @@ export default function EmployeesListPage() {
     });
   }, [selectedEmployee, deleteEmployeeMutation, queryClient, toast]);
 
-  const onFilter = useCallback((values: ListEmployeeRequest) => {
-    setExternalFilters(values);
-  }, [setExternalFilters]);
+  const onFilter = useCallback(
+    (values: ListEmployeeRequest) => {
+      setExternalFilters(values);
+    },
+    [setExternalFilters]
+  );
+
+  // Handle export button click
+  const handleExportClick = () => {
+    exportEmployeesMutation.mutate(
+      { request: filter as ListEmployeeRequest }, // Pass the filtered request
+      {
+        onSuccess: (blob) => {
+          // Create a URL for the blob
+          const url = window.URL.createObjectURL(blob);
+          // Create a temporary link element
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', 'employees_export.xlsx'); // Set the desired filename
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          toast({
+            title: 'Xuất dữ liệu thành công',
+            description: 'Tệp dữ liệu nhân viên đã được tải xuống.',
+          });
+        },
+        onError: (error) => {
+          console.error('Export failed:', error);
+          toast({
+            title: 'Xuất dữ liệu thất bại',
+            description: 'Đã xảy ra lỗi khi xuất dữ liệu nhân viên.',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
+  };
 
   const columns = [
     {
@@ -248,27 +289,42 @@ export default function EmployeesListPage() {
             <CardDescription>Quản lý danh sách nhân viên.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-2 w-1/2 min-w-xs mb-4">
-              <Input
-                placeholder="Tìm nhân viên..."
-                className="flex-grow"
-                value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
-              />
-              <div className="w-1/3 min-w-[150px]">
-                <Select onValueChange={(value) => setSearchByValue(value as ListEmployeeRequest['searchBy'])} defaultValue="NAME" value={searchByValue}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tìm kiếm theo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {searchByOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="flex items-center justify-between gap-2 mb-4">
+              {' '}
+              {/* Added flex container */}
+              <div className="flex gap-2 w-1/2 min-w-xs">
+                {' '}
+                {/* Container for search input and select */}
+                <Input
+                  placeholder="Tìm nhân viên..."
+                  className="flex-grow"
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                />
+                <div className="w-1/3 min-w-[150px]">
+                  <Select
+                    onValueChange={(value) => setSearchByValue(value as ListEmployeeRequest['searchBy'])}
+                    defaultValue="NAME"
+                    value={searchByValue}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tìm kiếm theo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {searchByOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              {/* Export Button */}
+              <Button onClick={handleExportClick} disabled={listEmployeesData.isLoading || isExporting}>
+                <FileOutput className="mr-2 h-4 w-4" /> {/* Added icon */}
+                {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
+              </Button>
             </div>
             <DataTable
               columns={columns}

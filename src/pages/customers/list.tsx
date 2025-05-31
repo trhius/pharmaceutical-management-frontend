@@ -9,8 +9,9 @@ import { EditCustomerDialog } from './edit-customer-dialog';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PageHeader } from '@/components/layout/page-header';
 import { TableFilterSidebar } from './filter-customer';
+import { FileOutput } from 'lucide-react'; // Import FileOutput icon
 
-import { useCustomers, useDeactivateCustomer } from '@/apis/hooks/customer';
+import { useCustomers, useDeactivateCustomer, useExportCustomers } from '@/apis/hooks/customer'; // Import useExportCustomers
 import { useToast } from '@/hooks/use-toast';
 import { CustomerResponse, CustomerListRequest } from '@/apis/types/customer';
 import { format } from 'date-fns';
@@ -53,11 +54,13 @@ export default function CustomersListPage() {
   });
 
   const deleteCustomerMutation = useDeactivateCustomer();
+  const exportCustomersMutation = useExportCustomers(); // Initialize export hook
   const { toast } = useToast();
 
   // Use the filter object from the hook for the API call
   const { data: customersData, isLoading, refetch } = useCustomers({ request: filter });
   const customers = customersData?.content;
+  const isExporting = exportCustomersMutation.isPending; // Get export loading state
 
   const handleEdit = (customer: CustomerResponse) => {
     setSelectedCustomer(customer);
@@ -81,6 +84,40 @@ export default function CustomersListPage() {
     },
     [setExternalFilters]
   );
+
+  // Handle export button click
+  const handleExportClick = () => {
+    exportCustomersMutation.mutate(
+      { request: filter as CustomerListRequest }, // Pass the filtered request
+      {
+        onSuccess: (blob) => {
+          // Create a URL for the blob
+          const url = window.URL.createObjectURL(blob);
+          // Create a temporary link element
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', 'customers_export.xlsx'); // Set the desired filename
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          toast({
+            title: 'Xuất dữ liệu thành công',
+            description: 'Tệp dữ liệu khách hàng đã được tải xuống.',
+          });
+        },
+        onError: (error) => {
+          console.error('Export failed:', error);
+          toast({
+            title: 'Xuất dữ liệu thất bại',
+            description: 'Đã xảy ra lỗi khi xuất dữ liệu khách hàng.',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
+  };
 
   const columns = [
     {
@@ -191,8 +228,8 @@ export default function CustomersListPage() {
                 {customer.status === 'ACTIVE'
                   ? 'Đang hoạt động'
                   : customer.status === 'INACTIVE'
-                  ? 'Ngừng hoạt động'
-                  : 'Đã vô hiệu hóa'}
+                    ? 'Ngừng hoạt động'
+                    : 'Đã vô hiệu hóa'}
               </p>
             </div>
 
@@ -266,27 +303,38 @@ export default function CustomersListPage() {
             <CardDescription>Quản lý khách hàng lẻ và khách hàng sỉ.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-2 w-1/2 min-w-xs mb-4">
-              <Input
-                placeholder="Tìm khách hàng..."
-                className="flex-grow"
-                value={searchTerm} // Bind input value to searchTerm from hook
-                onChange={(e) => handleSearchInputChange(e.target.value)}
-              />
-              <div className="w-1/3 min-w-[150px]">
-                <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'NAME'}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tìm kiếm theo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {searchByOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="flex items-center justify-between gap-2 mb-4">
+              {' '}
+              {/* Added flex container for alignment */}
+              <div className="flex gap-2 w-1/2 min-w-xs">
+                {' '}
+                {/* Container for search input and select */}
+                <Input
+                  placeholder="Tìm khách hàng..."
+                  className="flex-grow"
+                  value={searchTerm} // Bind input value to searchTerm from hook
+                  onChange={(e) => handleSearchInputChange(e.target.value)}
+                />
+                <div className="w-1/3 min-w-[150px]">
+                  <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'NAME'}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tìm kiếm theo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {searchByOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              {/* Export Button */}
+              <Button onClick={handleExportClick} disabled={isLoading || isExporting}>
+                <FileOutput className="mr-2 h-4 w-4" /> {/* Added icon */}
+                {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
+              </Button>
             </div>
             <DataTable
               columns={columns}
