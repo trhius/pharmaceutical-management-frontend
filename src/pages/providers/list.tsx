@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { PlusCircle, FileOutput } from 'lucide-react';
+import { PlusCircle, FileOutput } from 'lucide-react'; // Import ListOrdered icon
 import { PageHeader } from '@/components/layout/page-header';
 import useListPageState from '@/hooks/useListPageState';
 import { DataTable } from '@/components/ui/data-table';
@@ -9,15 +9,27 @@ import { SupplierResponse, SupplierListRequest } from '@/apis/types/supplier';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { SortDropdown } from '@/components/ui/sort-dropdown'; // Import SortDropdown
+
+import { ProviderFilterSidebar } from './filter-provider';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AddProviderDialog } from './add-provider-dialog';
 
 const searchByOptions = [
   { label: 'Tên', value: 'NAME' },
   { label: 'Mã', value: 'CODE' },
   { label: 'Số điện thoại', value: 'PHONE' },
 ];
-import { ProviderFilterSidebar } from './filter-provider';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AddProviderDialog } from './add-provider-dialog';
+
+const sortableColumns = [
+  { value: 'CODE', label: 'Mã' },
+  { value: 'NAME', label: 'Tên' },
+  { value: 'PHONE', label: 'Số điện thoại' },
+  { value: 'EMAIL', label: 'Email' },
+  { value: 'ADDRESS', label: 'Địa chỉ' },
+  { value: 'CONTACT_PERSON', label: 'Người liên hệ' },
+  { value: 'CREATED_AT', label: 'Ngày tạo' },
+];
 
 export default function ProvidersListPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -29,9 +41,13 @@ export default function ProvidersListPage() {
     pageSize,
     searchTerm,
     searchByValue,
+    sortBy, // Destructure sortBy
+    sortOrder, // Destructure sortOrder
     setPageIndex,
     setSearchTerm,
     setSearchByValue,
+    setSortBy, // Destructure setSortBy
+    setSortOrder, // Destructure setSortOrder
     setExternalFilters,
   } = useListPageState<SupplierListRequest>({
     initialSize: 10,
@@ -41,6 +57,8 @@ export default function ProvidersListPage() {
   });
 
   const { data, isLoading, refetch } = useSuppliers({
+    sortBy,
+    sortOrder,
     request: filter,
   });
 
@@ -49,7 +67,8 @@ export default function ProvidersListPage() {
   const isExporting = exportSuppliersMutation.isPending; // Use isPending from the mutation object
 
   const onApplyFilters = useCallback(
-    (values: Omit<SupplierListRequest, 'page' | 'size' | 'search' | 'searchBy'>) => {
+    (values: Omit<SupplierListRequest, 'page' | 'size' | 'search' | 'searchBy' | 'sortBy' | 'sortOrder'>) => {
+      // Adjust type definition
       setExternalFilters(values);
     },
     [setExternalFilters]
@@ -126,10 +145,13 @@ export default function ProvidersListPage() {
         title="Nhà cung cấp"
         description="Quản lý các nhà cung cấp và thông tin của họ."
         actions={
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Thêm nhà cung cấp
-          </Button>
+          <div className="flex items-center gap-4">
+            {/* Add button */}
+            <Button onClick={() => setIsAddDialogOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Thêm nhà cung cấp
+            </Button>
+          </div>
         }
       />
 
@@ -150,7 +172,8 @@ export default function ProvidersListPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between gap-2 mb-4">
-              {/* Added flex container */}
+              {' '}
+              {/* Adjusted gap */} {/* Added flex container */}
               <div className="flex gap-2 w-1/2 min-w-sm">
                 {' '}
                 {/* Added container for search input and select */}
@@ -179,11 +202,23 @@ export default function ProvidersListPage() {
                   </Select>
                 </div>
               </div>
-              {/* Export Button */}
-              <Button onClick={handleExportClick} disabled={isLoading || isExporting}>
-                <FileOutput className="mr-2 h-4 w-4" />
-                {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
-              </Button>
+              <div className="flex gap-2">
+                {/* Sorting Dropdown Menu */}
+                <SortDropdown
+                  sortableColumns={sortableColumns}
+                  currentSortBy={sortBy}
+                  currentSortOrder={sortOrder}
+                  setSortBy={setSortBy}
+                  setSortOrder={setSortOrder}
+                />
+
+                {/* Export Button */}
+                <Button onClick={handleExportClick} disabled={isLoading || isExporting}>
+                  <FileOutput className="mr-2 h-4 w-4" />
+                  {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
+                </Button>
+              </div>
+              {/* Export Button is now in the PageHeader actions, remove inline */}
             </div>
             <DataTable<SupplierResponse, unknown>
               columns={columns}

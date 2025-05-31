@@ -29,7 +29,7 @@ export const useCustomers = (params: {
   request: Types.CustomerListRequest;
 }): UseQueryResult<Types.PageCustomerResponse, Error> =>
   useQuery({
-    queryKey: ['customers', params],
+    queryKey: ['customers', params.request], // Use the request object from params for query key
     queryFn: () => customer.getCustomers(params),
   });
 

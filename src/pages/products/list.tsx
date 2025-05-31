@@ -1,4 +1,4 @@
-import { PlusIcon, FileOutput } from 'lucide-react';
+import { PlusIcon, FileOutput } from 'lucide-react'; // Import ListOrdered icon
 
 import { PageHeader } from '@/components/layout/page-header';
 import { DataTable } from '@/components/ui/data-table';
@@ -13,10 +13,22 @@ import { useProducts, useExportProducts } from '@/apis/hooks/product';
 import { GetProductRequest, ProductResponse } from '@/apis/types/product';
 import { Badge } from '@/components/ui/badge';
 import useListPageState from '@/hooks/useListPageState'; // Assuming the path to your custom hook
+import { SortDropdown } from '@/components/ui/sort-dropdown'; // Import SortDropdown
 
 const searchByOptions = [
   { label: 'Tên', value: 'NAME' },
   { label: 'Mã', value: 'CODE' },
+];
+
+const sortableColumns = [
+  { value: 'CODE', label: 'Mã sản phẩm' },
+  { value: 'NAME', label: 'Tên sản phẩm' },
+  { value: 'SHORT_NAME', label: 'Tên viết tắt' },
+  { value: 'BRAND', label: 'Nhãn hiệu' },
+  { value: 'CREATED_AT', label: 'Ngày tạo' },
+  { value: 'STATUS', label: 'Trạng thái' },
+  { value: 'PRICE', label: 'Giá vốn' },
+  { value: 'PURCHASE_PRICE', label: 'Giá bán' },
 ];
 
 export default function ProductsListPage() {
@@ -26,9 +38,13 @@ export default function ProductsListPage() {
     pageSize,
     searchTerm,
     searchByValue,
+    sortBy, // Destructure sortBy
+    sortOrder, // Destructure sortOrder
     setPageIndex,
     setSearchTerm,
     setSearchByValue,
+    setSortBy, // Destructure setSortBy
+    setSortOrder, // Destructure setSortOrder
     setExternalFilters,
   } = useListPageState<GetProductRequest>({
     initialPage: 0,
@@ -43,6 +59,8 @@ export default function ProductsListPage() {
     page: filter.page,
     size: filter.size,
     request: filter,
+    sortBy, // Pass sortBy to the API hook
+    sortOrder, // Pass sortOrder to the API hook
   });
   const products = productsData?.content;
 
@@ -324,10 +342,21 @@ export default function ProductsListPage() {
                   </Select>
                 </div>
               </div>
-              <Button onClick={handleExportClick} disabled={isLoading || exportProductsMutation.isPending}>
-                <FileOutput className="mr-2 w-4 h-4" />
-                {exportProductsMutation.isPending ? 'Đang xuất...' : 'Xuất dữ liệu'}
-              </Button>
+              <div className="flex gap-2">
+                {/* Sort Dropdown */}
+                <SortDropdown
+                  sortableColumns={sortableColumns}
+                  currentSortBy={sortBy}
+                  currentSortOrder={sortOrder}
+                  setSortBy={setSortBy}
+                  setSortOrder={setSortOrder}
+                />
+                {/* Export Button */}
+                <Button onClick={handleExportClick} disabled={isLoading || exportProductsMutation.isPending}>
+                  <FileOutput className="mr-2 w-4 h-4" />
+                  {exportProductsMutation.isPending ? 'Đang xuất...' : 'Xuất dữ liệu'}
+                </Button>
+              </div>
             </div>
             <DataTable
               columns={columns}

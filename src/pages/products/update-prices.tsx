@@ -14,12 +14,20 @@ import { useProductPrices, useUpdateProductPrice, useExportProductPrices } from 
 import { GetProductPriceRequest, UpdateProductPriceRequest } from '@/apis/types/product';
 
 import useListPageState from '@/hooks/useListPageState'; // Import the custom hook
+import { SortDropdown } from '@/components/ui/sort-dropdown'; // Import SortDropdown
 import { Input } from '@/components/ui/input'; // Assuming you might want a search input
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Assuming you might want a searchBy select
 
 const searchByOptions = [
   { label: 'Tên sản phẩm', value: 'NAME' },
   { label: 'Mã sản phẩm', value: 'CODE' },
+];
+
+const sortableColumns = [
+  { value: 'CODE', label: 'Mã sản phẩm' },
+  { value: 'NAME', label: 'Tên sản phẩm' },
+  { value: 'PRICE', label: 'Giá vốn' },
+  { value: 'PURCHASE_PRICE', label: 'Giá bán' },
 ];
 
 export default function ProductsListPrices() {
@@ -35,9 +43,13 @@ export default function ProductsListPrices() {
     pageSize,
     searchTerm,
     searchByValue,
+    sortBy, // Destructure sortBy
+    sortOrder, // Destructure sortOrder
     setPageIndex,
     setSearchTerm,
     setSearchByValue,
+    setSortBy, // Destructure setSortBy
+    setSortOrder, // Destructure setSortOrder
     setExternalFilters,
   } = useListPageState<GetProductPriceRequest>({
     initialPage: 0,
@@ -51,6 +63,8 @@ export default function ProductsListPrices() {
     page: pageIndex,
     size: pageSize,
     request: filter, // Pass the rest of the filter as the 'request' object
+    sortBy, // Pass sortBy to the API hook
+    sortOrder, // Pass sortOrder to the API hook
   };
 
   // Fetch product prices using the correctly formatted parameters
@@ -235,10 +249,21 @@ export default function ProductsListPrices() {
                 </div>
               </div>
 
-              <Button onClick={handleExportClick} disabled={isLoading || isExporting}>
-                <FileOutput className="mr-2 h-4 w-4" />
-                {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
-              </Button>
+              <div className="flex gap-2">
+                {/* Sort Dropdown */}
+                <SortDropdown
+                  sortableColumns={sortableColumns}
+                  currentSortBy={sortBy}
+                  currentSortOrder={sortOrder}
+                  setSortBy={setSortBy}
+                  setSortOrder={setSortOrder}
+                />
+                {/* Export Button */}
+                <Button onClick={handleExportClick} disabled={isLoading || isExporting}>
+                  <FileOutput className="mr-2 h-4 w-4" />
+                  {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
+                </Button>
+              </div>
             </div>
 
             <DataTable

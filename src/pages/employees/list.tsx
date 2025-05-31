@@ -1,11 +1,12 @@
 import { useCallback, useState } from 'react';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle } from 'lucide-react'; // Import ListOrdered icon
 import useListPageState from '@/hooks/useListPageState';
 import { DataTable } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AddEmployeeDialog } from './add-employee-dialog';
+import { SortDropdown } from '@/components/ui/sort-dropdown'; // Import SortDropdown
 import { EditEmployeeDialog } from './edit-employee-dialog';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PageHeader } from '@/components/layout/page-header';
@@ -25,6 +26,16 @@ const searchByOptions = [
   { label: 'Số điện thoại', value: 'PHONE' },
 ];
 
+const sortableColumns = [
+  { value: 'CODE', label: 'Mã chấm công' },
+  { value: 'NAME', label: 'Tên nhân viên' },
+  { value: 'PHONE', label: 'Số điện thoại' },
+  { value: 'STATUS', label: 'Trạng thái' },
+  { value: 'STORE', label: 'Chi nhánh' },
+  { value: 'ROLE', label: 'Chức danh' },
+  { value: 'JOIN_DATE', label: 'Ngày bắt đầu làm việc' },
+];
+
 export default function EmployeesListPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -37,13 +48,17 @@ export default function EmployeesListPage() {
     pageSize,
     searchTerm,
     searchByValue,
+    sortBy, // Destructure sortBy
+    sortOrder, // Destructure sortOrder
     setPageIndex,
     setSearchTerm,
     setSearchByValue,
+    setSortBy, // Destructure setSortBy
+    setSortOrder, // Destructure setSortOrder
     setExternalFilters,
   } = useListPageState<ListEmployeeRequest>({ initialSize: 10, initialSearchBy: 'NAME' });
 
-  const listEmployeesData = useListEmployees({ request: filter });
+  const listEmployeesData = useListEmployees({ sortBy, sortOrder, request: filter });
   const employees = listEmployeesData.data?.content;
   const deleteEmployeeMutation = useDeleteEmployee();
   const exportEmployeesMutation = useExportEmployees(); // Initialize export hook
@@ -88,7 +103,8 @@ export default function EmployeesListPage() {
   }, [selectedEmployee, deleteEmployeeMutation, queryClient, toast]);
 
   const onFilter = useCallback(
-    (values: ListEmployeeRequest) => {
+    (values: Omit<ListEmployeeRequest, 'page' | 'size' | 'search' | 'searchBy' | 'sortBy' | 'sortOrder'>) => {
+      // Adjust type definition
       setExternalFilters(values);
     },
     [setExternalFilters]
@@ -272,10 +288,13 @@ export default function EmployeesListPage() {
         title="Nhân viên"
         description="Quản lý nhân viên"
         actions={
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Thêm nhân viên
-          </Button>
+          <div className="flex items-center gap-4">
+            {/* Container for sorting dropdown and Add button */}
+            <Button onClick={() => setIsAddDialogOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Thêm nhân viên
+            </Button>
+          </div>
         }
       />
 
@@ -320,11 +339,21 @@ export default function EmployeesListPage() {
                   </Select>
                 </div>
               </div>
-              {/* Export Button */}
-              <Button onClick={handleExportClick} disabled={listEmployeesData.isLoading || isExporting}>
-                <FileOutput className="mr-2 h-4 w-4" /> {/* Added icon */}
-                {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
-              </Button>
+              <div className="flex gap-2">
+                <SortDropdown
+                  sortableColumns={sortableColumns}
+                  currentSortBy={sortBy}
+                  currentSortOrder={sortOrder}
+                  setSortBy={setSortBy}
+                  setSortOrder={setSortOrder}
+                />
+
+                {/* Export Button */}
+                <Button onClick={handleExportClick} disabled={listEmployeesData.isLoading || isExporting}>
+                  <FileOutput className="mr-2 h-4 w-4" /> {/* Added icon */}
+                  {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
+                </Button>
+              </div>
             </div>
             <DataTable
               columns={columns}

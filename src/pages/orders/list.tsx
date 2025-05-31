@@ -7,16 +7,27 @@ import { OrderFilter } from './filter-order';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { OrderListRequest } from '@/apis/types/sales';
-import { FileOutput } from 'lucide-react'; // Import FileOutput icon
+import { FileOutput } from 'lucide-react'; // Import FileOutput icon, ListOrdered icon
 import { Button } from '@/components/ui/button'; // Import Button component
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 import useListPageState from '@/hooks/useListPageState'; // Assuming the path to your custom hook
+import { SortDropdown } from '@/components/ui/sort-dropdown'; // Import SortDropdown
 
 const searchByOptions = [
   { label: 'Mã đơn hàng', value: 'ORDER_CODE' },
   { label: 'Tên khách hàng', value: 'CUSTOMER_NAME' },
   { label: 'Số điện thoại khách hàng', value: 'CUSTOMER_PHONE' },
+];
+
+const sortableColumns = [
+  { value: 'CODE', label: 'Mã đơn hàng' },
+  { value: 'CREATED_AT', label: 'Ngày tạo' },
+  { value: 'CUSTOMER_NAME', label: 'Tên khách hàng' },
+  { value: 'SOLD_BY', label: 'Nhân viên bán hàng' },
+  { value: 'TOTAL_AMOUNT', label: 'Tổng tiền' },
+  { value: 'STATUS', label: 'Trạng thái' },
+  { value: 'PAYMENT_METHOD', label: 'Phương thức thanh toán' },
 ];
 
 export default function OrdersListPage() {
@@ -26,9 +37,13 @@ export default function OrdersListPage() {
     pageSize,
     searchTerm,
     searchByValue,
+    sortBy, // Destructure sortBy
+    sortOrder, // Destructure sortOrder
     setPageIndex,
     setSearchTerm,
     setSearchByValue,
+    setSortBy, // Destructure setSortBy
+    setSortOrder, // Destructure setSortOrder
     setExternalFilters,
   } = useListPageState<OrderListRequest>({
     initialPage: 0,
@@ -38,9 +53,11 @@ export default function OrdersListPage() {
   });
 
   const { data, isLoading } = useListOrders({
-    page: filter.page,
-    size: filter.size,
-    request: filter,
+    page: pageIndex,
+    size: pageSize,
+    sortBy,
+    sortOrder,
+    request: filter, // Include sortBy and sortOrder in the request
   });
 
   const exportOrdersMutation = useExportOrders(); // Initialize export hook
@@ -171,10 +188,21 @@ export default function OrdersListPage() {
                 </div>
               </div>
               {/* Export Button */}
-              <Button onClick={handleExportClick} disabled={isLoading || isExporting}>
-                <FileOutput className="mr-2 h-4 w-4" /> {/* Added icon */}
-                {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
-              </Button>
+              <div className="flex gap-2">
+                {/* Sort Dropdown */}
+                <SortDropdown
+                  sortableColumns={sortableColumns}
+                  currentSortBy={sortBy}
+                  currentSortOrder={sortOrder}
+                  setSortBy={setSortBy}
+                  setSortOrder={setSortOrder}
+                />
+                {/* Export Button */}
+                <Button onClick={handleExportClick} disabled={isLoading || isExporting}>
+                  <FileOutput className="mr-2 h-4 w-4" /> {/* Added icon */}
+                  {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
+                </Button>
+              </div>
             </div>
             <DataTable
               columns={columns}

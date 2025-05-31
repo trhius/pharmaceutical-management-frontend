@@ -7,6 +7,8 @@ interface BaseListRequest {
   // searchBy type should be flexible, allow string and let consuming components narrow it
   searchBy?: string | undefined;
   search?: string;
+  sortBy?: string; // Add sortBy
+  sortOrder?: 'ASC' | 'DESC'; // Add sortOrder with allowed values
   [key: string]: any; // Allow other properties
 }
 
@@ -15,6 +17,8 @@ interface UseListPageStateOptions<TFilterRequest extends BaseListRequest> {
   initialSize?: number;
   initialSearch?: string;
   initialSearchBy?: TFilterRequest['searchBy'];
+  initialSortBy?: TFilterRequest['sortBy']; // Add initialSortBy
+  initialSortOrder?: TFilterRequest['sortOrder']; // Add initialSortOrder
   initialFilters?: Partial<Omit<TFilterRequest, keyof BaseListRequest>>; // Other filters
   resetPageIndexOnFilterChange?: boolean; // Option to reset page on external filter changes
   debounceDelay?: number; // New: Add debounce delay option
@@ -26,10 +30,14 @@ interface UseListPageStateReturn<TFilterRequest extends BaseListRequest> {
   pageSize: number;
   searchTerm: string; // The immediate value of the search input
   searchByValue: TFilterRequest['searchBy'] | undefined;
+  sortBy: string | undefined; // Add sortBy state
+  sortOrder: 'ASC' | 'DESC' | undefined; // Add sortOrder state
   setPageIndex: (newPage: number) => void;
   setPageSize: (newSize: number) => void;
   setSearchTerm: (newSearch: string) => void; // Function to update the immediate search term
   setSearchByValue: (newSearchBy: TFilterRequest['searchBy'] | undefined) => void;
+  setSortBy: (newSortBy: TFilterRequest['sortBy'] | undefined) => void; // Add setSortBy function
+  setSortOrder: (newSortOrder: 'ASC' | 'DESC' | undefined) => void; // Add setSortOrder function
   setExternalFilters: (filters: Partial<Omit<TFilterRequest, keyof BaseListRequest>>) => void;
 }
 
@@ -41,6 +49,8 @@ function useListPageState<TFilterRequest extends BaseListRequest>(
     initialSize = 10,
     initialSearch = '',
     initialSearchBy,
+    initialSortBy, // Destructure initialSortBy
+    initialSortOrder, // Destructure initialSortOrder
     initialFilters = {},
     resetPageIndexOnFilterChange = true,
     debounceDelay = 500, // Default debounce delay to 500ms
@@ -51,6 +61,8 @@ function useListPageState<TFilterRequest extends BaseListRequest>(
   const [searchTerm, setSearchTerm] = useState(initialSearch); // This holds the immediate input value
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(initialSearch); // This holds the debounced value
   const [searchByValue, setSearchByValue] = useState<TFilterRequest['searchBy'] | undefined>(initialSearchBy);
+  const [sortBy, setSortBy] = useState<TFilterRequest['sortBy'] | undefined>(initialSortBy); // Add sortBy state
+  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC' | undefined>(initialSortOrder); // Add sortOrder state
   const [externalFilters, setExternalFilters] =
     useState<Partial<Omit<TFilterRequest, keyof BaseListRequest>>>(initialFilters);
 
@@ -80,6 +92,14 @@ function useListPageState<TFilterRequest extends BaseListRequest>(
       ...(externalFilters as TFilterRequest),
     };
 
+    // Add sorting parameters if defined
+    if (sortBy !== undefined) {
+      combined.sortBy = sortBy;
+    }
+    if (sortOrder !== undefined) {
+      combined.sortOrder = sortOrder;
+    }
+
     // Add pagination
     combined.page = pageIndex;
     combined.size = pageSize;
@@ -105,7 +125,7 @@ function useListPageState<TFilterRequest extends BaseListRequest>(
     }
 
     return combined;
-  }, [pageIndex, pageSize, debouncedSearchTerm, searchByValue, externalFilters, initialSearchBy]); // Dependencies for useMemo
+  }, [pageIndex, pageSize, debouncedSearchTerm, searchByValue, sortBy, sortOrder, externalFilters, initialSearchBy]); // Add sortBy and sortOrder to dependencies
 
   // Wrapped setters to optionally reset pageIndex when filter criteria change.
   // This ensures that when a user types in a search or applies a filter,
@@ -115,26 +135,56 @@ function useListPageState<TFilterRequest extends BaseListRequest>(
     setPageIndex(newPage);
   }, []);
 
-  const setPageSizeWithReset = useCallback((newSize: number) => {
-    setPageSize(newSize);
-    if (resetPageIndexOnFilterChange) {
-      setPageIndex(0); // Reset page to 0 when page size changes
-    }
-  }, [resetPageIndexOnFilterChange]);
+  const setPageSizeWithReset = useCallback(
+    (newSize: number) => {
+      setPageSize(newSize);
+      if (resetPageIndexOnFilterChange) {
+        setPageIndex(0); // Reset page to 0 when page size changes
+      }
+    },
+    [resetPageIndexOnFilterChange]
+  );
 
-  const setSearchTermWithReset = useCallback((newSearch: string) => {
-    setSearchTerm(newSearch); // Update the immediate input value
-    if (resetPageIndexOnFilterChange) {
-      setPageIndex(0); // Reset page to 0 when search term changes
-    }
-  }, [resetPageIndexOnFilterChange]);
+  const setSearchTermWithReset = useCallback(
+    (newSearch: string) => {
+      setSearchTerm(newSearch); // Update the immediate input value
+      if (resetPageIndexOnFilterChange) {
+        setPageIndex(0); // Reset page to 0 when search term changes
+      }
+    },
+    [resetPageIndexOnFilterChange]
+  );
 
-  const setSearchByValueWithReset = useCallback((newSearchBy: TFilterRequest['searchBy'] | undefined) => {
-    setSearchByValue(newSearchBy);
-    if (resetPageIndexOnFilterChange) {
-      setPageIndex(0); // Reset page to 0 when searchBy option changes
-    }
-  }, [resetPageIndexOnFilterChange]);
+  const setSearchByValueWithReset = useCallback(
+    (newSearchBy: TFilterRequest['searchBy'] | undefined) => {
+      setSearchByValue(newSearchBy);
+      if (resetPageIndexOnFilterChange) {
+        setPageIndex(0); // Reset page to 0 when searchBy option changes
+      }
+    },
+    [resetPageIndexOnFilterChange]
+  );
+
+  // Add setters for sorting parameters with optional page reset
+  const setSortByWithReset = useCallback(
+    (newSortBy: TFilterRequest['sortBy'] | undefined) => {
+      setSortBy(newSortBy);
+      if (resetPageIndexOnFilterChange) {
+        setPageIndex(0); // Reset page to 0 when sortBy changes
+      }
+    },
+    [resetPageIndexOnFilterChange]
+  );
+
+  const setSortOrderWithReset = useCallback(
+    (newSortOrder: TFilterRequest['sortOrder'] | undefined) => {
+      setSortOrder(newSortOrder);
+      if (resetPageIndexOnFilterChange) {
+        setPageIndex(0); // Reset page to 0 when sortOrder changes
+      }
+    },
+    [resetPageIndexOnFilterChange]
+  );
 
   const setExternalFiltersWithReset = useCallback(
     (newFilters: Partial<Omit<TFilterRequest, keyof BaseListRequest>>) => {
@@ -152,10 +202,14 @@ function useListPageState<TFilterRequest extends BaseListRequest>(
     pageSize,
     searchTerm, // This is the immediate input value (for controlled components)
     searchByValue,
+    sortBy, // Return sortBy state
+    sortOrder, // Return sortOrder state
     setPageIndex: setPageIndexWithReset,
     setPageSize: setPageSizeWithReset,
     setSearchTerm: setSearchTermWithReset, // This setter updates the immediate search term
     setSearchByValue: setSearchByValueWithReset,
+    setSortBy: setSortByWithReset, // Return setSortBy function
+    setSortOrder: setSortOrderWithReset, // Return setSortOrder function
     setExternalFilters: setExternalFiltersWithReset,
   };
 }

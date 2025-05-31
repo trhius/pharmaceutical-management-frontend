@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { PlusCircle } from 'lucide-react';
+import { ListOrdered, PlusCircle, FileOutput } from 'lucide-react';
 import { DataTable } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,15 @@ import { EditCustomerDialog } from './edit-customer-dialog';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PageHeader } from '@/components/layout/page-header';
 import { TableFilterSidebar } from './filter-customer';
-import { FileOutput } from 'lucide-react'; // Import FileOutput icon
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'; // Import RadioGroup components
+import { Label } from '@/components/ui/label'; // Import Label component
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'; // Import DropdownMenu components
 
 import { useCustomers, useDeactivateCustomer, useExportCustomers } from '@/apis/hooks/customer'; // Import useExportCustomers
 import { useToast } from '@/hooks/use-toast';
@@ -42,9 +50,13 @@ export default function CustomersListPage() {
     pageSize,
     searchTerm,
     searchByValue,
+    sortBy, // Destructure sortBy
+    sortOrder, // Destructure sortOrder
     setPageIndex,
     setSearchTerm,
     setSearchByValue,
+    setSortBy, // Destructure setSortBy
+    setSortOrder, // Destructure setSortOrder
     setExternalFilters,
   } = useListPageState<CustomerListRequest>({
     initialPage: 0,
@@ -53,12 +65,31 @@ export default function CustomersListPage() {
     resetPageIndexOnFilterChange: true,
   });
 
+  const sortableColumns = [
+    { value: 'CODE', label: 'Mã khách hàng' },
+    { value: 'NAME', label: 'Tên khách hàng' },
+    { value: 'PHONE', label: 'Số điện thoại' },
+    { value: 'STATUS', label: 'Trạng thái' },
+    { value: 'TOTAL_SPENT_AMOUNT', label: 'Tổng chi tiêu' },
+    { value: 'NOTE', label: 'Ghi chú' },
+    // Add other relevant columns if needed, ensure they match backend API sortable fields
+  ];
+
+  const sortOrderOptions = [
+    { value: 'ASC', label: 'Tăng dần' },
+    { value: 'DESC', label: 'Giảm dần' },
+  ];
+
   const deleteCustomerMutation = useDeactivateCustomer();
   const exportCustomersMutation = useExportCustomers(); // Initialize export hook
   const { toast } = useToast();
 
   // Use the filter object from the hook for the API call
-  const { data: customersData, isLoading, refetch } = useCustomers({ request: filter });
+  const {
+    data: customersData,
+    isLoading,
+    refetch,
+  } = useCustomers({ page: pageIndex, size: pageSize, sortBy, sortOrder, request: filter });
   const customers = customersData?.content;
   const isExporting = exportCustomersMutation.isPending; // Get export loading state
 
@@ -88,7 +119,7 @@ export default function CustomersListPage() {
   // Handle export button click
   const handleExportClick = () => {
     exportCustomersMutation.mutate(
-      { request: filter as CustomerListRequest }, // Pass the filtered request
+      { request: filter }, // Pass the filtered request
       {
         onSuccess: (blob) => {
           // Create a URL for the blob
@@ -285,10 +316,12 @@ export default function CustomersListPage() {
         title="Khách hàng"
         description="Xem và quản lý tất cả khách hàng"
         actions={
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Thêm khách hàng
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button onClick={() => setIsAddDialogOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Thêm khách hàng
+            </Button>
+          </div>
         }
       />
 
@@ -303,11 +336,9 @@ export default function CustomersListPage() {
             <CardDescription>Quản lý khách hàng lẻ và khách hàng sỉ.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between gap-2 mb-4">
-              {' '}
-              {/* Added flex container for alignment */}
+            <div className="flex items-center justify-between gap-4 mb-4">
+              {/* Adjusted gap */} {/* Added flex container for alignment */}
               <div className="flex gap-2 w-1/2 min-w-xs">
-                {' '}
                 {/* Container for search input and select */}
                 <Input
                   placeholder="Tìm khách hàng..."
@@ -330,11 +361,75 @@ export default function CustomersListPage() {
                   </Select>
                 </div>
               </div>
-              {/* Export Button */}
-              <Button onClick={handleExportClick} disabled={isLoading || isExporting}>
-                <FileOutput className="mr-2 h-4 w-4" /> {/* Added icon */}
-                {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
-              </Button>
+              <div className="flex items-center gap-2 ml-auto">
+                {/* Sorting Dropdown Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      <ListOrdered className="mr-2 h-4 w-4" />
+                      Sắp xếp
+                      {(sortBy || sortOrder) && ( // Optionally show active sort indicator
+                        <span className="ml-2 h-2 w-2 rounded-full bg-blue-500"></span>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 p-4">
+                    {/* Added padding for better layout */}
+                    <DropdownMenuLabel>Sắp xếp theo</DropdownMenuLabel>
+                    {/* Select for SortBy */}
+                    <Select
+                      value={sortBy || '__NONE__'} // Use a specific placeholder value
+                      onValueChange={(value) => {
+                        const newValue = value === '__NONE__' ? undefined : value;
+                        setSortBy(newValue);
+                        // If column is selected but order isn't, default to ASC
+                        if (newValue !== undefined && !sortOrder) {
+                          setSortOrder('ASC');
+                        }
+                        // If column is cleared, clear order too
+                        if (newValue === undefined) {
+                          setSortOrder(undefined);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        {/* Adjusted width */}
+                        <SelectValue placeholder="Chọn cột" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__NONE__">-- Mặc định --</SelectItem>
+                        {sortableColumns.map((col) => (
+                          <SelectItem key={col.value} value={col.value}>
+                            {col.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <DropdownMenuSeparator className="my-4" /> {/* Separator */}
+                    <DropdownMenuLabel>Thứ tự</DropdownMenuLabel>
+                    {/* Radio Group for SortOrder */}
+                    <RadioGroup
+                      value={sortOrder || ''} // Use empty string if sortOrder is undefined
+                      onValueChange={(value: 'ASC' | 'DESC') => setSortOrder(value)}
+                      className="flex flex-col gap-2" // Adjusted layout for vertical display
+                      disabled={!sortBy} // Disable if no sort column is selected
+                    >
+                      {sortOrderOptions.map((order) => (
+                        <div key={order.value} className="flex items-center space-x-2">
+                          <RadioGroupItem value={order.value} id={`sort-order-${order.value}`} />
+                          <Label htmlFor={`sort-order-${order.value}`}>{order.label}</Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                    {/* Note: No explicit Apply button needed, changes apply immediately */}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                {/* Export Button */}
+                <Button onClick={handleExportClick} disabled={isLoading || isExporting}>
+                  <FileOutput className="mr-2 h-4 w-4" /> {/* Added icon */}
+                  {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
+                </Button>
+              </div>
             </div>
             <DataTable
               columns={columns}
