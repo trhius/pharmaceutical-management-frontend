@@ -18,12 +18,12 @@ export default function OrdersListPage() {
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize] = useState(10);
   const [filters, setFilters] = useState<OrderListRequest>({});
-  const [searchBy, setSearchBy] = useState<string | undefined>(undefined); // Default search by code
+  const [searchBy, setSearchBy] = useState<string | undefined>('ORDER_CODE'); // Default search by code
 
   const { data, isLoading } = useListOrders({
     page: pageIndex,
     size: pageSize,
-    request: { ...filters, searchBy: searchBy as OrderListRequest['searchBy'], search: filters.search }, // Include search and searchBy in the request
+    request: filters,
   });
 
   const columns = [
@@ -57,6 +57,7 @@ export default function OrdersListPage() {
     setFilters((prev) => ({
       ...prev,
       search: value,
+      searchBy: value ? (searchBy as OrderListRequest['searchBy']) : undefined,
     }));
   };
 

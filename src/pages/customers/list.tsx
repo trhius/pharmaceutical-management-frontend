@@ -33,7 +33,7 @@ export default function CustomersListPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerResponse | null>(null);
 
   const [filter, setFilter] = useState<CustomerListRequest>({});
-  const [searchBy, setSearchBy] = useState<string | undefined>(undefined);
+  const [searchBy, setSearchBy] = useState<string | undefined>('NAME');
 
   const deleteCustomerMutation = useDeactivateCustomer();
   const { toast } = useToast();

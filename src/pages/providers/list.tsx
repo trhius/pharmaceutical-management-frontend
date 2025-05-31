@@ -23,7 +23,7 @@ export default function ProvidersListPage() {
   const [pageSize] = useState(10);
   // const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
   const [filter, setFilter] = useState<SupplierListRequest>({});
-  const [searchBy, setSearchBy] = useState<string | undefined>(undefined);
+  const [searchBy, setSearchBy] = useState<string | undefined>('NAME');
 
   const { data, isLoading, refetch } = useSuppliers({
     page: pageIndex,
@@ -40,7 +40,7 @@ export default function ProvidersListPage() {
     setFilter((prev) => ({
       ...prev,
       search: value,
-      searchBy: searchBy as SupplierListRequest['searchBy'], // Use the current searchBy state
+      searchBy: value ? (searchBy as SupplierListRequest['searchBy']) : undefined, // Use the current searchBy state
     }));
   };
 

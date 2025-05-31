@@ -30,7 +30,7 @@ export default function EmployeesListPage() {
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeResponse | null>(null);
 
   const [filter, setFilter] = useState<ListEmployeeRequest>({});
-  const [searchBy, setSearchBy] = useState<string | undefined>(undefined);
+  const [searchBy, setSearchBy] = useState<string | undefined>('NAME');
   const listEmployeesData = useListEmployees({ request: filter });
   const employees = listEmployeesData.data?.content;
   const deleteEmployeeMutation = useDeleteEmployee();
@@ -240,14 +240,14 @@ export default function EmployeesListPage() {
             <CardDescription>Quản lý danh sách nhân viên.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-2 w-1/3 min-w-xs">
+            <div className="flex gap-2 w-1/2 min-w-xs">
               <Input
                 placeholder="Tìm nhân viên..."
                 className="mb-4 w-2/3 flex-grow"
                 onChange={(e) => handleSearch(e.target.value)}
               />
               <div className="w-1/3">
-                <Select onValueChange={(value) => setSearchBy(value)}>
+                <Select onValueChange={(value) => setSearchBy(value)} defaultValue="NAME">
                   <SelectTrigger>
                     <SelectValue placeholder="Tìm kiếm theo" />
                   </SelectTrigger>

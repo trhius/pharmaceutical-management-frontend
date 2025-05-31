@@ -5,32 +5,46 @@ import { PageHeader } from '@/components/layout/page-header';
 import { DataTable } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { TableFilterSidebar } from './filter-product';
 import { useProducts } from '@/apis/hooks/product';
 import { GetProductRequest, ProductResponse } from '@/apis/types/product';
 import { Badge } from '@/components/ui/badge';
 
-interface FilterProduct {
-  sortBy?: string;
-  sortOrder?: string;
-  page: number;
-  size: number;
-  request: GetProductRequest;
-}
+const searchByOptions = [
+  { label: 'Tên', value: 'NAME' },
+  { label: 'Mã', value: 'CODE' },
+  // 'PHONE' is not a valid searchBy for products based on GetProductRequest type
+];
 
 export default function ProductsListPage() {
-  const [filter, setFilter] = useState<FilterProduct>({
-    page: 0,
-    size: 10,
-    request: {},
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize] = useState(10);
+  // const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
+  const [filter, setFilter] = useState<GetProductRequest>({});
+  const [searchBy, setSearchBy] = useState<string | undefined>('NAME');
+
+  const { data: productsData, isLoading } = useProducts({
+    page: pageIndex,
+    size: pageSize,
+    request: filter,
   });
-  const { data: productsData, isLoading } = useProducts(filter);
   const products = productsData?.content;
 
   const onFilter = useCallback((values: GetProductRequest) => {
-    setFilter((prev) => ({ ...prev, request: values }));
+    setFilter(values);
+    setPageIndex(0); // Reset to first page when filters change
   }, []);
+
+  const handleSearch = (value: string) => {
+    setFilter((prev) => ({
+      ...prev,
+      search: value || undefined,
+      searchBy: value ? (searchBy as GetProductRequest['searchBy']) : undefined, // Use the current searchBy state
+    }));
+  };
 
   // Define columns for the DataTable
   const columns = [
@@ -245,17 +259,36 @@ export default function ProductsListPage() {
             <CardDescription>Xem và quản lý thông tin chi tiết sản phẩm.</CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="flex gap-2 w-1/2 min-w-xs mb-4">
+              <Input
+                placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
+                className="flex-grow"
+                onChange={(e) => handleSearch(e.target.value)}
+              />
+              <div className="w-1/3 min-w-[150px]">
+                <Select onValueChange={(value) => setSearchBy(value)} defaultValue="NAME">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tìm kiếm theo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {searchByOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <DataTable
               columns={columns}
               data={products || []}
-              searchKey="name"
-              searchPlaceholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
               expandedContent={renderExpandedContent}
               isLoading={isLoading}
               pageCount={productsData?.totalPages || 0}
-              pageSize={filter.size || 10}
-              pageIndex={filter.page || 0}
-              onPageChange={(newPage) => setFilter((prev) => ({ ...prev, page: newPage }))}
+              pageSize={pageSize || 10}
+              pageIndex={pageIndex || 0}
+              onPageChange={(newPage) => setPageIndex(newPage)}
             />
           </CardContent>
         </Card>
