@@ -1,4 +1,3 @@
-import { useState, useCallback } from 'react';
 import { PlusIcon } from 'lucide-react';
 
 import { PageHeader } from '@/components/layout/page-header';
@@ -12,38 +11,50 @@ import { TableFilterSidebar } from './filter-product';
 import { useProducts } from '@/apis/hooks/product';
 import { GetProductRequest, ProductResponse } from '@/apis/types/product';
 import { Badge } from '@/components/ui/badge';
+import useListPageState from '@/hooks/useListPageState'; // Assuming the path to your custom hook
 
 const searchByOptions = [
   { label: 'Tên', value: 'NAME' },
   { label: 'Mã', value: 'CODE' },
-  // 'PHONE' is not a valid searchBy for products based on GetProductRequest type
 ];
 
 export default function ProductsListPage() {
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize] = useState(10);
-  // const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
-  const [filter, setFilter] = useState<GetProductRequest>({});
-  const [searchBy, setSearchBy] = useState<string | undefined>('NAME');
+  const {
+    filter,
+    pageIndex,
+    pageSize,
+    searchTerm,
+    searchByValue,
+    setPageIndex,
+    setSearchTerm,
+    setSearchByValue,
+    setExternalFilters,
+  } = useListPageState<GetProductRequest>({
+    initialPage: 0,
+    initialSize: 10,
+    initialSearchBy: 'NAME', // Set initial searchBy to 'NAME'
+    resetPageIndexOnFilterChange: true,
+  });
 
   const { data: productsData, isLoading } = useProducts({
-    page: pageIndex,
-    size: pageSize,
+    page: filter.page,
+    size: filter.size,
     request: filter,
   });
   const products = productsData?.content;
 
-  const onFilter = useCallback((values: GetProductRequest) => {
-    setFilter(values);
-    setPageIndex(0); // Reset to first page when filters change
-  }, []);
+  // The onFilter callback now directly uses setExternalFilters
+  const onFilter = (values: Omit<GetProductRequest, 'page' | 'size' | 'search' | 'searchBy'>) => {
+    setExternalFilters(values);
+  };
 
-  const handleSearch = (value: string) => {
-    setFilter((prev) => ({
-      ...prev,
-      search: value || undefined,
-      searchBy: value ? (searchBy as GetProductRequest['searchBy']) : undefined, // Use the current searchBy state
-    }));
+  // handleSearch now uses setSearchTerm and setSearchByValue from the hook
+  const handleSearchInputChange = (value: string) => {
+    setSearchTerm(value);
+  };
+
+  const handleSearchByChange = (value: string) => {
+    setSearchByValue(value as GetProductRequest['searchBy']);
   };
 
   // Define columns for the DataTable
@@ -219,19 +230,6 @@ export default function ProductsListPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* <div className="flex justify-end"> */}
-        {/*   <div className="space-x-2"> */}
-        {/*     <Button variant="outline" onClick={() => handleEdit(employee)}> */}
-        {/*       Cập nhật thông tin */}
-        {/*     </Button> */}
-        {/*     {employee.status === 'ACTIVE' && ( */}
-        {/*       <Button variant="destructive" onClick={() => handleDelete(employee)}> */}
-        {/*         Vô hiệu hóa */}
-        {/*       </Button> */}
-        {/*     )} */}
-        {/*   </div> */}
-        {/* </div> */}
       </div>
     );
   };
@@ -251,6 +249,7 @@ export default function ProductsListPage() {
 
       <div className="flex min-h-screen items-start gap-8 py-8">
         <div className="sticky top-8">
+          {/* TableFilterSidebar now receives the setExternalFilters function */}
           <TableFilterSidebar onFilter={onFilter} />
         </div>
         <Card className="w-full">
@@ -263,10 +262,11 @@ export default function ProductsListPage() {
               <Input
                 placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
                 className="flex-grow"
-                onChange={(e) => handleSearch(e.target.value)}
+                value={searchTerm} // Bind input value to searchTerm from hook
+                onChange={(e) => handleSearchInputChange(e.target.value)}
               />
               <div className="w-1/3 min-w-[150px]">
-                <Select onValueChange={(value) => setSearchBy(value)} defaultValue="NAME">
+                <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'NAME'}>
                   <SelectTrigger>
                     <SelectValue placeholder="Tìm kiếm theo" />
                   </SelectTrigger>
@@ -286,9 +286,9 @@ export default function ProductsListPage() {
               expandedContent={renderExpandedContent}
               isLoading={isLoading}
               pageCount={productsData?.totalPages || 0}
-              pageSize={pageSize || 10}
-              pageIndex={pageIndex || 0}
-              onPageChange={(newPage) => setPageIndex(newPage)}
+              pageSize={pageSize}
+              pageIndex={pageIndex}
+              onPageChange={setPageIndex}
             />
           </CardContent>
         </Card>

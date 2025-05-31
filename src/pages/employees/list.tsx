@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { PlusCircle } from 'lucide-react';
+import useListPageState from '@/hooks/useListPageState';
 import { DataTable } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,8 +30,18 @@ export default function EmployeesListPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeResponse | null>(null);
 
-  const [filter, setFilter] = useState<ListEmployeeRequest>({});
-  const [searchBy, setSearchBy] = useState<string | undefined>('NAME');
+  const {
+    filter,
+    pageIndex,
+    pageSize,
+    searchTerm,
+    searchByValue,
+    setPageIndex,
+    setSearchTerm,
+    setSearchByValue,
+    setExternalFilters,
+  } = useListPageState<ListEmployeeRequest>({ initialSize: 10, initialSearchBy: 'NAME' });
+
   const listEmployeesData = useListEmployees({ request: filter });
   const employees = listEmployeesData.data?.content;
   const deleteEmployeeMutation = useDeleteEmployee();
@@ -48,10 +59,7 @@ export default function EmployeesListPage() {
   };
 
   const handleSearch = (value: string) => {
-    const applyFilter: Partial<ListEmployeeRequest> = value
-      ? { search: value, searchBy: 'NAME' }
-      : { search: undefined, searchBy: undefined };
-    setFilter({ ...filter, ...applyFilter, searchBy: searchBy as ListEmployeeRequest['searchBy'] });
+    setSearchTerm(value);
   };
 
   const onDelete = useCallback(() => {
@@ -76,8 +84,8 @@ export default function EmployeesListPage() {
   }, [selectedEmployee, deleteEmployeeMutation, queryClient, toast]);
 
   const onFilter = useCallback((values: ListEmployeeRequest) => {
-    setFilter(values);
-  }, []);
+    setExternalFilters(values);
+  }, [setExternalFilters]);
 
   const columns = [
     {
@@ -240,14 +248,15 @@ export default function EmployeesListPage() {
             <CardDescription>Quản lý danh sách nhân viên.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-2 w-1/2 min-w-xs">
+            <div className="flex gap-2 w-1/2 min-w-xs mb-4">
               <Input
                 placeholder="Tìm nhân viên..."
-                className="mb-4 w-2/3 flex-grow"
+                className="flex-grow"
+                value={searchTerm}
                 onChange={(e) => handleSearch(e.target.value)}
               />
-              <div className="w-1/3">
-                <Select onValueChange={(value) => setSearchBy(value)} defaultValue="NAME">
+              <div className="w-1/3 min-w-[150px]">
+                <Select onValueChange={(value) => setSearchByValue(value as ListEmployeeRequest['searchBy'])} defaultValue="NAME" value={searchByValue}>
                   <SelectTrigger>
                     <SelectValue placeholder="Tìm kiếm theo" />
                   </SelectTrigger>
@@ -267,9 +276,9 @@ export default function EmployeesListPage() {
               expandedContent={renderExpandedContent}
               isLoading={listEmployeesData.isLoading}
               pageCount={listEmployeesData.data?.totalPages || 1}
-              pageSize={10}
-              pageIndex={0}
-              onPageChange={(newPage) => setFilter((prev) => ({ ...prev, page: newPage }))}
+              pageSize={pageSize}
+              pageIndex={pageIndex}
+              onPageChange={setPageIndex}
             />
           </CardContent>
         </Card>

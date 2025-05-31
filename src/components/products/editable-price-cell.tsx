@@ -8,11 +8,11 @@ interface EditablePriceCellProps {
 }
 
 export const EditablePriceCell: React.FC<EditablePriceCellProps> = ({ initialValue, productId, onPriceChange }) => {
-  const [price, setPrice] = useState<string>(initialValue !== undefined ? initialValue.toString() : '');
+  const [price, setPrice] = useState<string>(initialValue !== undefined ? initialValue?.toString() : '');
 
   // Update local state when the initialValue prop changes (e.g., pagination)
   useEffect(() => {
-    setPrice(initialValue !== undefined ? initialValue.toString() : '');
+    setPrice(initialValue !== undefined ? initialValue?.toString() : '');
   }, [initialValue]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,7 +27,7 @@ export const EditablePriceCell: React.FC<EditablePriceCellProps> = ({ initialVal
     } else {
       // Optionally reset or handle invalid input
       // For now, we'll just revert to the initial value if input is invalid on blur
-      setPrice(initialValue !== undefined ? initialValue.toString() : '');
+      setPrice(initialValue !== undefined ? initialValue?.toString() : '');
     }
   }, [price, productId, onPriceChange, initialValue]);
 

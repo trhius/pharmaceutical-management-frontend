@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { PlusCircle } from 'lucide-react';
 import { PageHeader } from '@/components/layout/page-header';
+import useListPageState from '@/hooks/useListPageState';
 import { DataTable } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
 import { useSuppliers } from '@/apis/hooks/supplier';
@@ -19,29 +20,30 @@ import { AddProviderDialog } from './add-provider-dialog';
 
 export default function ProvidersListPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize] = useState(10);
   // const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
-  const [filter, setFilter] = useState<SupplierListRequest>({});
-  const [searchBy, setSearchBy] = useState<string | undefined>('NAME');
+
+  const {
+    filter,
+    pageIndex,
+    pageSize,
+    searchTerm,
+    searchByValue,
+    setPageIndex,
+    setSearchTerm,
+    setSearchByValue,
+    setExternalFilters,
+  } = useListPageState<SupplierListRequest>({ initialSize: 10, initialSearchBy: 'NAME' });
 
   const { data, isLoading, refetch } = useSuppliers({
-    page: pageIndex,
-    size: pageSize,
     request: filter,
   });
 
   const onApplyFilters = useCallback((values: SupplierListRequest) => {
-    setFilter(values);
-    setPageIndex(0); // Reset to first page when filters change
-  }, []);
+    setExternalFilters(values);
+  }, [setExternalFilters]);
 
   const handleSearch = (value: string) => {
-    setFilter((prev) => ({
-      ...prev,
-      search: value,
-      searchBy: value ? (searchBy as SupplierListRequest['searchBy']) : undefined, // Use the current searchBy state
-    }));
+    setSearchTerm(value);
   };
 
   const columns = [
@@ -102,16 +104,17 @@ export default function ProvidersListPage() {
             <div className="flex gap-2 w-1/2 min-w-xs mb-4">
               {' '}
               {/* Added flex container */}
-              <Input
-                placeholder="Tìm nhà cung cấp..."
-                className="flex-grow" // Make Input take available space
-                onChange={(e) => handleSearch(e.target.value)}
-              />
-              <div className="w-1/3 min-w-[150px]">
-                {' '}
-                {/* Added container for Select */}
-                <Select onValueChange={(value) => setSearchBy(value)} defaultValue="NAME">
-                  <SelectTrigger>
+            <Input
+              placeholder="Tìm nhà cung cấp..."
+              className="flex-grow" // Make Input take available space
+              value={searchTerm}
+              onChange={(e) => handleSearch(e.target.value)}
+            />
+            <div className="w-1/3 min-w-[150px]">
+              {' '}
+              {/* Added container for Select */}
+              <Select onValueChange={(value) => setSearchByValue(value as SupplierListRequest['searchBy'])} defaultValue="NAME" value={searchByValue}>
+                <SelectTrigger>
                     <SelectValue placeholder="Tìm kiếm theo" />
                   </SelectTrigger>
                   <SelectContent>

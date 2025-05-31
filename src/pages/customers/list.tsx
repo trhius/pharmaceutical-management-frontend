@@ -18,6 +18,8 @@ import { ageGroups } from '@/apis/types/transform';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+import useListPageState from '@/hooks/useListPageState'; // Assuming the path to your custom hook
+
 const searchByOptions = [
   { label: 'Mã khách hàng', value: 'CUSTOMER_CODE' },
   { label: 'Tên khách hàng', value: 'NAME' },
@@ -32,12 +34,28 @@ export default function CustomersListPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerResponse | null>(null);
 
-  const [filter, setFilter] = useState<CustomerListRequest>({});
-  const [searchBy, setSearchBy] = useState<string | undefined>('NAME');
+  // Initialize useListPageState hook
+  const {
+    filter,
+    pageIndex,
+    pageSize,
+    searchTerm,
+    searchByValue,
+    setPageIndex,
+    setSearchTerm,
+    setSearchByValue,
+    setExternalFilters,
+  } = useListPageState<CustomerListRequest>({
+    initialPage: 0,
+    initialSize: 10,
+    initialSearchBy: 'NAME', // Default search by customer name
+    resetPageIndexOnFilterChange: true,
+  });
 
   const deleteCustomerMutation = useDeactivateCustomer();
   const { toast } = useToast();
 
+  // Use the filter object from the hook for the API call
   const { data: customersData, isLoading, refetch } = useCustomers({ request: filter });
   const customers = customersData?.content;
 
@@ -46,17 +64,23 @@ export default function CustomersListPage() {
     setIsEditDialogOpen(true);
   };
 
-  const handleSearch = (value: string) => {
-    setFilter((prev) => ({
-      ...prev,
-      search: value,
-      searchBy: searchBy as CustomerListRequest['searchBy'], // Use the current searchBy state
-    }));
+  // Update search term using setSearchTerm from the hook
+  const handleSearchInputChange = (value: string) => {
+    setSearchTerm(value);
   };
 
-  const onFilter = useCallback((values: CustomerListRequest) => {
-    setFilter(values);
-  }, []);
+  // Update searchBy value using setSearchByValue from the hook
+  const handleSearchByChange = (value: string) => {
+    setSearchByValue(value as CustomerListRequest['searchBy']);
+  };
+
+  // The onFilter callback now directly uses setExternalFilters
+  const onFilter = useCallback(
+    (values: Omit<CustomerListRequest, 'page' | 'size' | 'search' | 'searchBy'>) => {
+      setExternalFilters(values);
+    },
+    [setExternalFilters]
+  );
 
   const columns = [
     {
@@ -167,8 +191,8 @@ export default function CustomersListPage() {
                 {customer.status === 'ACTIVE'
                   ? 'Đang hoạt động'
                   : customer.status === 'INACTIVE'
-                    ? 'Ngừng hoạt động'
-                    : 'Đã vô hiệu hóa'}
+                  ? 'Ngừng hoạt động'
+                  : 'Đã vô hiệu hóa'}
               </p>
             </div>
 
@@ -192,7 +216,7 @@ export default function CustomersListPage() {
           <div className="space-x-2">
             <Button
               variant="outline"
-              onClick={() => customer.customerCode && navigator.clipboard.writeText(customer.customerCode)}
+              onClick={() => customer.customerCode && document.execCommand('copy', false, customer.customerCode)}
             >
               Sao chép Mã khách hàng
             </Button>
@@ -233,6 +257,7 @@ export default function CustomersListPage() {
 
       <div className="flex min-h-screen items-start gap-8 py-8">
         <div className="sticky top-8">
+          {/* TableFilterSidebar now receives the setExternalFilters function */}
           <TableFilterSidebar onFilter={onFilter} />
         </div>
         <Card className="w-full">
@@ -242,15 +267,14 @@ export default function CustomersListPage() {
           </CardHeader>
           <CardContent>
             <div className="flex gap-2 w-1/2 min-w-xs mb-4">
-              {/* Added flex container */}
               <Input
                 placeholder="Tìm khách hàng..."
-                className="flex-grow" // Make Input take available space
-                onChange={(e) => handleSearch(e.target.value)}
+                className="flex-grow"
+                value={searchTerm} // Bind input value to searchTerm from hook
+                onChange={(e) => handleSearchInputChange(e.target.value)}
               />
               <div className="w-1/3 min-w-[150px]">
-                {/* Added container for Select */}
-                <Select onValueChange={(value) => setSearchBy(value)} defaultValue="NAME">
+                <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'NAME'}>
                   <SelectTrigger>
                     <SelectValue placeholder="Tìm kiếm theo" />
                   </SelectTrigger>
@@ -269,7 +293,10 @@ export default function CustomersListPage() {
               data={customers || []}
               expandedContent={renderExpandedContent}
               isLoading={isLoading}
-              // searchKey and searchPlaceholder removed as filtering is now handled via filter state
+              pageCount={customersData?.totalPages || 0} // Use totalPages from API response
+              pageSize={pageSize} // Use pageSize from hook
+              pageIndex={pageIndex} // Use pageIndex from hook
+              onPageChange={setPageIndex} // Use setPageIndex from hook
             />
           </CardContent>
         </Card>

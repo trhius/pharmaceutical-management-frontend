@@ -2,11 +2,13 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table';
 import { useListOrders } from '@/apis/hooks/sales';
-import { useState } from 'react';
+import { useCallback } from 'react';
 import { OrderFilter } from './filter-order';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { OrderListRequest } from '@/apis/types/sales'; // Import the type for searchBy
+import { OrderListRequest } from '@/apis/types/sales';
+
+import useListPageState from '@/hooks/useListPageState'; // Assuming the path to your custom hook
 
 const searchByOptions = [
   { label: 'Mã đơn hàng', value: 'ORDER_CODE' },
@@ -15,60 +17,82 @@ const searchByOptions = [
 ];
 
 export default function OrdersListPage() {
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize] = useState(10);
-  const [filters, setFilters] = useState<OrderListRequest>({});
-  const [searchBy, setSearchBy] = useState<string | undefined>('ORDER_CODE'); // Default search by code
+  const {
+    filter,
+    pageIndex,
+    pageSize,
+    searchTerm,
+    searchByValue,
+    setPageIndex,
+    setSearchTerm,
+    setSearchByValue,
+    setExternalFilters,
+  } = useListPageState<OrderListRequest>({
+    initialPage: 0,
+    initialSize: 10,
+    initialSearchBy: 'ORDER_CODE',
+    resetPageIndexOnFilterChange: true,
+  });
 
   const { data, isLoading } = useListOrders({
-    page: pageIndex,
-    size: pageSize,
-    request: filters,
+    page: filter.page,
+    size: filter.size,
+    request: filter,
   });
 
   const columns = [
     {
       accessorKey: 'code',
-      header: 'Order Code',
+      header: 'Mã đơn hàng', // Translated: Order Code
     },
     {
       accessorKey: 'customerName',
-      header: 'Customer Name',
+      header: 'Tên khách hàng', // Translated: Customer Name
     },
     {
       accessorKey: 'customerPhone',
-      header: 'Customer Phone',
+      header: 'Số điện thoại khách hàng', // Translated: Customer Phone
     },
     {
       accessorKey: 'finalAmount',
-      header: 'Final Amount',
+      header: 'Tổng tiền', // Translated: Final Amount
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: 'Trạng thái', // Translated: Status
     },
     {
       accessorKey: 'createdAt',
-      header: 'Created At',
+      header: 'Ngày tạo', // Translated: Created At
     },
   ];
 
   const handleSearchInputChange = (value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      search: value,
-      searchBy: value ? (searchBy as OrderListRequest['searchBy']) : undefined,
-    }));
+    setSearchTerm(value);
   };
+
+  const handleSearchByChange = (value: string) => {
+    setSearchByValue(value as OrderListRequest['searchBy']);
+  };
+
+  const onFilter = useCallback(
+    (values: Omit<OrderListRequest, 'page' | 'size' | 'search' | 'searchBy'>) => {
+      setExternalFilters(values);
+    },
+    [setExternalFilters]
+  );
 
   return (
     <div className="mx-auto">
-      <PageHeader title="Orders" description="View and manage customer orders" />
+      <PageHeader
+        title="Đơn hàng" // Translated: Orders
+        description="Xem và quản lý các đơn hàng của khách hàng" // Translated: View and manage customer orders
+      />
 
       <div className="flex min-h-screen items-start gap-8 py-8">
         {/* Sidebar Filter */}
         <div className="sticky top-8">
-          <OrderFilter onFilter={setFilters} />
+          <OrderFilter onFilter={onFilter} />
         </div>
 
         {/* Order List Table */}
@@ -79,19 +103,16 @@ export default function OrdersListPage() {
           </CardHeader>
           <CardContent>
             <div className="flex gap-2 w-1/2 min-w-xs mb-4">
-              {' '}
-              {/* Added flex container for search and select */}
               <Input
-                placeholder="Tìm đơn hàng..."
-                className="flex-grow" // Make Input take available space
+                placeholder="Tìm đơn hàng..." // Translated: Find order...
+                className="flex-grow"
+                value={searchTerm}
                 onChange={(e) => handleSearchInputChange(e.target.value)}
               />
               <div className="w-1/3 min-w-[150px]">
-                {' '}
-                {/* Added container for Select */}
-                <Select onValueChange={(value) => setSearchBy(value)} defaultValue="ORDER_CODE">
+                <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'ORDER_CODE'}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Tìm kiếm theo" />
+                    <SelectValue placeholder="Tìm kiếm theo" /> {/* Translated: Search by */}
                   </SelectTrigger>
                   <SelectContent>
                     {searchByOptions.map((option) => (
@@ -111,7 +132,6 @@ export default function OrdersListPage() {
               pageIndex={pageIndex}
               pageSize={pageSize}
               onPageChange={setPageIndex}
-              // searchKey and searchPlaceholder removed as filtering is handled via filter state
             />
           </CardContent>
         </Card>
