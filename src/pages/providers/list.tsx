@@ -185,14 +185,13 @@ export default function ProvidersListPage() {
             </div>
 
             <div className="space-y-1">
-              <p className="text-xs text-gray-500">Địa chỉ</p>
-              <p className="text-sm font-medium">{supplier.address}</p>
+              <p className="text-xs text-gray-500">Mã số thuế</p>
+              <p className="text-sm font-medium">{supplier.taxCode}</p>
             </div>
 
-            {/* Row 3 - Notes (spans full width) */}
             <div className="space-y-1 md:col-span-3">
-              <p className="text-xs text-gray-500">Ghi chú</p>
-              <p className="text-sm font-medium">{supplier.note}</p>
+              <p className="text-xs text-gray-500">Địa chỉ</p>
+              <p className="text-sm font-medium">{supplier.address}</p>
             </div>
           </div>
         </div>
