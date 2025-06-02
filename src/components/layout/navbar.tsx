@@ -27,24 +27,22 @@ import { useState, useEffect } from 'react';
 import { useAccountInfo } from '@/apis/hooks/account';
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
 export function Navbar() {
   const location = useLocation();
-  const { logout } = useAuthStore();
+  const { user, updateUser, logout } = useAuthStore();
   const { data: accountInfo } = useAccountInfo();
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [showPasswordChangeDialog, setShowPasswordChangeDialog] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (accountInfo?.firstTimeLogin) {
+    if (user?.firstTimeLogin) {
       setShowPasswordChangeDialog(true);
     }
   }, [accountInfo]);
@@ -157,7 +155,7 @@ export function Navbar() {
       {showPasswordChangeDialog && (
         <AlertDialog open={showPasswordChangeDialog} onOpenChange={(open) => {
           // Prevent closing if it's first time login and password hasn't been changed yet
-          if (accountInfo?.firstTimeLogin && open === false) { // Only prevent closing if trying to close (open is false)
+          if (user?.firstTimeLogin && open === false) { // Only prevent closing if trying to close (open is false)
             return;
           }
           setShowPasswordChangeDialog(open);
@@ -172,6 +170,7 @@ export function Navbar() {
             <ChangePasswordForm
               onSuccess={() => {
                 setShowPasswordChangeDialog(false);
+                updateUser({ firstTimeLogin: false });
                 // Optionally, refetch account info to update firstTimeLogin status
                 // If accountInfo.refetch is available and updates firstTimeLogin, it's good practice
                 // However, often firstTimeLogin status is updated upon successful password change on the backend

@@ -155,11 +155,6 @@ export default function LoginPage() {
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Đăng nhập
               </Button>
-
-              <div className="text-sm text-center mt-4 text-muted-foreground">
-                <span>Demo credentials: </span>
-                <span className="font-medium">hieu21801@gmail.com/123456Aa@</span>
-              </div>
             </form>
           </Form>
         </div>

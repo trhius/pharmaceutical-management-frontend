@@ -31,6 +31,7 @@ import CreateOrderPage from '@/pages/orders/create';
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const user = useAuthStore((state) => state.user);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -40,8 +41,10 @@ function App() {
 
     if (!isAuthenticated && !isAuthPage) {
       navigate('/login');
+    } else if (isAuthenticated && user?.role === 'PHARMACIST' && location.pathname !== '/orders/create') {
+      navigate('/orders/create');
     }
-  }, [isAuthenticated, location.pathname, navigate]);
+  }, [isAuthenticated, user, location.pathname, navigate]);
 
   return (
     <Routes>
