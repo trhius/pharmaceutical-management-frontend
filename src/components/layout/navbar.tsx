@@ -20,17 +20,34 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { UserProfileDialog } from '@/components/user-profile-dialog';
+import { ChangePasswordForm } from '@/components/auth/change-password-form';
 import { useAuthStore } from '@/store/auth-store';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccountInfo } from '@/apis/hooks/account';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export function Navbar() {
   const location = useLocation();
   const { logout } = useAuthStore();
   const { data: accountInfo } = useAccountInfo();
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [showPasswordChangeDialog, setShowPasswordChangeDialog] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (accountInfo?.firstTimeLogin) {
+      setShowPasswordChangeDialog(true);
+    }
+  }, [accountInfo]);
 
   const navigation = [
     { name: 'Bảng điều khiển', href: '/' },
@@ -136,6 +153,35 @@ export function Navbar() {
         </div>
       </div>
       {isProfileDialogOpen && <UserProfileDialog onClose={() => setIsProfileDialogOpen(false)} />}
+
+      {showPasswordChangeDialog && (
+        <AlertDialog open={showPasswordChangeDialog} onOpenChange={(open) => {
+          // Prevent closing if it's first time login and password hasn't been changed yet
+          if (accountInfo?.firstTimeLogin && open === false) { // Only prevent closing if trying to close (open is false)
+            return;
+          }
+          setShowPasswordChangeDialog(open);
+        }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Cảnh báo bảo mật</AlertDialogTitle>
+              <AlertDialogDescription>
+                Đây là lần đầu tiên bạn đăng nhập. Vui lòng thay đổi mật khẩu của bạn để đảm bảo an toàn cho tài khoản.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <ChangePasswordForm
+              onSuccess={() => {
+                setShowPasswordChangeDialog(false);
+                // Optionally, refetch account info to update firstTimeLogin status
+                // If accountInfo.refetch is available and updates firstTimeLogin, it's good practice
+                // However, often firstTimeLogin status is updated upon successful password change on the backend
+                // and new token or user info is provided on next login/refresh.
+              }}
+              isFirstTimeLogin={true}
+            />
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }
