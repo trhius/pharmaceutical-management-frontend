@@ -8,6 +8,7 @@ import { format, startOfDay, endOfDay } from 'date-fns'; // Import format, start
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DateRangeSelector } from '@/components/date-range-selector'; // Import the new DateRangeSelector component
+import { paymentMethods } from '@/apis/types/transform';
 
 const formSchema = z.object({
   createdDateOption: z.enum(['all', 'custom']),
@@ -103,11 +104,11 @@ export function OrderFilter({ onFilter }: OrderFilterProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="CASH">Tiền mặt</SelectItem>
-                      <SelectItem value="CREDIT_CARD">Thẻ tín dụng</SelectItem>
-                      <SelectItem value="BANK_TRANSFER">Chuyển khoản</SelectItem>
-                      <SelectItem value="MOBILE_PAYMENT">Thanh toán di động</SelectItem>
-                      <SelectItem value="OTHER">Khác</SelectItem>
+                      {paymentMethods.map((method) => (
+                        <SelectItem key={method.value} value={method.value}>
+                          {method.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </FormItem>

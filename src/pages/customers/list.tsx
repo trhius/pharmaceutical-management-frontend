@@ -282,12 +282,6 @@ export default function CustomersListPage() {
 
         <div className="flex justify-end">
           <div className="space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => customer.customerCode && document.execCommand('copy', false, customer.customerCode)}
-            >
-              Sao chép Mã khách hàng
-            </Button>
             {customer.id && (
               <Button variant="outline" onClick={() => handleEdit(customer)}>
                 Chỉnh sửa chi tiết

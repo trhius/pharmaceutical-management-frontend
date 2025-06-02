@@ -13,6 +13,8 @@ import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 import useListPageState from '@/hooks/useListPageState'; // Assuming the path to your custom hook
 import { SortDropdown } from '@/components/ui/sort-dropdown'; // Import SortDropdown
+import { Badge } from '@/components/ui/badge';
+import { paymentMethods } from '@/apis/types/transform';
 
 const searchByOptions = [
   { label: 'Mã đơn hàng', value: 'ORDER_CODE' },
@@ -74,20 +76,29 @@ export default function OrdersListPage() {
       header: 'Tên khách hàng', // Translated: Customer Name
     },
     {
-      accessorKey: 'customerPhone',
-      header: 'Số điện thoại khách hàng', // Translated: Customer Phone
+      accessorKey: 'soldBy',
+      header: 'Nhân viên bán hàng', // Translated: Customer Phone
     },
     {
       accessorKey: 'finalAmount',
       header: 'Tổng tiền', // Translated: Final Amount
     },
     {
+      accessorKey: 'createdAt',
+      header: 'Ngày tạo', // Translated: Created At
+    },
+    {
       accessorKey: 'status',
       header: 'Trạng thái', // Translated: Status
     },
     {
-      accessorKey: 'createdAt',
-      header: 'Ngày tạo', // Translated: Created At
+      accessorKey: 'paymentMethod',
+      header: 'Phương thức thanh toán',
+      cell: ({ row }: any) => {
+        const paymentMethod = row.original.paymentMethod;
+        const paymentMethodName = paymentMethods.find((method) => method.value === paymentMethod)?.label;
+        return <Badge variant="default">{paymentMethodName}</Badge>;
+      },
     },
   ];
 

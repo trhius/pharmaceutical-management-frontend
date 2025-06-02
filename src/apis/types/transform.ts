@@ -24,3 +24,11 @@ export const employeeStatuses = [
   { label: 'Đình chỉ', value: 'SUSPENDED' },
   { label: 'Đang nghỉ phép', value: 'ON_LEAVE' },
 ];
+
+export const paymentMethods = [
+  { label: 'Tiền mặt', value: 'CASH' },
+  { label: 'Thẻ tín dụng', value: 'CREDIT_CARD' },
+  { label: 'Chuyển khoản', value: 'BANK_TRANSFER' },
+  { label: 'Thanh toán di động', value: 'MOBILE_PAYMENT' },
+  { label: 'Khác', value: 'OTHER' },
+];

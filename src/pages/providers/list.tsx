@@ -8,6 +8,7 @@ import { useSuppliers, useExportSuppliers } from '@/apis/hooks/supplier'; // Imp
 import { SupplierResponse, SupplierListRequest } from '@/apis/types/supplier';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { SortDropdown } from '@/components/ui/sort-dropdown'; // Import SortDropdown
 
@@ -16,14 +17,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { AddProviderDialog } from './add-provider-dialog';
 
 const searchByOptions = [
-  { label: 'Tên', value: 'NAME' },
-  { label: 'Mã', value: 'CODE' },
+  { label: 'Tên nhà cung cấp', value: 'NAME' },
+  { label: 'Mã nhà cung cấp', value: 'CODE' },
   { label: 'Số điện thoại', value: 'PHONE' },
 ];
 
 const sortableColumns = [
-  { value: 'CODE', label: 'Mã' },
-  { value: 'NAME', label: 'Tên' },
+  { value: 'CODE', label: 'Mã nhà cung cấp' },
+  { value: 'NAME', label: 'Tên nhà cung cấp' },
   { value: 'PHONE', label: 'Số điện thoại' },
   { value: 'EMAIL', label: 'Email' },
   { value: 'ADDRESS', label: 'Địa chỉ' },
@@ -118,6 +119,10 @@ export default function ProvidersListPage() {
 
   const columns = [
     {
+      accessorKey: 'code',
+      header: 'Mã',
+    },
+    {
       accessorKey: 'name',
       header: 'Tên',
     },
@@ -134,8 +139,16 @@ export default function ProvidersListPage() {
       header: 'Email',
     },
     {
-      accessorKey: 'address',
-      header: 'Địa chỉ',
+      accessorKey: 'isActive',
+      header: 'Trạng thái',
+      cell: ({ row }: any) => {
+        const isActive = row.original.isActive;
+        return (
+          <Badge variant={isActive ? 'default' : 'secondary'}>
+            {isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
+          </Badge>
+        );
+      },
     },
   ];
 

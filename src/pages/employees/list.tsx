@@ -22,12 +22,12 @@ import { FileOutput } from 'lucide-react'; // Import FileOutput icon
 
 const searchByOptions = [
   { label: 'Tên nhân viên', value: 'NAME' },
-  { label: 'Mã chấm công', value: 'CODE' },
+  { label: 'Mã nhân viên', value: 'CODE' },
   { label: 'Số điện thoại', value: 'PHONE' },
 ];
 
 const sortableColumns = [
-  { value: 'CODE', label: 'Mã chấm công' },
+  { value: 'CODE', label: 'Mã nhân viên' },
   { value: 'NAME', label: 'Tên nhân viên' },
   { value: 'PHONE', label: 'Số điện thoại' },
   { value: 'STATUS', label: 'Trạng thái' },

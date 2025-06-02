@@ -16,8 +16,8 @@ import useListPageState from '@/hooks/useListPageState'; // Assuming the path to
 import { SortDropdown } from '@/components/ui/sort-dropdown'; // Import SortDropdown
 
 const searchByOptions = [
-  { label: 'Tên', value: 'NAME' },
-  { label: 'Mã', value: 'CODE' },
+  { label: 'Tên sản phẩm', value: 'NAME' },
+  { label: 'Mã sản phẩm', value: 'CODE' },
 ];
 
 const sortableColumns = [
