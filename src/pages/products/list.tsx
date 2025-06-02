@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { format } from 'date-fns';
 
 import { TableFilterSidebar } from './filter-product';
 import { useProducts, useExportProducts } from '@/apis/hooks/product';
@@ -91,7 +92,7 @@ export default function ProductsListPage() {
           const link = document.createElement('a');
           link.href = url;
           // Set the download attribute with a desired filename
-          link.setAttribute('download', 'products_export.xlsx'); // You can adjust the filename and extension
+          link.setAttribute('download', `DanhSachSanPham_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`);
           // Append the link to the body and click it programmatically
           document.body.appendChild(link);
           link.click();

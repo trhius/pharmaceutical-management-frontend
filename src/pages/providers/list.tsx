@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { SortDropdown } from '@/components/ui/sort-dropdown'; // Import SortDropdown
+import { format } from 'date-fns';
 
 import { ProviderFilterSidebar } from './filter-provider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -94,7 +95,7 @@ export default function ProvidersListPage() {
           // Create a temporary link element
           const link = document.createElement('a');
           link.href = url;
-          link.setAttribute('download', 'suppliers_export.xlsx'); // Set the desired filename
+          link.setAttribute('download', `DanhSachNhaCung_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`);
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);

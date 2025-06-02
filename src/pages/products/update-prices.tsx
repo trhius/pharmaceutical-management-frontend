@@ -7,6 +7,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { format } from 'date-fns';
 
 import { EditablePriceCell } from '@/components/products/editable-price-cell';
 import { TableFilterSidebar } from './filter-product-price';
@@ -115,7 +116,7 @@ export default function ProductsListPrices() {
           // Create a temporary link element
           const link = document.createElement('a');
           link.href = url;
-          link.setAttribute('download', 'product_prices_export.xlsx'); // Set the desired filename
+          link.setAttribute('download', `DanhSachGiaSanPham_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`);
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);

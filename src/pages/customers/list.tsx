@@ -127,7 +127,7 @@ export default function CustomersListPage() {
           // Create a temporary link element
           const link = document.createElement('a');
           link.href = url;
-          link.setAttribute('download', 'customers_export.xlsx'); // Set the desired filename
+          link.setAttribute('download', `DanhSachKhachHang_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`);
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);

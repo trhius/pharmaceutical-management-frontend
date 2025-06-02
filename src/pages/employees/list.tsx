@@ -19,6 +19,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileOutput } from 'lucide-react'; // Import FileOutput icon
+import { format } from 'date-fns';
 
 const searchByOptions = [
   { label: 'Tên nhân viên', value: 'NAME' },
@@ -121,7 +122,7 @@ export default function EmployeesListPage() {
           // Create a temporary link element
           const link = document.createElement('a');
           link.href = url;
-          link.setAttribute('download', 'employees_export.xlsx'); // Set the desired filename
+          link.setAttribute('download', `DanhSachNhanVien_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`);
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);

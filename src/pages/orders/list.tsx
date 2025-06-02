@@ -10,6 +10,7 @@ import { OrderListRequest } from '@/apis/types/sales';
 import { FileOutput } from 'lucide-react'; // Import FileOutput icon, ListOrdered icon
 import { Button } from '@/components/ui/button'; // Import Button component
 import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { format } from 'date-fns';
 
 import useListPageState from '@/hooks/useListPageState'; // Assuming the path to your custom hook
 import { SortDropdown } from '@/components/ui/sort-dropdown'; // Import SortDropdown
@@ -128,7 +129,7 @@ export default function OrdersListPage() {
           // Create a temporary link element
           const link = document.createElement('a');
           link.href = url;
-          link.setAttribute('download', 'orders_export.xlsx'); // Set the desired filename
+          link.setAttribute('download', `DanhSachDonHang_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`);
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
