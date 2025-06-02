@@ -152,6 +152,68 @@ export default function ProvidersListPage() {
     },
   ];
 
+  const renderExpandedContent = (supplier: SupplierResponse) => {
+    return (
+      <div className="space-y-4">
+        <div className="w-full max-w-5xl rounded-md p-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {/* Row 1 */}
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Mã nhà cung cấp</p>
+              <p className="text-sm font-medium">{supplier.code}</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Tên nhà cung cấp</p>
+              <p className="text-sm font-medium">{supplier.name}</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Người liên hệ</p>
+              <p className="text-sm font-medium">{supplier.contactPerson}</p>
+            </div>
+
+            {/* Row 2 */}
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Số điện thoại</p>
+              <p className="text-sm font-medium">{supplier.phone}</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Email</p>
+              <p className="text-sm font-medium">{supplier.email}</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Địa chỉ</p>
+              <p className="text-sm font-medium">{supplier.address}</p>
+            </div>
+
+            {/* Row 3 - Notes (spans full width) */}
+            <div className="space-y-1 md:col-span-3">
+              <p className="text-xs text-gray-500">Ghi chú</p>
+              <p className="text-sm font-medium">{supplier.note}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* You can add edit/delete buttons here if needed */}
+        {/* <div className="flex justify-end">
+          <div className="space-x-2">
+            <Button variant="outline" onClick={() => handleEdit(supplier)}>
+              Cập nhật thông tin
+            </Button>
+            {supplier.isActive && (
+              <Button variant="destructive" onClick={() => handleDelete(supplier)}>
+                Ngừng hoạt động
+              </Button>
+            )}
+          </div>
+        </div> */}
+      </div>
+    );
+  };
+
   return (
     <div className="mx-auto">
       <PageHeader
@@ -236,6 +298,7 @@ export default function ProvidersListPage() {
             <DataTable<SupplierResponse, unknown>
               columns={columns}
               data={data?.content || []}
+              expandedContent={renderExpandedContent}
               isLoading={isLoading}
               pageCount={data?.totalPages || 0}
               pageIndex={pageIndex}
