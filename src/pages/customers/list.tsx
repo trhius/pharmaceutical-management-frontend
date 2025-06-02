@@ -334,12 +334,6 @@ export default function CustomersListPage() {
               {/* Adjusted gap */} {/* Added flex container for alignment */}
               <div className="flex gap-2 w-1/2 min-w-xs">
                 {/* Container for search input and select */}
-                <Input
-                  placeholder="Tìm khách hàng..."
-                  className="flex-grow"
-                  value={searchTerm} // Bind input value to searchTerm from hook
-                  onChange={(e) => handleSearchInputChange(e.target.value)}
-                />
                 <div className="w-1/3 min-w-[150px]">
                   <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'NAME'}>
                     <SelectTrigger>
@@ -354,6 +348,12 @@ export default function CustomersListPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                <Input
+                  placeholder="Tìm khách hàng..."
+                  className="flex-grow"
+                  value={searchTerm} // Bind input value to searchTerm from hook
+                  onChange={(e) => handleSearchInputChange(e.target.value)}
+                />
               </div>
               <div className="flex items-center gap-2 ml-auto">
                 {/* Sorting Dropdown Menu */}

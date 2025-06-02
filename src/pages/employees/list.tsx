@@ -314,12 +314,6 @@ export default function EmployeesListPage() {
               <div className="flex gap-2 w-1/2 min-w-xs">
                 {' '}
                 {/* Container for search input and select */}
-                <Input
-                  placeholder="Tìm nhân viên..."
-                  className="flex-grow"
-                  value={searchTerm}
-                  onChange={(e) => handleSearch(e.target.value)}
-                />
                 <div className="w-1/3 min-w-[150px]">
                   <Select
                     onValueChange={(value) => setSearchByValue(value as ListEmployeeRequest['searchBy'])}
@@ -338,6 +332,12 @@ export default function EmployeesListPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                <Input
+                  placeholder="Tìm nhân viên..."
+                  className="flex-grow"
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                />
               </div>
               <div className="flex gap-2">
                 <SortDropdown

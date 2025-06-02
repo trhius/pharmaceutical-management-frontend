@@ -177,12 +177,6 @@ export default function OrdersListPage() {
               <div className="flex gap-2 w-1/2 min-w-xs">
                 {' '}
                 {/* Container for search input and select */}
-                <Input
-                  placeholder="Tìm đơn hàng..." // Translated: Find order...
-                  className="flex-grow"
-                  value={searchTerm}
-                  onChange={(e) => handleSearchInputChange(e.target.value)}
-                />
                 <div className="w-1/3 min-w-[150px]">
                   <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'ORDER_CODE'}>
                     <SelectTrigger>
@@ -197,6 +191,12 @@ export default function OrdersListPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                <Input
+                  placeholder="Tìm đơn hàng..." // Translated: Find order...
+                  className="flex-grow"
+                  value={searchTerm}
+                  onChange={(e) => handleSearchInputChange(e.target.value)}
+                />
               </div>
               {/* Export Button */}
               <div className="flex gap-2">

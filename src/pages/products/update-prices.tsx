@@ -227,12 +227,6 @@ export default function ProductsListPrices() {
             <div className="flex items-center justify-between gap-2 mb-4">
               {/* Added flex container */}
               <div className="flex gap-2 w-1/2 min-w-sm">
-                <Input
-                  placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
-                  className="flex-grow"
-                  value={searchTerm}
-                  onChange={(e) => handleSearchInputChange(e.target.value)}
-                />
                 <div className="w-1/3 min-w-[150px]">
                   <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'NAME'}>
                     <SelectTrigger>
@@ -247,6 +241,12 @@ export default function ProductsListPrices() {
                     </SelectContent>
                   </Select>
                 </div>
+                <Input
+                  placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
+                  className="flex-grow"
+                  value={searchTerm}
+                  onChange={(e) => handleSearchInputChange(e.target.value)}
+                />
               </div>
 
               <div className="flex gap-2">

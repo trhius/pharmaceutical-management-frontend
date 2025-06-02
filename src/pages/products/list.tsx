@@ -321,12 +321,6 @@ export default function ProductsListPage() {
               {/* Use flex and justify-between */}
               <div className="flex gap-2 w-1/2 min-w-sm">
                 {/* Container for search input and select */}
-                <Input
-                  placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
-                  className="flex-grow"
-                  value={searchTerm} // Bind input value to searchTerm from hook
-                  onChange={(e) => handleSearchInputChange(e.target.value)}
-                />
                 <div className="w-1/3 min-w-[150px]">
                   <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'NAME'}>
                     <SelectTrigger>
@@ -341,6 +335,12 @@ export default function ProductsListPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                <Input
+                  placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
+                  className="flex-grow"
+                  value={searchTerm} // Bind input value to searchTerm from hook
+                  onChange={(e) => handleSearchInputChange(e.target.value)}
+                />
               </div>
               <div className="flex gap-2">
                 {/* Sort Dropdown */}

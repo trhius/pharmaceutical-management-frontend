@@ -251,12 +251,6 @@ export default function ProvidersListPage() {
               <div className="flex gap-2 w-1/2 min-w-sm">
                 {' '}
                 {/* Added container for search input and select */}
-                <Input
-                  placeholder="Tìm nhà cung cấp..."
-                  className="flex-grow"
-                  value={searchTerm}
-                  onChange={(e) => handleSearch(e.target.value)}
-                />
                 <div className="w-1/3 min-w-[150px]">
                   <Select
                     onValueChange={(value) => handleSearchByChange(value)}
@@ -275,6 +269,12 @@ export default function ProvidersListPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                <Input
+                  placeholder="Tìm nhà cung cấp..."
+                  className="flex-grow"
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                />
               </div>
               <div className="flex gap-2">
                 {/* Sorting Dropdown Menu */}
