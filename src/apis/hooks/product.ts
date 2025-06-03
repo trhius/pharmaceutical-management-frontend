@@ -59,7 +59,7 @@ export const useProducts = (params: {
   sortOrder?: string;
   page?: number;
   size?: number;
-  request: GetProductRequest;
+  request?: GetProductRequest;
 }): UseQueryResult<PageProductResponse, Error> =>
   useQuery({
     queryKey: ['products', params],

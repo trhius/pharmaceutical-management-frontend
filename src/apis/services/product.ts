@@ -40,7 +40,7 @@ export const product = {
     sortOrder?: string;
     page?: number;
     size?: number;
-    request: Types.GetProductRequest;
+    request?: Types.GetProductRequest;
   }): Promise<Types.PageProductResponse> =>
     apiClient
       .get('/api/products/list', {

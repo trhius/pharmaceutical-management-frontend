@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import useListPageState from '@/hooks/useListPageState';
+import { useProducts } from '@/apis/hooks/product';
+import { GetProductRequest, ProductResponse } from '@/apis/types/product';
 import {
   Search,
   Filter,
@@ -18,15 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-interface ProductItem {
-  id: number;
-  name: string;
-  price: string;
-  image: string;
-  color: string;
-}
-
-interface CartItem extends ProductItem {
+interface CartItem extends ProductResponse {
   quantity: number;
 }
 
@@ -36,166 +31,29 @@ interface TabItem {
   active: boolean;
 }
 
-const products: ProductItem[] = [
-  {
-    id: 1,
-    name: 'Dầu Gấc Vinaga - VN - H1Lọ100Viên',
-    price: '850,000',
-    image: '🟠',
-    color: 'bg-orange-500',
-  },
-  {
-    id: 2,
-    name: 'GinkgoSoftM6 - HaiDuong -...',
-    price: '15,000',
-    image: '🟢',
-    color: 'bg-green-600',
-  },
-  {
-    id: 3,
-    name: 'Zentomum - TanThinh - H2Vi...',
-    price: '36,000',
-    image: '💊',
-    color: 'bg-green-100',
-  },
-  {
-    id: 4,
-    name: 'Acnacare - ThaiLan - H3Vi x10Viên',
-    price: '30,000',
-    image: '🧴',
-    color: 'bg-blue-500',
-  },
-  {
-    id: 5,
-    name: 'NattoGinkgo - HoGuom -...',
-    price: '30,000',
-    image: '🌿',
-    color: 'bg-green-400',
-  },
-  {
-    id: 6,
-    name: 'Đệ Lưới Gối Hanomed - TanA -...',
-    price: '4,000',
-    image: '📦',
-    color: 'bg-orange-300',
-  },
-  {
-    id: 7,
-    name: 'Cao Đan Salongin14x10cm...',
-    price: '130,000',
-    image: '🏥',
-    color: 'bg-blue-400',
-  },
-  {
-    id: 8,
-    name: 'Ecosip7.5x10cm - Tatra - H20tuk...',
-    price: '260,000',
-    image: '📋',
-    color: 'bg-orange-400',
-  },
-  {
-    id: 9,
-    name: 'Ecosipocort4x10cm - Tatra - H2tuk...',
-    price: '80,000',
-    image: '📄',
-    color: 'bg-orange-300',
-  },
-  {
-    id: 10,
-    name: 'Nhiệt Kế Aurora - Đức - H12Chiếc',
-    price: '216,000',
-    image: '🌡️',
-    color: 'bg-red-400',
-  },
-  {
-    id: 11,
-    name: 'Dịch vụ tiêm truyền tại nhà',
-    price: '150,000',
-    image: '💉',
-    color: 'bg-orange-600',
-  },
-  {
-    id: 12,
-    name: 'Dịch vụ thay băng, cắt chỉ',
-    price: '100,000',
-    image: '🩹',
-    color: 'bg-blue-300',
-  },
-  {
-    id: 13,
-    name: 'Combo thuốc bổ',
-    price: '880,000',
-    image: '💊',
-    color: 'bg-orange-500',
-  },
-  {
-    id: 14,
-    name: 'Combo dụng cụ kiểm tra sốt',
-    price: '340,000',
-    image: '🔧',
-    color: 'bg-blue-600',
-  },
-  {
-    id: 15,
-    name: 'Medrol16mg - Methylpred - Pháp...',
-    price: '120,000',
-    image: '💊',
-    color: 'bg-gray-400',
-  },
-  {
-    id: 16,
-    name: 'Mobic7.5mg - Meloxicam - Đức -...',
-    price: '190,000',
-    image: '💊',
-    color: 'bg-yellow-500',
-  },
-  {
-    id: 17,
-    name: 'Detromethorpham15mg - Đông Thạp -...',
-    price: '200,000',
-    image: '🏥',
-    color: 'bg-green-500',
-  },
-  {
-    id: 18,
-    name: 'Dexamethason0.5mg - Becamex - L...',
-    price: '250,000',
-    image: '💊',
-    color: 'bg-blue-400',
-  },
-  {
-    id: 19,
-    name: 'Dimicox - Meloxicam7.5mg -...',
-    price: '16,000',
-    image: '💊',
-    color: 'bg-yellow-400',
-  },
-  {
-    id: 20,
-    name: 'Theralene - Alimemazine5mg -...',
-    price: '40,000',
-    image: '💊',
-    color: 'bg-pink-400',
-  },
-  {
-    id: 21,
-    name: 'Cetirizin10mg - Đông Nai -...',
-    price: '30,000',
-    image: '💊',
-    color: 'bg-blue-500',
-  },
-];
-
 export default function Component() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const { pageIndex, pageSize, searchTerm, setPageIndex, setSearchTerm } = useListPageState<GetProductRequest>({
+    initialPage: 0,
+    initialSize: 21,
+    resetPageIndexOnFilterChange: false,
+  });
+
   const [selectedProducts, setSelectedProducts] = useState<CartItem[]>([]);
   const [activeTab, setActiveTab] = useState(1);
-  const totalPages = 2;
   const [tabs, setTabs] = useState<TabItem[]>([{ id: 1, name: 'Hóa đơn 1', active: true }]);
   const [nextTabId, setNextTabId] = useState(2);
 
-  const addProductToCart = (product: ProductItem) => {
+  const {
+    data: productsData,
+    isLoading,
+    isError,
+  } = useProducts({
+    page: pageIndex,
+    size: pageSize,
+  });
+  const products = productsData?.content || [];
+
+  const addProductToCart = (product: ProductResponse) => {
     setSelectedProducts((prev) => {
       const existing = prev.find((p) => p.id === product.id);
       if (existing) {
@@ -206,7 +64,7 @@ export default function Component() {
   };
 
   const totalAmount = selectedProducts.reduce((sum, product) => {
-    return sum + Number.parseInt(product.price.replace(/,/g, '')) * product.quantity;
+    return sum + (product.defaultPrice?.purchasePrice || 0) * product.quantity;
   }, 0);
 
   const addNewTab = () => {
@@ -337,20 +195,22 @@ export default function Component() {
                       className="flex items-center justify-between p-3 border rounded-lg dark:border-gray-700"
                     >
                       <div className="flex items-center space-x-3">
-                        <div
-                          className={`w-8 h-8 rounded ${product.color} flex items-center justify-center text-white text-xs`}
-                        >
-                          {product.image}
-                        </div>
+                        <img
+                          src={product.imageUrl}
+                          alt={product.productName}
+                          className="w-8 h-8 object-cover rounded"
+                        />
                         <div>
-                          <h3 className="font-medium text-gray-900 dark:text-gray-100">{product.name}</h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{product.price} VND</p>
+                          <h3 className="font-medium text-gray-900 dark:text-gray-100">{product.productName}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {product.defaultPrice?.purchasePrice?.toLocaleString()} VND
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
                         <span className="text-sm text-gray-900 dark:text-gray-100">Số lượng: {product.quantity}</span>
                         <Badge variant="secondary">
-                          {(Number.parseInt(product.price.replace(/,/g, '')) * product.quantity).toLocaleString()} VND
+                          {((product.defaultPrice?.purchasePrice || 0) * product.quantity).toLocaleString()} VND
                         </Badge>
                       </div>
                     </div>
@@ -409,32 +269,40 @@ export default function Component() {
 
           {/* Product Catalog */}
           <div className="flex-1 p-4 overflow-y-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-              {products
-                .filter((product) => product.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                .map((product) => (
-                  <Card
-                    key={product.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow bg-white dark:bg-gray-700 dark:border-gray-600 dark:hover:shadow-xl"
-                    onClick={() => addProductToCart(product)}
-                  >
-                    <CardContent className="p-3">
-                      <div className="flex items-start space-x-2">
-                        <div
-                          className={`w-8 h-8 rounded ${product.color} flex items-center justify-center text-white text-xs flex-shrink-0`}
-                        >
-                          {product.image}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 place-content-center">
+              {isLoading ? (
+                <div className="text-center col-span-3 text-gray-500 dark:text-gray-400">Đang tải sản phẩm...</div>
+              ) : isError ? (
+                <div className="text-center col-span-3 text-red-500 dark:text-red-400">Lỗi khi tải sản phẩm.</div>
+              ) : (
+                products
+                  .filter((product) => product.productName?.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .map((product) => (
+                    <Card
+                      key={product.id}
+                      className="cursor-pointer hover:shadow-md transition-shadow bg-white dark:bg-gray-700 dark:border-gray-600 dark:hover:shadow-xl"
+                      onClick={() => addProductToCart(product)}
+                    >
+                      <CardContent className="p-3">
+                        <div className="flex items-start space-x-2">
+                          <img
+                            src={product.imageUrl}
+                            alt={product.productName}
+                            className="w-8 h-8 object-cover rounded"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-xs font-medium text-gray-900 dark:text-gray-100 line-clamp-2 mb-1">
+                              {product.productName}
+                            </h3>
+                            <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                              {product.defaultPrice?.purchasePrice?.toLocaleString()} VND
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-xs font-medium text-gray-900 dark:text-gray-100 line-clamp-2 mb-1">
-                            {product.name}
-                          </h3>
-                          <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">{product.price}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))
+              )}
             </div>
           </div>
 
@@ -445,19 +313,19 @@ export default function Component() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
+                onClick={() => setPageIndex(Math.max(1, pageIndex - 1))}
+                disabled={pageIndex + 1 === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="text-sm text-gray-900 dark:text-gray-100">
-                {currentPage}/{totalPages}
+                {pageIndex + 1}/{productsData?.totalPages}
               </span>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
+                onClick={() => setPageIndex(Math.min(productsData?.totalPages || 1, pageIndex + 1))}
+                disabled={pageIndex + 1 === productsData?.totalPages}
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
