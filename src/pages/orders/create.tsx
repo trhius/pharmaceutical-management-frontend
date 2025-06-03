@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useListPageState from '@/hooks/useListPageState';
 import { useProducts } from '@/apis/hooks/product';
 import { GetProductRequest, ProductResponse } from '@/apis/types/product';
@@ -27,6 +27,7 @@ interface CartItem extends ProductResponse {
 
 interface TabItem {
   id: number;
+  selectedProducts: CartItem[];
   name: string;
   active: boolean;
 }
@@ -38,10 +39,10 @@ export default function Component() {
     resetPageIndexOnFilterChange: false,
   });
 
-  const [selectedProducts, setSelectedProducts] = useState<CartItem[]>([]);
   const [activeTab, setActiveTab] = useState(1);
-  const [tabs, setTabs] = useState<TabItem[]>([{ id: 1, name: 'Hóa đơn 1', active: true }]);
+  const [tabs, setTabs] = useState<TabItem[]>([{ id: 1, name: 'Hóa đơn 1', active: true, selectedProducts: [] }]);
   const [nextTabId, setNextTabId] = useState(2);
+  const [displayedTotalPages, setDisplayedTotalPages] = useState(1);
 
   const {
     data: productsData,
@@ -53,34 +54,48 @@ export default function Component() {
   });
   const products = productsData?.content || [];
 
-  const addProductToCart = (product: ProductResponse) => {
-    setSelectedProducts((prev) => {
-      const existing = prev.find((p) => p.id === product.id);
-      if (existing) {
-        return prev.map((p) => (p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p));
-      }
-      return [...prev, { ...product, quantity: 1 }];
-    });
-  };
+  useEffect(() => {
+    if (productsData?.totalPages !== undefined && productsData.totalPages > 0) {
+      setDisplayedTotalPages(productsData.totalPages);
+    }
+  }, [productsData?.totalPages]);
 
-  const totalAmount = selectedProducts.reduce((sum, product) => {
-    return sum + (product.defaultPrice?.purchasePrice || 0) * product.quantity;
-  }, 0);
+  const addProductToCart = (product: ProductResponse) => {
+    setTabs((prevTabs: TabItem[]) =>
+      prevTabs.map((tab) => {
+        if (tab.id === activeTab) {
+          const existing = tab.selectedProducts.find((p: CartItem) => p.id === product.id);
+          let newSelectedProducts;
+          if (existing) {
+            newSelectedProducts = tab.selectedProducts.map((p: CartItem) =>
+              p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p
+            );
+          } else {
+            newSelectedProducts = [...tab.selectedProducts, { ...product, quantity: 1 }];
+          }
+          return { ...tab, selectedProducts: newSelectedProducts };
+        }
+        return tab;
+      })
+    );
+  };
 
   const addNewTab = () => {
     const newTab = {
       id: nextTabId,
       name: `Hóa đơn ${nextTabId}`,
       active: false,
+      selectedProducts: [],
     };
-    setTabs((prev) => prev.map((tab) => ({ ...tab, active: false })).concat({ ...newTab, active: true }));
+    setTabs((prev: TabItem[]) =>
+      prev.map((tab: TabItem) => ({ ...tab, active: false })).concat({ ...newTab, active: true })
+    );
     setActiveTab(nextTabId);
     setNextTabId((prev) => prev + 1);
-    setSelectedProducts([]); // Clear products for new tab
   };
 
   const closeTab = (tabId: number) => {
-    if (tabs.length === 1) return; // Don't close if it's the last tab
+    if (tabs.length === 1) return; // Don\'t close if it\'s the last tab
 
     setTabs((prev) => {
       const filtered = prev.filter((tab) => tab.id !== tabId);
@@ -98,6 +113,17 @@ export default function Component() {
     setActiveTab(tabId);
     // Here you could load the products for this specific tab if you store them per tab
   };
+
+  // Find the active tab and its products for rendering
+  // Note: This could be memoized for performance using useMemo
+  // The `|| []` ensures we always have an array to work with
+  const activeTabData = tabs.find((tab) => tab.id === activeTab);
+  const currentSelectedProducts = activeTabData?.selectedProducts || [];
+
+  // Calculate total amount for the active tab
+  const totalAmount = currentSelectedProducts.reduce((sum, product) => {
+    return sum + (product.defaultPrice?.purchasePrice || 0) * product.quantity;
+  }, 0);
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
@@ -180,7 +206,7 @@ export default function Component() {
           <div className="bg-white dark:bg-gray-800 flex flex-col rounded-lg h-full">
             {/* Scrollable content area */}
             <div className="flex-grow overflow-y-auto p-4">
-              {selectedProducts.length === 0 ? (
+              {currentSelectedProducts.length === 0 ? (
                 <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
                   <div className="text-center">
                     <p className="text-lg mb-2">Chưa có sản phẩm nào được chọn</p>
@@ -189,7 +215,7 @@ export default function Component() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {selectedProducts.map((product) => (
+                  {currentSelectedProducts.map((product: CartItem) => (
                     <div
                       key={product.id}
                       className="flex items-center justify-between p-3 border rounded-lg dark:border-gray-700"
@@ -224,7 +250,7 @@ export default function Component() {
               <div className="text-sm text-gray-600 dark:text-gray-400">Ghi chú đơn hàng</div>
               <div className="flex items-center space-x-4">
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Tổng tiền hàng: <span className="font-semibold">{selectedProducts.length}</span>
+                  Tổng tiền hàng: <span className="font-semibold">{currentSelectedProducts.length}</span>
                 </div>
                 <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {totalAmount.toLocaleString()}
@@ -319,13 +345,13 @@ export default function Component() {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="text-sm text-gray-900 dark:text-gray-100">
-                {pageIndex + 1}/{productsData?.totalPages}
+                {pageIndex + 1}/{displayedTotalPages}
               </span>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPageIndex(Math.min(productsData?.totalPages || 1, pageIndex + 1))}
-                disabled={pageIndex + 1 === productsData?.totalPages}
+                onClick={() => setPageIndex(Math.min(displayedTotalPages || 1, pageIndex + 1))}
+                disabled={pageIndex + 1 === displayedTotalPages}
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
