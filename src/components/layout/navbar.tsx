@@ -32,6 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function Navbar() {
   const location = useLocation();
@@ -40,12 +41,13 @@ export function Navbar() {
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [showPasswordChangeDialog, setShowPasswordChangeDialog] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (user?.firstTimeLogin) {
       setShowPasswordChangeDialog(true);
     }
-  }, [accountInfo]);
+  }, [user]);
 
   const navigation = [
     { name: 'Bảng điều khiển', href: '/' },
@@ -65,6 +67,7 @@ export function Navbar() {
   ];
 
   const handleLogout = () => {
+    queryClient.invalidateQueries({ queryKey: ['accountInfo'] });
     logout();
     navigate('/login');
   };
@@ -153,13 +156,17 @@ export function Navbar() {
       {isProfileDialogOpen && <UserProfileDialog onClose={() => setIsProfileDialogOpen(false)} />}
 
       {showPasswordChangeDialog && (
-        <AlertDialog open={showPasswordChangeDialog} onOpenChange={(open) => {
-          // Prevent closing if it's first time login and password hasn't been changed yet
-          if (user?.firstTimeLogin && open === false) { // Only prevent closing if trying to close (open is false)
-            return;
-          }
-          setShowPasswordChangeDialog(open);
-        }}>
+        <AlertDialog
+          open={showPasswordChangeDialog}
+          onOpenChange={(open) => {
+            // Prevent closing if it's first time login and password hasn't been changed yet
+            if (user?.firstTimeLogin && open === false) {
+              // Only prevent closing if trying to close (open is false)
+              return;
+            }
+            setShowPasswordChangeDialog(open);
+          }}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Cảnh báo bảo mật</AlertDialogTitle>

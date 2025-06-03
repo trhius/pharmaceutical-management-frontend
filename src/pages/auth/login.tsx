@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 const loginSchema = z.object({
   email: z.string().email('Vui lòng nhập email hợp lệ.'),
@@ -26,6 +27,7 @@ export default function LoginPage() {
   const { login } = useAuthStore();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -40,6 +42,8 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const success = await login(data.email, data.password);
+      queryClient.invalidateQueries({ queryKey: ['accountInfo'] });
+
       if (success) {
         toast({
           title: 'Chào mừng trở lại!',
