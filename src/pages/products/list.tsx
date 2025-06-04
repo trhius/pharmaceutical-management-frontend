@@ -10,11 +10,12 @@ import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { format } from 'date-fns';
 
 import { TableFilterSidebar } from './filter-product';
-import { useProducts, useExportProducts } from '@/apis/hooks/product';
+import { useProducts, useExportProducts } from '@/apis/hooks/product'; // Import useProductDetails
 import { GetProductRequest, ProductResponse } from '@/apis/types/product';
 import { Badge } from '@/components/ui/badge';
 import useListPageState from '@/hooks/useListPageState'; // Assuming the path to your custom hook
 import { SortDropdown } from '@/components/ui/sort-dropdown'; // Import SortDropdown
+import ExpandedProductDetails from './ExpandedProductDetails'; // Import the new component
 
 const searchByOptions = [
   { label: 'Tên sản phẩm', value: 'NAME' },
@@ -180,118 +181,10 @@ export default function ProductsListPage() {
     // Add more columns as needed based on ProductResponse
   ];
 
-  // Function to render expanded content for a row (if needed)
+  // Function to render expanded content for a row
   const renderExpandedContent = (product: ProductResponse) => {
-    return (
-      <div className="space-y-4">
-        <div className="w-full rounded-md space-y-4 p-2">
-          <div className="flex gap-4">
-            <img src={product.imageUrl} alt={product.productName} className="h-36 w-36 rounded-md object-cover" />
-            <div className="flex flex-col gap-1">
-              <p className="font-bold text-lg">{product.productName}</p>
-              <p>
-                <Badge variant={product.type === 'DRUG' ? 'default' : 'secondary'}>
-                  {product.type === 'DRUG' ? 'Thuốc' : 'Thực phẩm chức năng'}
-                </Badge>
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-            {/* Row 1 */}
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Mã hàng</p>
-              <p className="text-sm font-medium">{product.productCode}</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Mã vạch</p>
-              <p className="text-sm font-medium"></p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Tên viết tắt</p>
-              <p className="text-sm font-medium">{product.shortenName}</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Định mức tồn</p>
-              <p className="text-sm font-medium"></p>
-            </div>
-
-            {/* Row 2 */}
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Giá vốn</p>
-              <p className="text-sm font-medium">{product.defaultPrice?.price}</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Giá bán</p>
-              <p className="text-sm font-medium">{product.defaultPrice?.purchasePrice}</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Vị trí</p>
-              <p className="text-sm font-medium"></p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Trọng lượng</p>
-              <p className="text-sm font-medium"></p>
-            </div>
-          </div>
-
-          {/* Row 3 */}
-          <Card className="w-full">
-            <CardHeader>
-              <CardTitle>Thông tin chi tiết</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div className="space-y-1">
-                  <p className="text-xs text-gray-500">Mã thuốc</p>
-                  <p className="text-sm font-medium"></p>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-xs text-gray-500">Số đăng ký</p>
-                  <p className="text-sm font-medium"></p>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-xs text-gray-500">Hoạt chất</p>
-                  <p className="text-sm font-medium"></p>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-xs text-gray-500">Hàm lượng</p>
-                  <p className="text-sm font-medium"></p>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-xs text-gray-500">Đường dùng</p>
-                  <p className="text-sm font-medium"></p>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-xs text-gray-500">Quy cách đóng gói</p>
-                  <p className="text-sm font-medium"></p>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-xs text-gray-500">Hãng sản xuất</p>
-                  <p className="text-sm font-medium"></p>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-xs text-gray-500">Nước sản xuất</p>
-                  <p className="text-sm font-medium"></p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
+    if (!product.id) return null;
+    return <ExpandedProductDetails productId={product.id} />;
   };
 
   return (

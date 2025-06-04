@@ -2,7 +2,7 @@
  * This file contains TypeScript interfaces related to Product Management.
  */
 
-import { PageableObject, SortObject } from "./utility";
+import { PageableObject, SortObject } from './utility';
 
 export interface UpdateProductPriceRequest {
   productId?: number;
@@ -41,6 +41,14 @@ export interface ProductDetailsResponse {
   tuongTacThuoc?: string;
   thoiKyMangThaiChoConBu?: string;
   anhHuongLaiXe?: string;
+
+  productName: string;
+  shortenName: string;
+  createdAt: string;
+  categoriesExpand: object[];
+  pricesExpand: object[];
+  usage: string;
+  supplierName: string;
 }
 
 export interface ProductPriceResponse {
