@@ -101,17 +101,12 @@ export default function ExpandedProductDetails({ productId }: ExpandedProductDet
               </div>
 
               <div className="space-y-1">
-                <p className="text-xs text-gray-500">Số đăng ký</p>
+                <p className="text-xs text-gray-500">Mã lô</p>
                 <p className="text-sm font-medium">{'N/A'}</p>
               </div>
 
               <div className="space-y-1">
                 <p className="text-xs text-gray-500">Hoạt chất</p>
-                <p className="text-sm font-medium">{'N/A'}</p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-xs text-gray-500">Hàm lượng</p>
                 <p className="text-sm font-medium">{details.ingredients || 'N/A'}</p>
               </div>
 
@@ -131,7 +126,7 @@ export default function ExpandedProductDetails({ productId }: ExpandedProductDet
               </div>
 
               <div className="space-y-1">
-                <p className="text-xs text-gray-500">Nước sản xuất</p>
+                <p className="text-xs text-gray-500">Nhà cung cấp</p>
                 <p className="text-sm font-medium">{'N/A'}</p>
               </div>
             </div>
