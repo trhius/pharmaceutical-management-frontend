@@ -339,7 +339,7 @@ export default function Component() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPageIndex(Math.max(1, pageIndex - 1))}
+                onClick={() => setPageIndex(Math.max(0, pageIndex - 1))}
                 disabled={pageIndex + 1 === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
