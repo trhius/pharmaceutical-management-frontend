@@ -7,39 +7,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 
-import { CreateCustomerRequest } from '@/apis/types/customer';
+import { CreateCustomerRequest, CustomerResponse } from '@/apis/types/customer';
 import { useAddCustomer } from '@/apis/hooks/customer';
 import { genders } from '@/apis/types/transform';
 
 interface AddCustomerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCustomerAdded: () => void;
+  onCustomerAdded?: (customer: CustomerResponse) => void;
 }
 
 export function AddCustomerDialog({ open, onOpenChange, onCustomerAdded }: AddCustomerDialogProps) {
@@ -60,14 +47,14 @@ export function AddCustomerDialog({ open, onOpenChange, onCustomerAdded }: AddCu
 
   const onSubmit = (data: CreateCustomerRequest) => {
     addCustomerMutation.mutate(data as CreateCustomerRequest, {
-      onSuccess: () => {
+      onSuccess: (newCustomer) => {
         toast({
           title: 'Thêm khách hàng thành công',
-          description: `${data.name} đã được thêm thành công.`, // Use name from form data
+          description: `${newCustomer.name} đã được thêm thành công.`, // Use name from form data
         });
         form.reset();
         onOpenChange(false);
-        onCustomerAdded();
+        if (onCustomerAdded) onCustomerAdded(newCustomer); // Pass the new customer data
       },
       onError: (error) => {
         toast({
@@ -84,9 +71,7 @@ export function AddCustomerDialog({ open, onOpenChange, onCustomerAdded }: AddCu
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Thêm khách hàng mới</DialogTitle>
-          <DialogDescription>
-            Nhập thông tin chi tiết cho khách hàng mới.
-          </DialogDescription>
+          <DialogDescription>Nhập thông tin chi tiết cho khách hàng mới.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -147,14 +132,14 @@ export function AddCustomerDialog({ open, onOpenChange, onCustomerAdded }: AddCu
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={"outline"}
+                            variant={'outline'}
                             className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              'w-full justify-start text-left font-normal',
+                              !field.value && 'text-muted-foreground'
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? format(new Date(field.value), "dd/MM/yyyy") : <span>Chọn ngày</span>}
+                            {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : <span>Chọn ngày</span>}
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -205,11 +190,7 @@ export function AddCustomerDialog({ open, onOpenChange, onCustomerAdded }: AddCu
                 <FormItem>
                   <FormLabel>Địa chỉ</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Ví dụ: Số 1, Đường A, Quận B, Thành phố C"
-                      {...field}
-                      rows={3}
-                    />
+                    <Textarea placeholder="Ví dụ: Số 1, Đường A, Quận B, Thành phố C" {...field} rows={3} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

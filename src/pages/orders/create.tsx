@@ -23,6 +23,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CustomerComboBox } from './customer-box';
 import { PaymentSheet } from './payment-sheet'; // Import the new PaymentSheet
+import { AddCustomerDialog } from '../customers/add-customer-dialog';
 
 interface CartItem extends ProductResponse {
   quantity: number;
@@ -46,6 +47,8 @@ export default function Component() {
   const [tabs, setTabs] = useState<TabItem[]>([{ id: 1, name: 'Hóa đơn 1', active: true, selectedProducts: [] }]);
   const [nextTabId, setNextTabId] = useState(2);
   const [displayedTotalPages, setDisplayedTotalPages] = useState(1);
+
+  const [isAddCustomerDialogOpen, setIsAddCustomerDialogOpen] = useState(false);
 
   // State for selected customer - now stores the full object
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerResponse | null>(null);
@@ -275,7 +278,12 @@ export default function Component() {
             {' '}
             {/* Added mb-4 for spacing */}
             <CustomerComboBox onCustomerSelect={handleCustomerSelect} selectedCustomer={selectedCustomer} />
-            <Button size="sm" variant="ghost" className="text-gray-500 dark:text-gray-400">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-gray-500 dark:text-gray-400"
+              onClick={() => setIsAddCustomerDialogOpen(true)}
+            >
               <Plus className="h-4 w-4" />
             </Button>
           </div>
@@ -361,6 +369,17 @@ export default function Component() {
               selectedCustomer={selectedCustomer}
               currentSelectedProducts={currentSelectedProducts}
               totalAmount={totalAmount}
+            />
+
+            {/* Add Customer Dialog */}
+            <AddCustomerDialog
+              open={isAddCustomerDialogOpen}
+              onOpenChange={setIsAddCustomerDialogOpen}
+              onCustomerAdded={(newCustomer) => {
+                setSelectedCustomer(newCustomer); // Set the new customer as selected
+                // TODO: Refresh customer list if necessary in the CustomerComboBox
+                setIsAddCustomerDialogOpen(false); // Close the dialog
+              }}
             />
           </div>
         </div>

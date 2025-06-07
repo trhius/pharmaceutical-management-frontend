@@ -33,9 +33,9 @@ export default function MedicineInfo({ onSave }: MedicineInfoProps) {
           Bán thuốc theo đơn
         </Label>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="md:max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle className="text-lg font-medium">Thông tin đơn thuốc</DialogTitle>
+          <DialogTitle className="text-xl font-bold">Thông tin đơn thuốc</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
