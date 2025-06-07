@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { PrescriptionInfoRequest } from '@/apis/types/sales'; // Import the interface
 
+type Gender = 'MALE' | 'FEMALE' | 'OTHER' | undefined;
+
 interface MedicineInfoProps {
   onSave: (data: PrescriptionInfoRequest) => void;
 }
@@ -18,7 +20,7 @@ export default function MedicineInfo({ onSave }: MedicineInfoProps) {
   const [hospitalName, setHospitalName] = useState<string | undefined>(undefined);
   const [patientName, setPatientName] = useState<string | undefined>(undefined);
   const [age, setAge] = useState<number | undefined>(undefined); // Changed default to undefined
-  const [gender, setGender] = useState<'MALE' | 'FEMALE' | 'OTHER' | undefined>(undefined); // Use union type
+  const [gender, setGender] = useState<Gender>(undefined); // Use union type
   const [weight, setWeight] = useState<number | undefined>(undefined); // Use number type
   const [address, setAddress] = useState<string | undefined>(undefined);
   const [guardianName, setGuardianName] = useState<string | undefined>(undefined);
@@ -108,7 +110,11 @@ export default function MedicineInfo({ onSave }: MedicineInfoProps) {
               <div className="space-y-3 flex flex-col">
                 <Label className="text-sm font-medium">Giới tính</Label>
                 {/* Update radio group values and state handling */}
-                <RadioGroup value={gender} onValueChange={setGender} className="flex h-full items-center space-x-6">
+                <RadioGroup
+                  value={gender}
+                  onValueChange={(val) => setGender(val as Gender)}
+                  className="flex h-full items-center space-x-6"
+                >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="MALE" id="gender-male" />
                     <Label htmlFor="gender-male" className="text-sm">
@@ -225,8 +231,7 @@ export default function MedicineInfo({ onSave }: MedicineInfoProps) {
                   hospitalName,
                   patientName,
                   age,
-                  // Map UI gender to API gender type
-                  gender: gender === 'male' ? 'MALE' : gender === 'female' ? 'FEMALE' : undefined,
+                  gender,
                   weight,
                   insuranceCard,
                   address,

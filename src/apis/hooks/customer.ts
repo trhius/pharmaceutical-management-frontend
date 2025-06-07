@@ -26,11 +26,13 @@ export const useCustomers = (params: {
   size?: number;
   sortBy?: string;
   sortOrder?: string;
+  enabled?: boolean;
   request: Types.CustomerListRequest;
 }): UseQueryResult<Types.PageCustomerResponse, Error> =>
   useQuery({
     queryKey: ['customers', params.request], // Use the request object from params for query key
     queryFn: () => customer.getCustomers(params),
+    enabled: params.enabled,
   });
 
 export const useExportCustomers = (): UseMutationResult<

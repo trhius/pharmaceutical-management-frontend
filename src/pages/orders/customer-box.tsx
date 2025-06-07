@@ -1,21 +1,9 @@
-import * as React from 'react';
 import { useState } from 'react';
 import { useCustomers } from '@/apis/hooks/customer';
 import { CustomerListRequest, CustomerResponse } from '@/apis/types/customer';
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -58,18 +46,21 @@ export function CustomerComboBox({ onCustomerSelect, selectedCustomer }: Custome
           aria-expanded={popoverOpen}
           className="w-fit flex-grow justify-between"
         >
-          {selectedCustomer
-            ? selectedCustomer.name
-            : 'Chọn khách hàng'}
+          {selectedCustomer ? selectedCustomer.name : 'Chọn khách hàng'}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0"> {/* Adjust width as needed */}
+      <PopoverContent className="w-[300px] p-0">
+        {' '}
+        {/* Adjust width as needed */}
         <Command>
           <CommandInput
             placeholder="Tìm khách hàng..."
             value={customerSearchKeyword}
-            onValueChange={(val) => { console.log(val); setCustomerSearchKeyword(val) }}
+            onValueChange={(val) => {
+              console.log(val);
+              setCustomerSearchKeyword(val);
+            }}
           />
           <CommandList>
             {isLoadingCustomers ? (
@@ -83,14 +74,11 @@ export function CustomerComboBox({ onCustomerSelect, selectedCustomer }: Custome
                 {customers.map((customer) => (
                   <CommandItem
                     key={customer.id}
-                    value={`${customer.customerCode} - ${customer.name}` || ''} // Use customer name for search/display in CommandInput
+                    value={`${customer.customerCode} - ${customer.name}`} // Use customer name for search/display in CommandInput
                     onSelect={() => handleSelectCustomer(customer)}
                   >
                     <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        selectedCustomer?.id === customer.id ? 'opacity-100' : 'opacity-0'
-                      )}
+                      className={cn('mr-2 h-4 w-4', selectedCustomer?.id === customer.id ? 'opacity-100' : 'opacity-0')}
                     />
                     <span className="mr-2">{customer.name}</span>
                     <span className="text-gray-600 dark:text-gray-500">({customer.customerCode})</span>

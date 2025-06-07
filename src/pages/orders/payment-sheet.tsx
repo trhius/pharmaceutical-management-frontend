@@ -6,15 +6,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { useForm, Controller } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
 import MedicineInfo from './medicine-info';
+import { ProductResponse } from '@/apis/types/product';
 
-// Define simple types for props based on usage in create.tsx
-interface CartItem {
-  id: string;
-  productName?: string;
-  imageUrl?: string;
-  defaultPrice?: {
-    purchasePrice?: number;
-  };
+interface CartItem extends ProductResponse {
   quantity: number;
 }
 

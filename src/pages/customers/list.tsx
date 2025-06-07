@@ -439,7 +439,7 @@ export default function CustomersListPage() {
         </Card>
       </div>
 
-      <AddCustomerDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onCustomerAdded={refetch} />
+      <AddCustomerDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onCustomerAdded={() => refetch()} />
 
       {selectedCustomer && (
         <EditCustomerDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} customer={selectedCustomer} />
