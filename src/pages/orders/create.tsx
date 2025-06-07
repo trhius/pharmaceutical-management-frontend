@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import useListPageState from '@/hooks/useListPageState';
 import { useProducts } from '@/apis/hooks/product';
 import { GetProductRequest, ProductResponse } from '@/apis/types/product';
+import { CustomerResponse } from '@/apis/types/customer'; // Import CustomerResponse
 import {
   Search,
   Filter,
@@ -20,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { CustomerComboBox } from './customer-box'; // Import the new CustomerComboBox
 
 interface CartItem extends ProductResponse {
   quantity: number;
@@ -43,6 +45,9 @@ export default function Component() {
   const [tabs, setTabs] = useState<TabItem[]>([{ id: 1, name: 'Hóa đơn 1', active: true, selectedProducts: [] }]);
   const [nextTabId, setNextTabId] = useState(2);
   const [displayedTotalPages, setDisplayedTotalPages] = useState(1);
+
+  // State for selected customer
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerResponse | null>(null);
 
   const {
     data: productsData,
@@ -264,23 +269,22 @@ export default function Component() {
         <div className="overflow-y-auto col-span-2 bg-white dark:bg-gray-800 border-l dark:border-gray-700 flex flex-col">
           {/* Customer Search */}
           <div className="p-4 border-b dark:border-gray-700">
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
-              <Input
-                placeholder="Tìm khách hàng (F4)"
-                className="pl-10 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 border-gray-300 dark:border-gray-600"
+            <div className="flex w-full">
+              <CustomerComboBox
+                onCustomerSelect={setSelectedCustomer}
+                selectedCustomer={selectedCustomer}
               />
               <Button
                 size="sm"
                 variant="ghost"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400"
+                className="flex-shrink-0 text-gray-500 dark:text-gray-400"
               >
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 mt-4">
               <Button variant="outline" size="sm">
                 <List className="h-4 w-4" />
               </Button>
