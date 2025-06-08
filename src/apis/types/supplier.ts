@@ -23,6 +23,7 @@ export interface SupplierResponse {
   address?: string;
   taxCode?: string;
   isActive?: boolean;
+  status?: string;
   createdAt?: string; // date-time format
   createdBy?: string;
   updatedAt?: string; // date-time format

@@ -140,7 +140,7 @@ export default function ProvidersListPage() {
       header: 'Email',
     },
     {
-      accessorKey: 'isActive',
+      accessorKey: 'status',
       header: 'Trạng thái',
       cell: ({ row }: any) => {
         const status = row.original.status;
