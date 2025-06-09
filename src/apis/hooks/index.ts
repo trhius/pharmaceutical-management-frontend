@@ -5,3 +5,4 @@ export * from './sales';
 export * from './product';
 export * from './employee';
 export * from './customer';
+export * from './purchase';

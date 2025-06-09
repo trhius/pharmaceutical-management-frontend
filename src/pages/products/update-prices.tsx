@@ -27,8 +27,8 @@ const searchByOptions = [
 const sortableColumns = [
   { value: 'CODE', label: 'Mã sản phẩm' },
   { value: 'NAME', label: 'Tên sản phẩm' },
-  { value: 'PRICE', label: 'Giá vốn' },
-  { value: 'PURCHASE_PRICE', label: 'Giá bán' },
+  { value: 'PRICE', label: 'Giá bán' },
+  { value: 'PURCHASE_PRICE', label: 'Giá nhập' },
 ];
 
 export default function ProductsListPrices() {
@@ -150,15 +150,15 @@ export default function ProductsListPrices() {
       header: 'Tên sản phẩm',
     },
     {
-      accessorKey: 'prices.price',
-      header: 'Giá vốn',
+      accessorKey: 'prices.purchasePrice',
+      header: 'Giá nhập',
     },
     {
       accessorKey: 'prices.measurementUnitName',
       header: 'Đơn vị',
     },
     {
-      accessorKey: 'prices.purchasePrice',
+      accessorKey: 'prices.price',
       header: 'Giá bán',
       cell: ({ row }) => {
         const product = row.original;

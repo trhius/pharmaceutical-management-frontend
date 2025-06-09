@@ -48,7 +48,10 @@ export interface ProductDetailsResponse {
   categoriesExpand: object[];
   pricesExpand: object[];
   usage: string;
-  supplierName: string;
+  supplierNames: string[];
+  batchNumbers: string[];
+  totalQuantity: number;
+  soldQuantity: number;
 }
 
 export interface ProductPriceResponse {

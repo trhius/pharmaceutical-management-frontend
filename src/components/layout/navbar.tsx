@@ -57,6 +57,7 @@ export function Navbar() {
       subItems: [
         { name: 'Danh sách sản phẩm', href: '/products' },
         { name: 'Giá sản phẩm', href: '/products/update-prices' },
+        { name: 'Nhập hàng', href: '/products/purchase-order' },
         // Add more sub-items here
       ],
     },

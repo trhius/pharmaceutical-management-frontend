@@ -182,7 +182,7 @@ export default function EmployeesListPage() {
       header: 'Trạng thái',
       cell: ({ row }: any) => {
         return (
-          <Badge variant={row.original.status === 'ACTIVE' ? 'default' : 'secondary'}>
+          <Badge variant={row.original.status === 'ACTIVE' ? 'success' : 'destructive'}>
             {employeeStatuses.find((status) => status.value === row.original.status)?.label}
           </Badge>
         );

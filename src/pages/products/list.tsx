@@ -29,8 +29,8 @@ const sortableColumns = [
   { value: 'BRAND', label: 'Nhãn hiệu' },
   { value: 'CREATED_AT', label: 'Ngày tạo' },
   { value: 'STATUS', label: 'Trạng thái' },
-  { value: 'PRICE', label: 'Giá vốn' },
-  { value: 'PURCHASE_PRICE', label: 'Giá bán' },
+  { value: 'PURCHASE_PRICE', label: 'Giá nhập' },
+  { value: 'PRICE', label: 'Giá bán' },
 ];
 
 export default function ProductsListPage() {
@@ -144,11 +144,11 @@ export default function ProductsListPage() {
     },
     {
       accessorKey: 'defaultPrice.purchasePrice',
-      header: 'Giá bán',
+      header: 'Giá nhập',
     },
     {
       accessorKey: 'defaultPrice.price',
-      header: 'Giá vốn',
+      header: 'Giá bán',
     },
     {
       accessorKey: 'brand',
@@ -172,7 +172,7 @@ export default function ProductsListPage() {
       cell: ({ row }: any) => {
         const isActive = row.original.isActive;
         return (
-          <Badge variant={isActive ? 'default' : 'secondary'}>
+          <Badge variant={isActive ? 'success' : 'secondary'}>
             {isActive ? 'Đang kinh doanh' : 'Ngừng kinh doanh'}
           </Badge>
         );

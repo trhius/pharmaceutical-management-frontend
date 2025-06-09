@@ -46,11 +46,13 @@ export default function ExpandedProductDetails({ productId }: ExpandedProductDet
           />
           <div className="flex flex-col gap-1">
             <p className="font-bold text-lg">{details.productName}</p>
-            <p>
-              <Badge variant={details.type === 'DRUG' ? 'default' : 'secondary'}>
-                {details.type === 'DRUG' ? 'Thuốc' : 'Thực phẩm chức năng'}
-              </Badge>
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              {details.categories?.map((category) => (
+                <Badge key={category.id} variant="secondary">
+                  {category.name}
+                </Badge>
+              ))}
+            </div>
           </div>
         </div>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
@@ -61,18 +63,18 @@ export default function ExpandedProductDetails({ productId }: ExpandedProductDet
           </div>
 
           <div className="space-y-1">
-            <p className="text-xs text-gray-500">Mã vạch</p>
-            <p className="text-sm font-medium">{'N/A'}</p>
-          </div>
-
-          <div className="space-y-1">
             <p className="text-xs text-gray-500">Tên viết tắt</p>
             <p className="text-sm font-medium">{details.shortenName}</p>
           </div>
 
           <div className="space-y-1">
             <p className="text-xs text-gray-500">Định mức tồn</p>
-            <p className="text-sm font-medium">{'N/A'}</p>
+            <p className="text-sm font-medium">{details.totalQuantity}</p>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-xs text-gray-500">Đã bán</p>
+            <p className="text-sm font-medium">{details.soldQuantity}</p>
           </div>
 
           {/* Row 2 */}
@@ -102,7 +104,7 @@ export default function ExpandedProductDetails({ productId }: ExpandedProductDet
 
               <div className="space-y-1">
                 <p className="text-xs text-gray-500">Mã lô</p>
-                <p className="text-sm font-medium">{'N/A'}</p>
+                <p className="text-sm font-medium">{details.batchNumbers.join(', ') || 'N/A'}</p>
               </div>
 
               <div className="space-y-1">
@@ -127,7 +129,7 @@ export default function ExpandedProductDetails({ productId }: ExpandedProductDet
 
               <div className="space-y-1">
                 <p className="text-xs text-gray-500">Nhà cung cấp</p>
-                <p className="text-sm font-medium">{'N/A'}</p>
+                <p className="text-sm font-medium">{details.supplierNames.join(', ') || 'N/A'}</p>
               </div>
             </div>
           </CardContent>

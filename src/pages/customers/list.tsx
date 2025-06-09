@@ -185,7 +185,7 @@ export default function CustomersListPage() {
       cell: ({ row }: any) => {
         const status = row.original.status;
         return (
-          <Badge variant={status === 'ACTIVE' ? 'default' : 'secondary'}>
+          <Badge variant={status === 'ACTIVE' ? 'success' : 'destructive'}>
             {status === 'ACTIVE' ? 'Đang hoạt động' : status === 'INACTIVE' ? 'Ngừng hoạt động' : 'Đã vô hiệu hóa'}
           </Badge>
         );

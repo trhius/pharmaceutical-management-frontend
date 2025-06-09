@@ -143,10 +143,10 @@ export default function ProvidersListPage() {
       accessorKey: 'isActive',
       header: 'Trạng thái',
       cell: ({ row }: any) => {
-        const isActive = row.original.isActive;
+        const status = row.original.status;
         return (
-          <Badge variant={isActive ? 'default' : 'secondary'}>
-            {isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
+          <Badge variant={status === 'ACTIVE' ? 'success' : 'destructive'}>
+            {status === 'ACTIVE' ? 'Đang hoạt động' : status === 'INACTIVE' ? 'Ngừng hoạt động' : 'Đã vô hiệu hóa'}
           </Badge>
         );
       },
