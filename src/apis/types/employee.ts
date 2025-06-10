@@ -41,6 +41,7 @@ export interface EmployeeResponse {
   createdBy?: string;
   updatedAt?: string; // date-time format
   updatedBy?: string;
+  note?: string;
 }
 
 export interface CreateStoreRequest {

@@ -4,3 +4,5 @@ dist
 
 .firebase/*
 tsconfig.app.tsbuildinfo
+
+.DS_Store

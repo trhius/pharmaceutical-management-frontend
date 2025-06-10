@@ -1,4 +1,5 @@
 import { PlusIcon, FileText } from 'lucide-react';
+import { Link } from "react-router-dom";
 
 import { PageHeader } from '@/components/layout/page-header';
 import { DataTable } from '@/components/ui/data-table';
@@ -14,7 +15,7 @@ import { PurchaseListRequest, PurchaseListResponse, PurchaseOrderStatus } from '
 import { useExportPurchaseOrders, usePurchaseOrders } from '@/apis/hooks/purchase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SortDropdown } from '@/components/ui/sort-dropdown';
-import ExpandedPurchaseOrderDetails from './ExpandedPurchaseOrderDetails';
+import ExpandedPurchaseOrderDetails from './ExpandedPurchaseDetails';
 
 
 const searchByOptions = [
@@ -172,10 +173,12 @@ export default function PurchaseOrdersPage() {
         description="Quản lý các đơn hàng nhập kho"
         actions={
           <div className="flex gap-2">
+            <Link to="/products/purchase-order/import">
               <Button>
                   <PlusIcon className="h-4 w-4 mr-2" />
                   Nhập hàng
               </Button>
+            </Link>
           </div>
         }
       />

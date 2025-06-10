@@ -4,7 +4,7 @@ import { PageHeader } from '@/components/layout/page-header';
 import useListPageState from '@/hooks/useListPageState';
 import { DataTable } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
-import { useSuppliers, useExportSuppliers } from '@/apis/hooks/supplier'; // Import useExportSuppliers
+import { useSuppliers, useExportSuppliers, useDeactivateSupplier } from '@/apis/hooks/supplier'; // Import useExportSuppliers
 import { SupplierResponse, SupplierListRequest } from '@/apis/types/supplier';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,6 +16,8 @@ import { format } from 'date-fns';
 import { ProviderFilterSidebar } from './filter-provider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddProviderDialog } from './add-provider-dialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { EditProviderDialog } from './edit-provider-dialog';
 
 const searchByOptions = [
   { label: 'Tên nhà cung cấp', value: 'NAME' },
@@ -35,6 +37,9 @@ const sortableColumns = [
 
 export default function ProvidersListPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<SupplierResponse | null>(null);
   const { toast } = useToast(); // Initialize useToast hook
 
   const {
@@ -67,6 +72,8 @@ export default function ProvidersListPage() {
   // Initialize the export mutation hook without onSuccess/onError here
   const exportSuppliersMutation = useExportSuppliers();
   const isExporting = exportSuppliersMutation.isPending; // Use isPending from the mutation object
+
+  const deleteProviderMutation = useDeactivateSupplier();
 
   const onApplyFilters = useCallback(
     (values: Omit<SupplierListRequest, 'page' | 'size' | 'search' | 'searchBy' | 'sortBy' | 'sortOrder'>) => {
@@ -156,60 +163,91 @@ export default function ProvidersListPage() {
   const renderExpandedContent = (supplier: SupplierResponse) => {
     return (
       <div className="space-y-4">
-        <div className="w-full max-w-5xl rounded-md p-6">
+        <div className="w-full rounded-md p-2">
+          <div className="flex items-center gap-4 mb-6">
+            <p className="font-bold text-lg">
+              {supplier.name} - {supplier.code}
+            </p>
+            <Badge variant={supplier.status === 'ACTIVE' ? 'success' : 'destructive'}>
+              {supplier.status === 'ACTIVE' ? 'Đang hoạt động' : 'Ngừng hoạt động'}
+            </Badge>
+          </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {/* Row 1 */}
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Mã nhà cung cấp</p>
-              <p className="text-sm font-medium">{supplier.code}</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Tên nhà cung cấp</p>
-              <p className="text-sm font-medium">{supplier.name}</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Người liên hệ</p>
-              <p className="text-sm font-medium">{supplier.contactPerson}</p>
-            </div>
-
-            {/* Row 2 */}
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Số điện thoại</p>
-              <p className="text-sm font-medium">{supplier.phone}</p>
+              <p className="text-sm font-medium">{supplier.phone || '-'}</p>
             </div>
 
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Email</p>
-              <p className="text-sm font-medium">{supplier.email}</p>
+              <p className="text-sm font-medium">{supplier.email || '-'}</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Người liên hệ</p>
+              <p className="text-sm font-medium">{supplier.contactPerson || '-'}</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Ngày tạo</p>
+              <p className="text-sm font-medium">
+                {supplier.createdAt ? format(new Date(supplier.createdAt), 'dd/MM/yyyy HH:mm') : '-'}
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Người tạo</p>
+              <p className="text-sm font-medium">{supplier.createdBy || '-'}</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Cập nhật lần cuối</p>
+              <p className="text-sm font-medium">
+                {supplier.updatedAt ? format(new Date(supplier.updatedAt), 'dd/MM/yyyy HH:mm') : '-'}
+              </p>
             </div>
 
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Mã số thuế</p>
-              <p className="text-sm font-medium">{supplier.taxCode}</p>
+              <p className="text-sm font-medium">{supplier.taxCode || '-'}</p>
+            </div>
+            
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Địa chỉ</p>
+              <p className="text-sm font-medium">{supplier.address || '-'}</p>
             </div>
 
             <div className="space-y-1 md:col-span-3">
-              <p className="text-xs text-gray-500">Địa chỉ</p>
-              <p className="text-sm font-medium">{supplier.address}</p>
+              <p className="text-xs text-gray-500">Ghi chú</p>
+              <p className="text-sm font-medium">{supplier.note || '-'}</p>
             </div>
           </div>
         </div>
 
-        {/* You can add edit/delete buttons here if needed */}
-        {/* <div className="flex justify-end">
+        <div className="flex justify-end">
           <div className="space-x-2">
-            <Button variant="outline" onClick={() => handleEdit(supplier)}>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSelectedProvider(supplier);
+                setIsEditDialogOpen(true);
+              }}
+            >
               Cập nhật thông tin
             </Button>
-            {supplier.isActive && (
-              <Button variant="destructive" onClick={() => handleDelete(supplier)}>
+            {supplier.id && supplier.status === 'ACTIVE' && (
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setSelectedProvider(supplier);
+                  setIsDeleteDialogOpen(true);
+                }}
+              >
                 Ngừng hoạt động
               </Button>
             )}
           </div>
-        </div> */}
+        </div> 
       </div>
     );
   };
@@ -310,6 +348,46 @@ export default function ProvidersListPage() {
       </div>
 
       <AddProviderDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onProviderAdded={refetch} />
+
+      {selectedProvider && (
+        <EditProviderDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} provider={selectedProvider} />
+      )}
+
+      {selectedProvider && (
+        <ConfirmDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          title="Ngừng hoạt động nhà cung cấp"
+          description={`Bạn có chắc chắn muốn ngừng hoạt động nhà cung cấp ${selectedProvider?.name}? Hành động này không thể hoàn tác.`}
+          cancelText="Hủy"
+          confirmText={deleteProviderMutation.isPending ? 'Đang ngừng hoạt động...' : 'Ngừng hoạt động'}
+          onConfirm={() => {
+            if (selectedProvider?.id) {
+              deleteProviderMutation.mutate(selectedProvider.id, {
+                onSuccess: () => {
+                  setIsDeleteDialogOpen(false);
+                  setSelectedProvider(null); // Clear selected provider after deletion
+                  refetch();
+                  toast({
+                    title: 'Ngừng hoạt động nhà cung cấp thành công',
+                    description: `Thông tin của ${selectedProvider?.name} đã được cập nhật trạng thái.`,
+                  });
+                },
+                onError: (error) => {
+                  console.error('Failed to deactivate provider:', error);
+                  setIsDeleteDialogOpen(false);
+                  setSelectedProvider(null); // Clear selected provider even on error
+                  toast({
+                    title: 'Ngừng hoạt động nhà cung cấp thất bại',
+                    description: 'Đã xảy ra lỗi khi ngừng hoạt động nhà cung cấp.',
+                    variant: 'destructive',
+                  });
+                },
+              });
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

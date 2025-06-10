@@ -22,6 +22,7 @@ import CustomersListPage from '@/pages/customers/list';
 import ProductsListPage from '@/pages/products/list';
 import UpdatePricesPage from '@/pages/products/update-prices';
 import PurchaseOrdersPage from '@/pages/products/purchase-order';
+import ImportPurchasePage from '@/pages/products/import-purchase';
 
 // Provider Pages
 import ProvidersListPage from '@/pages/providers/list';
@@ -74,6 +75,7 @@ function App() {
         <Route path="/products" element={<ProductsListPage />} />
         <Route path="/products/update-prices" element={<UpdatePricesPage />} />
         <Route path="/products/purchase-order" element={<PurchaseOrdersPage />} />
+        <Route path="/products/purchase-order/import" element={<ImportPurchasePage />} />
 
         {/* Provider Routes */}
         <Route path="/providers" element={<ProvidersListPage />} />

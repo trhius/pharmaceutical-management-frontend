@@ -1,13 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 
-interface EditablePriceCellProps {
+export interface EditablePriceCellProps {
   initialValue: number | undefined;
   productId: string;
   onPriceChange: (productId: string, price: number) => void;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
-export const EditablePriceCell: React.FC<EditablePriceCellProps> = ({ initialValue, productId, onPriceChange }) => {
+export const EditablePriceCell: React.FC<EditablePriceCellProps> = ({
+  initialValue,
+  productId,
+  onPriceChange,
+  onKeyDown,
+}) => {
   const [price, setPrice] = useState<string>(initialValue !== undefined ? initialValue?.toString() : '');
 
   // Update local state when the initialValue prop changes (e.g., pagination)
@@ -37,6 +43,7 @@ export const EditablePriceCell: React.FC<EditablePriceCellProps> = ({ initialVal
       value={price}
       onChange={handleInputChange}
       onBlur={handleBlur}
+      onKeyDown={onKeyDown}
       className="w-full p-1 border rounded"
     />
   );

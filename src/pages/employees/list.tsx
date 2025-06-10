@@ -193,76 +193,88 @@ export default function EmployeesListPage() {
   const renderExpandedContent = (employee: EmployeeResponse) => {
     return (
       <div className="space-y-4">
-        <div className="w-full max-w-5xl rounded-md p-6">
+        <div className="w-full rounded-md p-2">
+          <div className="flex items-center gap-4 mb-6">
+            <p className="font-bold text-lg">
+              {employee.fullName} - {employee.employeeCode}
+            </p>
+            <Badge variant={employee.status === 'ACTIVE' ? 'success' : 'destructive'}>
+              {employeeStatuses.find((status) => status.value === employee.status)?.label}
+            </Badge>
+          </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {/* Row 1 */}
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Mã nhân viên</p>
-              <p className="text-sm font-medium">{employee.employeeCode}</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Tên nhân viên</p>
-              <p className="text-sm font-medium">{employee.fullName}</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Mã chấm công</p>
-              <p className="text-sm font-medium"></p>
-            </div>
-
-            {/* Row 2 */}
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Ngày sinh</p>
-              <p className="text-sm font-medium">{employee.dateOfBirth}</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Giới tính</p>
-              <p className="text-sm font-medium">{genders.find((gender) => gender.value === employee.gender)?.label}</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Số CMND/CCCD</p>
-              <p className="text-sm font-medium">{employee.identityCard}</p>
-            </div>
-
-            {/* Row 3 */}
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Chức danh</p>
-              <p className="text-sm font-medium">{roles.find((role) => role.value === employee.role)?.label}</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Ngày bắt đầu làm việc</p>
-              <p className="text-sm font-medium">{employee.joinDate}</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Chi nhánh làm việc</p>
-              <p className="text-sm font-medium">{employee.storeName}</p>
-            </div>
-
-            {/* Row 4 */}
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Số điện thoại</p>
-              <p className="text-sm font-medium">{employee.phone}</p>
+              <p className="text-sm font-medium">{employee.phone || '-'}</p>
             </div>
 
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Email</p>
-              <p className="text-sm font-medium">{employee.email}</p>
+              <p className="text-sm font-medium">{employee.email || '-'}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Ngày sinh</p>
+              <p className="text-sm font-medium">
+                {employee.dateOfBirth ? format(new Date(employee.dateOfBirth), 'dd/MM/yyyy') : '-'}
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Giới tính</p>
+              <p className="text-sm font-medium">
+                {genders.find((gender) => gender.value === employee.gender)?.label || '-'}
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Số CMND/CCCD</p>
+              <p className="text-sm font-medium">{employee.identityCard || '-'}</p>
             </div>
 
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Địa chỉ</p>
-              <p className="text-sm font-medium">{employee.address}</p>
+              <p className="text-sm font-medium">{employee.address || '-'}</p>
             </div>
 
-            {/* Row 5 - Notes (spans full width) */}
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Chi nhánh làm việc</p>
+              <p className="text-sm font-medium">{employee.storeName || '-'}</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Chức danh</p>
+              <p className="text-sm font-medium">{roles.find((role) => role.value === employee.role)?.label || '-'}</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Ngày bắt đầu làm việc</p>
+              <p className="text-sm font-medium">
+                {employee.joinDate ? format(new Date(employee.joinDate), 'dd/MM/yyyy') : '-'}
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Ngày tạo</p>
+              <p className="text-sm font-medium">
+                {employee.createdAt ? format(new Date(employee.createdAt), 'dd/MM/yyyy HH:mm') : '-'}
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Người tạo</p>
+              <p className="text-sm font-medium">{employee.createdBy || '-'}</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Cập nhật lần cuối</p>
+              <p className="text-sm font-medium">
+                {employee.updatedAt ? format(new Date(employee.updatedAt), 'dd/MM/yyyy HH:mm') : '-'}
+              </p>
+            </div>
+
             <div className="space-y-1 md:col-span-3">
               <p className="text-xs text-gray-500">Ghi chú</p>
-              <p className="text-sm font-medium"></p>
+              <p className="text-sm font-medium">{employee.note || '-'}</p>
             </div>
           </div>
         </div>
@@ -390,7 +402,7 @@ export default function EmployeesListPage() {
         onOpenChange={setIsDeleteDialogOpen}
         title="Vô hiệu hóa"
         description={`Bạn có chắc muốn vô hiệu hóa ${selectedEmployee?.fullName}? Hành động này không thể hoàn tác.`}
-        confirmText={deleteEmployeeMutation.isPending ? 'Đang xóa' : 'Xóa'}
+        confirmText={deleteEmployeeMutation.isPending ? 'Đang vô hiệu hóa' : 'Vô hiệu hóa'}
         cancelText="Hủy"
         onConfirm={() => {
           onDelete();

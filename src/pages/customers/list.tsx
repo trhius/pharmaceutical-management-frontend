@@ -196,43 +196,31 @@ export default function CustomersListPage() {
   const renderExpandedContent = (customer: CustomerResponse) => {
     return (
       <div className="space-y-4">
-        <div className="w-full max-w-5xl rounded-md p-6">
+        <div className="w-full rounded-md p-2">
+        <div className="flex items-center gap-4 mb-6">
+          <p className="font-bold text-lg">{customer.name} - {customer.customerCode}</p>
+          <Badge variant={customer.status === 'ACTIVE' ? 'success' : 'destructive'}>
+            {customer.status === 'ACTIVE' ? 'Đang hoạt động' : customer.status === 'INACTIVE' ? 'Ngừng hoạt động' : 'Đã vô hiệu hóa'}
+          </Badge>
+        </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {/* Row 1 */}
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Mã khách hàng</p>
-              <p className="text-sm font-medium">{customer.customerCode}</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Họ và Tên</p>
-              <p className="text-sm font-medium">{customer.name}</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Email</p>
-              <p className="text-sm font-medium">{customer.email}</p>
-            </div>
-
-            {/* Row 2 */}
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Số điện thoại</p>
-              <p className="text-sm font-medium">{customer.phoneNumber}</p>
+              <p className="text-sm font-medium">{customer.phoneNumber || '-'}</p>
             </div>
-
+            
             <div className="space-y-1">
-              <p className="text-xs text-gray-500">Địa chỉ</p>
-              <p className="text-sm font-medium">{customer.address}</p>
+              <p className="text-xs text-gray-500">Email</p>
+              <p className="text-sm font-medium">{customer.email || '-'}</p>
             </div>
 
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Ngày sinh</p>
               <p className="text-sm font-medium">
-                {customer.dayOfBirth ? format(new Date(customer.dayOfBirth), 'dd/MM/yyyy') : 'N/A'}
+                {customer.dayOfBirth ? format(new Date(customer.dayOfBirth), 'dd/MM/yyyy') : '-'}
               </p>
             </div>
 
-            {/* Row 3 */}
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Giới tính</p>
               <p className="text-sm font-medium">
@@ -243,39 +231,41 @@ export default function CustomersListPage() {
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Nhóm tuổi</p>
               <p className="text-sm font-medium">
-                {ageGroups.find((ageGroup) => ageGroup.value === customer.ageGroup)?.label}
+                {ageGroups.find((ageGroup) => ageGroup.value === customer.ageGroup)?.label || '-'}
               </p>
             </div>
 
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Tổng chi tiêu</p>
-              <p className="text-sm font-medium">{customer.totalSpentAmount || 0}</p>
+              <p className="text-sm font-medium">{customer.totalSpentAmount?.toLocaleString() || '-'}</p>
             </div>
+
 
             {/* Row 4 */}
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Trạng thái</p>
-              <p className="text-sm font-medium">
-                {customer.status === 'ACTIVE'
-                  ? 'Đang hoạt động'
-                  : customer.status === 'INACTIVE'
-                    ? 'Ngừng hoạt động'
-                    : 'Đã vô hiệu hóa'}
-              </p>
-            </div>
-
+            
+            {/* Row 4 */}
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Ngày tạo</p>
               <p className="text-sm font-medium">
-                {customer.createdAt ? format(new Date(customer.createdAt), 'dd/MM/yyyy HH:mm') : 'N/A'}
+                {customer.createdAt ? format(new Date(customer.createdAt), 'dd/MM/yyyy HH:mm') : '-'}
               </p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Người tạo</p>
+              <p className="text-sm font-medium">{customer.createdBy || '-'}</p>
             </div>
 
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Cập nhật lần cuối</p>
               <p className="text-sm font-medium">
-                {customer.updatedAt ? format(new Date(customer.updatedAt), 'dd/MM/yyyy HH:mm') : 'N/A'}
+                {customer.updatedAt ? format(new Date(customer.updatedAt), 'dd/MM/yyyy HH:mm') : '-'}
               </p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500">Địa chỉ</p>
+              <p className="text-sm font-medium">{customer.address || '-'}</p>
             </div>
           </div>
         </div>
@@ -451,6 +441,7 @@ export default function CustomersListPage() {
           onOpenChange={setIsDeleteDialogOpen}
           title="Vô hiệu hóa khách hàng"
           description={`Bạn có chắc chắn muốn vô hiệu hóa khách hàng ${selectedCustomer?.name}? Hành động này không thể hoàn tác.`}
+          cancelText="Hủy"
           confirmText={deleteCustomerMutation.isPending ? 'Đang vô hiệu hóa...' : 'Vô hiệu hóa'}
           onConfirm={() => {
             if (selectedCustomer?.id) {

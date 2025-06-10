@@ -80,13 +80,12 @@ export default function ExpandedProductDetails({ productId }: ExpandedProductDet
           {/* Row 2 */}
           <div className="space-y-1">
             <p className="text-xs text-gray-500">Giá vốn</p>
-            <p className="text-sm font-medium">{details.prices?.[0]?.price || 'N/A'}</p> {/* Added N/A fallback */}
+            <p className="text-sm font-medium">{details.prices?.[0]?.price || '-'}</p>
           </div>
 
           <div className="space-y-1">
             <p className="text-xs text-gray-500">Giá bán</p>
-            <p className="text-sm font-medium">{details.prices?.[0]?.purchasePrice || 'N/A'}</p>{' '}
-            {/* Added N/A fallback */}
+            <p className="text-sm font-medium">{details.prices?.[0]?.purchasePrice || '-'}</p>{' '}
           </div>
         </div>
 
@@ -99,37 +98,37 @@ export default function ExpandedProductDetails({ productId }: ExpandedProductDet
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-1">
                 <p className="text-xs text-gray-500">Mã thuốc</p>
-                <p className="text-sm font-medium">{productDetailsData?.productCode || 'N/A'}</p>
+                <p className="text-sm font-medium">{productDetailsData?.productCode || '-'}</p>
               </div>
 
               <div className="space-y-1">
                 <p className="text-xs text-gray-500">Mã lô</p>
-                <p className="text-sm font-medium">{details.batchNumbers.join(', ') || 'N/A'}</p>
+                <p className="text-sm font-medium">{details.batchNumbers.join(', ') || '-'}</p>
               </div>
 
               <div className="space-y-1">
                 <p className="text-xs text-gray-500">Hoạt chất</p>
-                <p className="text-sm font-medium">{details.ingredients || 'N/A'}</p>
+                <p className="text-sm font-medium">{details.ingredients || '-'}</p>
               </div>
 
               <div className="space-y-1">
                 <p className="text-xs text-gray-500">Đường dùng</p>
-                <p className="text-sm font-medium">{details.dosageForm || 'N/A'}</p>
+                <p className="text-sm font-medium">{details.dosageForm || '-'}</p>
               </div>
 
               <div className="space-y-1">
                 <p className="text-xs text-gray-500">Quy cách đóng gói</p>
-                <p className="text-sm font-medium">{details.specification || 'N/A'}</p>
+                <p className="text-sm font-medium">{details.specification || '-'}</p>
               </div>
 
               <div className="space-y-1">
                 <p className="text-xs text-gray-500">Hãng sản xuất</p>
-                <p className="text-sm font-medium">{details.brand || 'N/A'}</p>
+                <p className="text-sm font-medium">{details.brand || '-'}</p>
               </div>
 
               <div className="space-y-1">
                 <p className="text-xs text-gray-500">Nhà cung cấp</p>
-                <p className="text-sm font-medium">{details.supplierNames.join(', ') || 'N/A'}</p>
+                <p className="text-sm font-medium">{details.supplierNames.join(', ') || '-'}</p>
               </div>
             </div>
           </CardContent>

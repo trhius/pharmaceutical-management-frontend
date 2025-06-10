@@ -8,11 +8,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { format } from 'date-fns';
+import { useQueryClient } from '@tanstack/react-query';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 import { EditablePriceCell } from '@/components/products/editable-price-cell';
 import { TableFilterSidebar } from './filter-product-price';
 import { useProductPrices, useUpdateProductPrice, useExportProductPrices } from '@/apis/hooks/product'; // Import useExportProductPrices
-import { GetProductPriceRequest, UpdateProductPriceRequest } from '@/apis/types/product';
+import {
+  GetProductPriceRequest,
+  ProductPriceListResponse,
+  UpdateProductPriceRequest,
+} from '@/apis/types/product';
 
 import useListPageState from '@/hooks/useListPageState'; // Import the custom hook
 import { SortDropdown } from '@/components/ui/sort-dropdown'; // Import SortDropdown
@@ -22,6 +28,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 const searchByOptions = [
   { label: 'Tên sản phẩm', value: 'NAME' },
   { label: 'Mã sản phẩm', value: 'CODE' },
+  { value: 'PRICE', label: 'Giá bán' },
+  { value: 'PURCHASE_PRICE', label: 'Giá nhập' },
 ];
 
 const sortableColumns = [
@@ -31,11 +39,21 @@ const sortableColumns = [
   { value: 'PURCHASE_PRICE', label: 'Giá nhập' },
 ];
 
+interface PriceChangeInfo {
+  productId: number;
+  measurementUnitId: number;
+  newPrice: number;
+  productCode: string;
+}
+
 export default function ProductsListPrices() {
-  const [editedPrices, setEditedPrices] = useState<{ [productId: string]: number }>({});
   const { mutate: updatePrices, isPending: isUpdating } = useUpdateProductPrice();
   const exportProductPricesMutation = useExportProductPrices(); // Initialize export hook
   const { toast } = useToast(); // Initialize toast hook
+  const queryClient = useQueryClient();
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [priceChangeToConfirm, setPriceChangeToConfirm] = useState<PriceChangeInfo | null>(null);
 
   // Use the custom hook for managing list state
   const {
@@ -76,7 +94,6 @@ export default function ProductsListPrices() {
 
   // Clear edited prices when product data changes (e.g., on pagination or filter)
   useEffect(() => {
-    setEditedPrices({});
   }, [productsData]);
 
   // Handler for external filters (from sidebar)
@@ -97,13 +114,67 @@ export default function ProductsListPrices() {
     setSearchByValue(value as GetProductPriceRequest['searchBy']);
   };
 
-  // Handler to update edited prices from the cell component
-  const handlePriceChange = useCallback((productId: string, newPrice: number) => {
-    setEditedPrices((prev) => ({
-      ...prev,
-      [productId]: newPrice,
-    }));
-  }, []);
+  // This function is triggered when a price is changed in an EditablePriceCell
+  const handlePriceChange = (priceIdStr: string, newPrice: number) => {
+    const priceId = Number(priceIdStr);
+    if (isNaN(priceId) || !products) return;
+
+    // Find the product and price info related to the change
+    for (const product of products) {
+      if (product.prices && product.prices.id === priceId) {
+        setPriceChangeToConfirm({
+          productId: product.productId!,
+          measurementUnitId: product.prices.measurementUnitId!,
+          newPrice,
+          productCode: product.productCode!,
+        });
+        setIsConfirmOpen(true);
+        return; // Exit after finding the product
+      }
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>, productId: string) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      const newPrice = parseFloat(event.currentTarget.value);
+      if (!isNaN(newPrice)) {
+        handlePriceChange(productId, newPrice);
+      }
+    }
+  };
+
+  const handleConfirmUpdate = () => {
+    if (!priceChangeToConfirm) return;
+
+    const { productId, measurementUnitId, newPrice } = priceChangeToConfirm;
+    const payload: UpdateProductPriceRequest = {
+      productId,
+      measurementUnitId,
+      sellingPrice: newPrice.toString(),
+    };
+
+    updatePrices(payload, {
+      onSuccess: () => {
+        toast({
+          title: 'Cập nhật giá thành công',
+          description: `Giá cho sản phẩm ${priceChangeToConfirm.productCode} đã được cập nhật.`,
+        });
+        queryClient.invalidateQueries({ queryKey: ['productPrices'] });
+      },
+      onError: (error) => {
+        toast({
+          title: 'Cập nhật giá thất bại',
+          description: error.message || 'Đã có lỗi xảy ra.',
+          variant: 'destructive',
+        });
+      },
+      onSettled: () => {
+        setIsConfirmOpen(false);
+        setPriceChangeToConfirm(null);
+      },
+    });
+  };
 
   // Handle export button click
   const handleExportClick = () => {
@@ -161,19 +232,20 @@ export default function ProductsListPrices() {
       accessorKey: 'prices.price',
       header: 'Giá bán',
       cell: ({ row }) => {
-        const product = row.original;
-        // Ensure product.prices and product.prices.id exist before accessing
-        const initialPrice = product.prices?.purchasePrice;
-        const currentPrice =
-          product.prices?.id && editedPrices[product.prices.id] !== undefined
-            ? editedPrices[product.prices.id]
-            : initialPrice;
+        const product = row.original as ProductPriceListResponse;
+        const priceInfo = product.prices;
+
+        // Render nothing if there is no price information at all
+        if (!priceInfo) {
+          return null;
+        }
 
         return (
           <EditablePriceCell
-            initialValue={currentPrice}
-            productId={product.prices.id} // Pass product.prices.id as productId
+            initialValue={priceInfo.price}
+            productId={priceInfo.id?.toString() || ''}
             onPriceChange={handlePriceChange}
+            onKeyDown={(e) => handleKeyDown(e, priceInfo.id?.toString() || '')}
           />
         );
       },
@@ -194,39 +266,10 @@ export default function ProductsListPrices() {
               <CardTitle>Danh sách sản phẩm</CardTitle>
               <CardDescription>Xem và quản lý thông tin chi tiết sản phẩm.</CardDescription>
             </div>
-            <div className="flex gap-2">
-              {/* Added a div to group buttons */}
-              {/* Export Button */}
-              {/* Update Prices Button */}
-              <Button
-                onClick={() => {
-                  const pricesToUpdate: UpdateProductPriceRequest[] = Object.entries(editedPrices).map(
-                    ([productId, price]) => ({
-                      productId: Number.parseInt(productId), // productId here is actually prices.id
-                      measurementUnitId: 1, // Assuming a default measurementUnitId or get it from product.prices
-                      sellingPrice: price.toString(),
-                    })
-                  );
-                  if (pricesToUpdate.length > 0) {
-                    // TODO: Update all prices at once
-                    // The useUpdateProductPrice hook seems to update one at a time.
-                    // If it's a batch update, the API hook needs to support it.
-                    // For now, it's calling for the first item only.
-                    updatePrices(pricesToUpdate[0]);
-                    // You might want to iterate and call updatePrices for each,
-                    // or have a separate batch update mutation.
-                  }
-                }}
-                disabled={Object.keys(editedPrices).length === 0 || isUpdating}
-              >
-                {isUpdating ? 'Đang cập nhật...' : 'Cập nhật giá bán'}
-              </Button>
-            </div>
           </CardHeader>
           <CardContent>
             {/* Added search input and select for searchBy */}
             <div className="flex items-center justify-between gap-2 mb-4">
-              {/* Added flex container */}
               <div className="flex gap-2 w-1/2 min-w-sm">
                 <div className="w-1/3 min-w-[150px]">
                   <Select onValueChange={handleSearchByChange} defaultValue={searchByValue || 'NAME'}>
@@ -251,7 +294,6 @@ export default function ProductsListPrices() {
               </div>
 
               <div className="flex gap-2">
-                {/* Sort Dropdown */}
                 <SortDropdown
                   sortableColumns={sortableColumns}
                   currentSortBy={sortBy}
@@ -259,7 +301,6 @@ export default function ProductsListPrices() {
                   setSortBy={setSortBy}
                   setSortOrder={setSortOrder}
                 />
-                {/* Export Button */}
                 <Button onClick={handleExportClick} disabled={isLoading || isExporting}>
                   <FileOutput className="mr-2 h-4 w-4" />
                   {isExporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
@@ -275,11 +316,21 @@ export default function ProductsListPrices() {
               pageSize={pageSize} // Use pageSize from hook
               pageIndex={pageIndex} // Use pageIndex from hook
               onPageChange={setPageIndex} // Use setPageIndex from hook
-              // searchKey and searchPlaceholder are now handled by the Input and Select above
             />
           </CardContent>
         </Card>
       </div>
+      {priceChangeToConfirm && (
+        <ConfirmDialog
+          open={isConfirmOpen}
+          onOpenChange={setIsConfirmOpen}
+          title="Xác nhận thay đổi giá"
+          description={`Bạn có chắc chắn muốn cập nhật giá cho sản phẩm "${priceChangeToConfirm.productCode}" thành ${priceChangeToConfirm.newPrice.toLocaleString()}?`}
+          onConfirm={handleConfirmUpdate}
+          confirmText={isUpdating ? 'Đang cập nhật...' : 'Xác nhận'}
+          cancelText="Hủy"
+        />
+      )}
     </div>
   );
 }

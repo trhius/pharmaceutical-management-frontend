@@ -56,6 +56,7 @@ export interface ProductDetailsResponse {
 
 export interface ProductPriceResponse {
   id?: number;
+  measurementUnitId?: number;
   measurementUnitName?: string;
   purchasePrice?: number;
   price?: number;
@@ -73,9 +74,10 @@ export interface GetProductPriceRequest {
 }
 
 export interface ProductPriceListResponse {
+  productId?: number;
   productCode?: string;
   productName?: string;
-  prices?: ProductPriceResponse[];
+  prices?: ProductPriceResponse;
 }
 
 export interface PageProductPriceListResponse {

@@ -11,6 +11,7 @@ export interface SupplierRequest {
   email?: string;
   address?: string;
   taxCode?: string;
+  note?: string;
 }
 
 export interface SupplierResponse {
@@ -24,6 +25,7 @@ export interface SupplierResponse {
   taxCode?: string;
   isActive?: boolean;
   status?: string;
+  note?: string;
   createdAt?: string; // date-time format
   createdBy?: string;
   updatedAt?: string; // date-time format

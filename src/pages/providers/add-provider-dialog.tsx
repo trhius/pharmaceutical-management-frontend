@@ -84,9 +84,9 @@ export function AddProviderDialog({ open, onOpenChange, onProviderAdded }: AddPr
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Thêm Nhà Cung Cấp Mới</DialogTitle>
+          <DialogTitle>Thêm nhà cung cấp</DialogTitle>
           <DialogDescription>
-            Nhập thông tin chi tiết cho nhà cung cấp mới.
+            Nhập thông tin chi tiết cho nhà cung cấp.
           </DialogDescription>
         </DialogHeader>
 

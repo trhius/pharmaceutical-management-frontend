@@ -172,7 +172,7 @@ export default function ProductsListPage() {
       cell: ({ row }: any) => {
         const isActive = row.original.isActive;
         return (
-          <Badge variant={isActive ? 'success' : 'secondary'}>
+          <Badge variant={isActive ? 'success' : 'destructive'}>
             {isActive ? 'Đang kinh doanh' : 'Ngừng kinh doanh'}
           </Badge>
         );
