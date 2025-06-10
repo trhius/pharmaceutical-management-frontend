@@ -7,6 +7,9 @@ import { useForm, Controller } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
 import MedicineInfo from './medicine-info';
 import { ProductResponse } from '@/apis/types/product';
+import { useCreateOrder } from '@/apis/hooks/sales'; // Import the hook
+import { useToast } from '@/hooks/use-toast';
+import { CreateOrderItemRequest, CreateOrderRequest, PrescriptionInfoRequest } from '@/apis/types/sales';
 
 interface CartItem extends ProductResponse {
   quantity: number;
@@ -26,22 +29,82 @@ interface PaymentSheetProps {
 interface PaymentFormValues {
   prescriptionSale: boolean;
   paymentMethod: string;
+  // Add field for prescription info
+  prescriptionInfo?: PrescriptionInfoRequest;
 }
 
 export function PaymentSheet({ selectedCustomer, currentSelectedProducts, totalAmount }: PaymentSheetProps) {
+  const { toast } = useToast();
+
   const methods = useForm<PaymentFormValues>({
     defaultValues: {
       prescriptionSale: false,
       paymentMethod: 'cash',
+      prescriptionInfo: undefined, // Initialize prescription info
     },
   });
 
+  const createOrderMutation = useCreateOrder(); // Instantiate the mutation hook
+
   const onSubmit = (data: PaymentFormValues) => {
-    console.log('Payment Form Data:', data);
-    console.log('Selected Customer:', selectedCustomer);
-    console.log('Selected Products:', currentSelectedProducts);
-    console.log('Total Amount:', totalAmount);
-    // TODO: Implement payment logic
+    // Map cart items to API format
+    const orderItems: CreateOrderItemRequest[] = currentSelectedProducts.map((item) => ({
+      productId: item.id,
+      quantity: item.quantity,
+      unitPrice: item.defaultPrice?.purchasePrice || 0, // Assuming item.price is the unit price
+      totalPrice: (item.defaultPrice?.purchasePrice ?? 0) * item.quantity,
+      discountAmount: 0, // Assuming no discounts for now
+      discountPercent: 0, // Assuming no discounts for now
+      finalPrice: (item.defaultPrice?.purchasePrice ?? 0) * item.quantity, // Assuming no discounts
+      measurementUnitId: item.defaultPrice?.measurementUnitId,
+      // batchId and measurementUnitId are optional based on API types, skipping for now
+      // If they become required, the CartItem structure or product selection flow needs adjustment
+    }));
+
+    // Map payment method string to API enum
+    const paymentMethodMapping: Record<string, CreateOrderRequest['paymentMethod']> = {
+      cash: 'CASH',
+      transfer: 'BANK_TRANSFER',
+      card: 'CREDIT_CARD',
+      wallet: 'MOBILE_PAYMENT',
+    };
+    const apiPaymentMethod = paymentMethodMapping[data.paymentMethod] || 'OTHER'; // Default to OTHER if unknown
+
+    // Construct the API request payload
+    const createOrderRequest: CreateOrderRequest = {
+      customerId: selectedCustomer?.id,
+      storeId: 1, // Assuming storeId is handled by backend or not required in request
+      items: orderItems,
+      note: undefined, // Add a note field if needed in the form
+      paymentMethod: apiPaymentMethod,
+      totalAmount: totalAmount, // Total amount before discount
+      amountPaid: totalAmount, // Assuming customer pays the total amount
+      changeGiven: 0, // Assuming no change given
+      discountAmount: 0, // Total discount amount for the order
+      finalAmount: totalAmount, // Final amount after discount
+
+      // Include prescription info only if prescriptionSale is checked and info is available
+      prescriptionInfo: data.prescriptionSale ? data.prescriptionInfo : undefined,
+    };
+
+    console.log('Create Order Request:', createOrderRequest);
+
+    // Call the mutation
+    createOrderMutation.mutate(createOrderRequest, {
+      onSuccess: () => {
+        toast({
+          title: 'Thanh toán thành công',
+          description: `Đơn hàng đã được ghi nhận.`,
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: 'Thanh toán thất bại',
+          description: error.message || 'Đã xảy ra lỗi',
+          variant: 'destructive',
+        });
+      },
+    });
   };
 
   return (
@@ -67,7 +130,7 @@ export function PaymentSheet({ selectedCustomer, currentSelectedProducts, totalA
               render={({ field }) => (
                 <div className="flex items-center space-x-2">
                   <Checkbox id="prescription" checked={field.value} onCheckedChange={field.onChange} />
-                  <MedicineInfo onSave={console.log} />
+                  <MedicineInfo onSave={(data) => methods.setValue('prescriptionInfo', data)} />
                 </div>
               )}
             />

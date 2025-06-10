@@ -2,7 +2,7 @@
  * This file contains TypeScript interfaces related to Sales.
  */
 
-import { PageableObject, SortObject } from "./utility";
+import { PageableObject, SortObject } from './utility';
 
 export interface CreateOrderItemRequest {
   productId?: number;
@@ -33,7 +33,7 @@ export interface PrescriptionInfoRequest {
 
 export interface CreateOrderRequest {
   customerId?: number;
-  storeId?: number;
+  storeId: number;
   items?: CreateOrderItemRequest[];
   note?: string;
   paymentMethod?: 'CASH' | 'CREDIT_CARD' | 'BANK_TRANSFER' | 'MOBILE_PAYMENT' | 'OTHER';
