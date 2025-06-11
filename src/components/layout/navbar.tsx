@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/navigation-menu';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { ChevronDown, LogOut, PencilLine } from 'lucide-react';
+import { ChevronDown, LogOut, PencilLine, ShoppingCart } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 import {
@@ -118,6 +118,13 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
+          <Link to="/orders/create">
+            <Button className="relative bg-blue-500 hover:bg-blue-600 dark:text-white">
+              <ShoppingCart />
+              Bán hàng
+            </Button>
+          </Link>
+
           <ThemeToggle />
 
           <DropdownMenu>
