@@ -32,3 +32,12 @@ export const paymentMethods = [
   { label: 'Thanh toán di động', value: 'MOBILE_PAYMENT' },
   { label: 'Khác', value: 'OTHER' },
 ];
+
+export const orderStatusMap: {
+  [key: string]: { label: string; color: string };
+} = {
+  NEW: { label: 'Mới', color: 'bg-blue-100 text-blue-800' },
+  COMPLETED: { label: 'Hoàn thành', color: 'bg-green-100 text-green-800' },
+  CANCELLED: { label: 'Đã hủy', color: 'bg-red-100 text-red-800' },
+  RETURNED: { label: 'Đã trả hàng', color: 'bg-yellow-100 text-yellow-800' },
+};

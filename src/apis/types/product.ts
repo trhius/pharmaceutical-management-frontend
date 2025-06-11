@@ -113,7 +113,7 @@ export interface GetProductRequest {
 }
 
 export interface ProductResponse {
-  id?: number;
+  id: number;
   productCode?: string;
   productName?: string;
   shortenName?: string;

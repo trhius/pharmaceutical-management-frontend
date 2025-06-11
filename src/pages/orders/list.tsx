@@ -11,6 +11,7 @@ import { FileOutput } from 'lucide-react'; // Import FileOutput icon, ListOrdere
 import { Button } from '@/components/ui/button'; // Import Button component
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { format } from 'date-fns';
+import DetailOrder from './detail-order';
 
 import useListPageState from '@/hooks/useListPageState'; // Assuming the path to your custom hook
 import { SortDropdown } from '@/components/ui/sort-dropdown'; // Import SortDropdown
@@ -152,6 +153,11 @@ export default function OrdersListPage() {
     );
   };
 
+  const renderExpandedContent = (row: any) => {
+    console.log(row);
+    return <DetailOrder orderId={row.id} />;
+  };
+
   return (
     <div className="mx-auto">
       <PageHeader
@@ -224,6 +230,7 @@ export default function OrdersListPage() {
               pageIndex={pageIndex}
               pageSize={pageSize}
               onPageChange={setPageIndex}
+              expandedContent={renderExpandedContent}
             />
           </CardContent>
         </Card>
