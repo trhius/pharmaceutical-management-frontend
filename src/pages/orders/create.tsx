@@ -89,6 +89,18 @@ export default function Component() {
     );
   };
 
+  const removeProductFromCart = (productId: number) => {
+    setTabs((prevTabs: TabItem[]) =>
+      prevTabs.map((tab) => {
+        if (tab.id === activeTab) {
+          const newSelectedProducts = tab.selectedProducts.filter((p: CartItem) => p.id !== productId);
+          return { ...tab, selectedProducts: newSelectedProducts };
+        }
+        return tab;
+      })
+    );
+  };
+
   const addNewTab = () => {
     const newTab = {
       id: nextTabId,
@@ -249,6 +261,14 @@ export default function Component() {
                         <Badge variant="secondary">
                           {((product.defaultPrice?.purchasePrice || 0) * product.quantity).toLocaleString()} VND
                         </Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="p-0 h-6 w-6 hover:bg-red-500 hover:text-white"
+                          onClick={() => removeProductFromCart(product.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   ))}
