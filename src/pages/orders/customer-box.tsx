@@ -41,16 +41,16 @@ export function CustomerComboBox({ onCustomerSelect, selectedCustomer }: Custome
     <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           role="combobox"
           aria-expanded={popoverOpen}
-          className="w-fit flex-grow justify-between"
+          className="w-fit flex-grow justify-between hover:bg-transparent focus-visible:ring-0"
         >
           {selectedCustomer ? selectedCustomer.name : 'Chọn khách hàng'}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
+      <PopoverContent className="p-0" style={{ width: 'var(--radix-popover-trigger-width)' }}>
         {' '}
         {/* Adjust width as needed */}
         <Command>

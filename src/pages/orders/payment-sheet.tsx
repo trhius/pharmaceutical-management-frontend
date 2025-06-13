@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -24,6 +25,7 @@ interface PaymentSheetProps {
   selectedCustomer: CustomerResponse | null;
   currentSelectedProducts: CartItem[];
   totalAmount: number;
+  onOrderSuccess: () => void;
 }
 
 interface PaymentFormValues {
@@ -33,8 +35,14 @@ interface PaymentFormValues {
   prescriptionInfo?: PrescriptionInfoRequest;
 }
 
-export function PaymentSheet({ selectedCustomer, currentSelectedProducts, totalAmount }: PaymentSheetProps) {
+export function PaymentSheet({
+  selectedCustomer,
+  currentSelectedProducts,
+  totalAmount,
+  onOrderSuccess,
+}: PaymentSheetProps) {
   const { toast } = useToast();
+  const [open, setOpen] = useState(false);
 
   const methods = useForm<PaymentFormValues>({
     defaultValues: {
@@ -96,6 +104,8 @@ export function PaymentSheet({ selectedCustomer, currentSelectedProducts, totalA
           title: 'Thanh toán thành công',
           description: `Đơn hàng đã được ghi nhận.`,
         });
+        setOpen(false); // Close the sheet
+        onOrderSuccess();
       },
       onError: (error) => {
         toast({
@@ -108,10 +118,10 @@ export function PaymentSheet({ selectedCustomer, currentSelectedProducts, totalA
   };
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 dark:bg-blue-700 dark:hover:bg-blue-800"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-10 py-2.5 dark:bg-blue-700 dark:hover:bg-blue-800"
           variant="outline"
         >
           Thanh toán

@@ -13,7 +13,7 @@ export const useCancelOrder = (): UseMutationResult<Types.StringResponse, Error,
   });
 
 export const useRecommendSupplements = (): UseMutationResult<
-  Types.RecommendResponse[],
+  Types.RecommendResponse,
   Error,
   Types.RecommendRequest
 > =>

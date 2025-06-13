@@ -8,7 +8,7 @@ export const sales = {
   cancelOrder: (orderId: number): Promise<Types.StringResponse> =>
     apiClient.post(`/api/sales/${orderId}/cancel`).then((res) => res.data),
 
-  recommendSupplements: (data: Types.RecommendRequest): Promise<Types.RecommendResponse[]> =>
+  recommendSupplements: (data: Types.RecommendRequest): Promise<Types.RecommendResponse> =>
     apiClient.post('/api/sales/recommend-supplements', data).then((res) => res.data),
 
   getOrderDetails: (orderId: number): Promise<Types.OrderDetailsResponse> =>

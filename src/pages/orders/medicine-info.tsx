@@ -50,7 +50,7 @@ export default function MedicineInfo({ onSave }: MedicineInfoProps) {
                 </Label>
                 <Input
                   id="prescription-code"
-                  placeholder=""
+                  placeholder="Ví dụ: 12345"
                   value={prescriptionCode || ''}
                   onChange={(e) => setPrescriptionCode(e.target.value || undefined)}
                 />
@@ -63,7 +63,7 @@ export default function MedicineInfo({ onSave }: MedicineInfoProps) {
               </Label>
               <Input
                 id="doctor-name"
-                placeholder=""
+                placeholder="Ví dụ: Nguyễn Văn A"
                 value={doctorName || ''}
                 onChange={(e) => setDoctorName(e.target.value || undefined)}
               />
@@ -75,7 +75,7 @@ export default function MedicineInfo({ onSave }: MedicineInfoProps) {
               </Label>
               <Input
                 id="hospital-name"
-                placeholder=""
+                placeholder="Ví dụ: Bệnh viện Chợ Rẫy"
                 value={hospitalName || ''}
                 onChange={(e) => setHospitalName(e.target.value || undefined)}
               />
@@ -87,7 +87,7 @@ export default function MedicineInfo({ onSave }: MedicineInfoProps) {
               </Label>
               <Input
                 id="patient-name"
-                placeholder=""
+                placeholder="Ví dụ: Trần Thị B"
                 value={patientName || ''}
                 onChange={(e) => setPatientName(e.target.value || undefined)}
               />
@@ -102,7 +102,7 @@ export default function MedicineInfo({ onSave }: MedicineInfoProps) {
                 <Input
                   id="age"
                   type="number"
-                  placeholder=""
+                  placeholder="Ví dụ: 30"
                   value={age || ''}
                   onChange={(e) => setAge(e.target.value ? parseInt(e.target.value) : undefined)}
                 />
@@ -146,7 +146,7 @@ export default function MedicineInfo({ onSave }: MedicineInfoProps) {
               <Input
                 id="weight"
                 type="number"
-                placeholder=""
+                placeholder="Ví dụ: 50"
                 value={weight || ''}
                 onChange={(e) => setWeight(e.target.value ? parseFloat(e.target.value) : undefined)}
               />
@@ -161,7 +161,7 @@ export default function MedicineInfo({ onSave }: MedicineInfoProps) {
               </Label>
               <Input
                 id="insurance-card"
-                placeholder=""
+                placeholder="Nhập mã thẻ BHYT"
                 value={insuranceCard || ''}
                 onChange={(e) => setInsuranceCard(e.target.value || undefined)}
               />
@@ -173,7 +173,7 @@ export default function MedicineInfo({ onSave }: MedicineInfoProps) {
               </Label>
               <Input
                 id="address"
-                placeholder=""
+                placeholder="Ví dụ: 123 Đường ABC, Phường X, Quận Y"
                 value={address || ''}
                 onChange={(e) => setAddress(e.target.value || undefined)}
               />
@@ -185,7 +185,7 @@ export default function MedicineInfo({ onSave }: MedicineInfoProps) {
               </Label>
               <Input
                 id="guardian-name"
-                placeholder=""
+                placeholder="Nhập tên người giám hộ (nếu có)"
                 value={guardianName || ''}
                 onChange={(e) => setGuardianName(e.target.value || undefined)}
               />
@@ -197,7 +197,7 @@ export default function MedicineInfo({ onSave }: MedicineInfoProps) {
               </Label>
               <Input
                 id="contact-phone"
-                placeholder=""
+                placeholder="Nhập số điện thoại"
                 value={contactPhone || ''}
                 onChange={(e) => setContactPhone(e.target.value || undefined)}
               />
@@ -209,7 +209,7 @@ export default function MedicineInfo({ onSave }: MedicineInfoProps) {
               </Label>
               <Input
                 id="diagnosis"
-                placeholder=""
+                placeholder="Nhập chẩn đoán của bác sĩ"
                 value={diagnosis || ''}
                 onChange={(e) => setDiagnosis(e.target.value || undefined)}
               />

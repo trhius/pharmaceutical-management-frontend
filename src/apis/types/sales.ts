@@ -3,6 +3,7 @@
  */
 
 import { PageableObject, SortObject } from './utility';
+import { ProductResponse } from './product';
 
 export interface CreateOrderItemRequest {
   productId?: number;
@@ -104,11 +105,13 @@ export interface RecommendRequest {
   productIds?: number[];
 }
 
-export interface RecommendResponse {
-  // This schema is empty in the OpenAPI spec.
-  // You might want to define its actual structure if known.
-  [key: string]: any;
+export interface RecommendedProduct extends ProductResponse {
+  rank: number;
+  reason: string;
+  similarityScore: number | null;
 }
+
+export interface RecommendResponse extends Array<RecommendedProduct> {}
 
 export interface OrderListRequest {
   search?: string;

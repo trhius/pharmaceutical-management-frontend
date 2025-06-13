@@ -129,6 +129,7 @@ export interface ProductResponse {
   categories?: CategoryResponse[];
   prices?: ProductPriceResponse[];
   defaultPrice?: ProductPriceResponse;
+  totalQuantity?: number;
 }
 
 export interface PageProductResponse {
