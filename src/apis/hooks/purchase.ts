@@ -44,13 +44,13 @@ export const usePurchaseOrderDetails = (
     enabled: options?.enabled ?? !!id,
   });
 
-export const usePurchasePreview = (
+export const usePurchaseOrderPreview = (
   id: number,
   options?: { enabled?: boolean }
 ): UseQueryResult<PurchasePreviewResponse, Error> =>
   useQuery({
-    queryKey: ['purchasePreview', id],
-    queryFn: () => purchase.getPurchasePreview(id),
+    queryKey: ['purchaseOrderPreview', id],
+    queryFn: () => purchase.getPurchaseOrderPreview(id),
     enabled: options?.enabled ?? !!id,
   });
 

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -11,6 +11,7 @@ import { ProductResponse } from '@/apis/types/product';
 import { useCreateOrder } from '@/apis/hooks/sales'; // Import the hook
 import { useToast } from '@/hooks/use-toast';
 import { CreateOrderItemRequest, CreateOrderRequest, PrescriptionInfoRequest } from '@/apis/types/sales';
+import { Input } from '@/components/ui/input';
 
 interface CartItem extends ProductResponse {
   quantity: number;
@@ -31,6 +32,8 @@ interface PaymentSheetProps {
 interface PaymentFormValues {
   prescriptionSale: boolean;
   paymentMethod: string;
+  discountAmount: number;
+  amountPaid: number;
   // Add field for prescription info
   prescriptionInfo?: PrescriptionInfoRequest;
 }
@@ -43,30 +46,58 @@ export function PaymentSheet({
 }: PaymentSheetProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [amountPaidEdited, setAmountPaidEdited] = useState(false);
 
   const methods = useForm<PaymentFormValues>({
     defaultValues: {
       prescriptionSale: false,
       paymentMethod: 'cash',
+      discountAmount: 0,
+      amountPaid: 0,
       prescriptionInfo: undefined, // Initialize prescription info
     },
   });
 
   const createOrderMutation = useCreateOrder(); // Instantiate the mutation hook
 
+  const discountAmount = methods.watch('discountAmount') || 0;
+  const paymentMethod = methods.watch('paymentMethod');
+  const amountPaid = methods.watch('amountPaid') || 0;
+
+  const finalAmount = useMemo(() => Math.max(0, totalAmount - discountAmount), [totalAmount, discountAmount]);
+  const changeGiven = useMemo(() => Math.max(0, amountPaid - finalAmount), [amountPaid, finalAmount]);
+
+  useEffect(() => {
+    if (paymentMethod !== 'cash') {
+      methods.setValue('amountPaid', finalAmount);
+      methods.clearErrors('amountPaid');
+      setAmountPaidEdited(false);
+    } else {
+      if (!amountPaidEdited) {
+        methods.setValue('amountPaid', finalAmount);
+      }
+    }
+  }, [paymentMethod, finalAmount, methods, amountPaidEdited]);
+
   const onSubmit = (data: PaymentFormValues) => {
+    if (data.paymentMethod === 'cash' && data.amountPaid < finalAmount) {
+      methods.setError('amountPaid', {
+        type: 'manual',
+        message: 'Số tiền thanh toán không đủ',
+      });
+      return;
+    }
+
     // Map cart items to API format
     const orderItems: CreateOrderItemRequest[] = currentSelectedProducts.map((item) => ({
       productId: item.id,
       quantity: item.quantity,
-      unitPrice: item.defaultPrice?.purchasePrice || 0, // Assuming item.price is the unit price
-      totalPrice: (item.defaultPrice?.purchasePrice ?? 0) * item.quantity,
-      discountAmount: 0, // Assuming no discounts for now
-      discountPercent: 0, // Assuming no discounts for now
-      finalPrice: (item.defaultPrice?.purchasePrice ?? 0) * item.quantity, // Assuming no discounts
+      unitPrice: item.defaultPrice?.price || 0, 
+      totalPrice: (item.defaultPrice?.price ?? 0) * item.quantity,
+      discountAmount: 0, 
+      discountPercent: 0, 
+      finalPrice: (item.defaultPrice?.price ?? 0) * item.quantity, 
       measurementUnitId: item.defaultPrice?.measurementUnitId,
-      // batchId and measurementUnitId are optional based on API types, skipping for now
-      // If they become required, the CartItem structure or product selection flow needs adjustment
     }));
 
     // Map payment method string to API enum
@@ -78,6 +109,9 @@ export function PaymentSheet({
     };
     const apiPaymentMethod = paymentMethodMapping[data.paymentMethod] || 'OTHER'; // Default to OTHER if unknown
 
+    const amountPaidForRequest = data.paymentMethod === 'cash' ? data.amountPaid : finalAmount;
+    const changeGivenForRequest = data.paymentMethod === 'cash' ? changeGiven : 0;
+
     // Construct the API request payload
     const createOrderRequest: CreateOrderRequest = {
       customerId: selectedCustomer?.id,
@@ -86,10 +120,10 @@ export function PaymentSheet({
       note: undefined, // Add a note field if needed in the form
       paymentMethod: apiPaymentMethod,
       totalAmount: totalAmount, // Total amount before discount
-      amountPaid: totalAmount, // Assuming customer pays the total amount
-      changeGiven: 0, // Assuming no change given
-      discountAmount: 0, // Total discount amount for the order
-      finalAmount: totalAmount, // Final amount after discount
+      amountPaid: amountPaidForRequest,
+      changeGiven: changeGivenForRequest,
+      discountAmount: data.discountAmount, // Total discount amount for the order
+      finalAmount: finalAmount, // Final amount after discount
 
       // Include prescription info only if prescriptionSale is checked and info is available
       prescriptionInfo: data.prescriptionSale ? data.prescriptionInfo : undefined,
@@ -107,11 +141,13 @@ export function PaymentSheet({
         setOpen(false); // Close the sheet
         onOrderSuccess();
       },
-      onError: (error) => {
+      onError: (error: any) => {
+        const message = error.response?.data?.error || error.message || 'Đã xảy ra lỗi';
         toast({
           title: 'Thanh toán thất bại',
-          description: error.message || 'Đã xảy ra lỗi',
+          description: message,
           variant: 'destructive',
+          duration: 3000,
         });
       },
     });
@@ -148,27 +184,63 @@ export function PaymentSheet({
             {/* Order summary */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Tổng tiền hàng</span>
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm">{currentSelectedProducts.length}</span>
-                  <span className="text-sm font-medium">{totalAmount.toLocaleString()}</span>
-                </div>
+                <span className="text-sm text-gray-600">Tổng tiền hàng ({currentSelectedProducts.length})</span>
+                <span className="text-sm font-medium">{totalAmount.toLocaleString()}</span>
               </div>
 
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Giảm giá</span>
-                <span className="text-sm">0</span>
-              </div>
+              <Controller
+                name="discountAmount"
+                control={methods.control}
+                render={({ field }) => (
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="discountAmount">Giảm giá</Label>
+                    <Input
+                      id="discountAmount"
+                      type="number"
+                      className="h-8 w-32 text-right"
+                      placeholder="0"
+                      value={field.value}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                )}
+              />
 
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">Khách cần trả</span>
-                <span className="text-lg font-semibold text-blue-600">{totalAmount.toLocaleString()}</span>
+                <span className="text-lg font-semibold text-blue-600">{finalAmount.toLocaleString()}</span>
               </div>
 
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Khách thanh toán</span>
-                <span className="text-sm font-medium">{totalAmount.toLocaleString()}</span>
-              </div>
+              <Controller
+                name="amountPaid"
+                control={methods.control}
+                render={({ field, fieldState: { error } }) => (
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <Label htmlFor="amountPaid">Khách thanh toán</Label>
+                      <Input
+                        id="amountPaid"
+                        type="number"
+                        className={`h-8 w-32 text-right ${error ? 'border-destructive' : ''}`}
+                        value={field.value}
+                        onChange={(e) => {
+                          field.onChange(parseFloat(e.target.value) || 0);
+                          setAmountPaidEdited(true);
+                        }}
+                        disabled={paymentMethod !== 'cash'}
+                      />
+                    </div>
+                    {error && <p className="text-sm text-destructive text-right">{error.message}</p>}
+                  </div>
+                )}
+              />
+
+              {paymentMethod === 'cash' && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Cần trả lại</span>
+                  <span className="text-sm font-medium">{changeGiven.toLocaleString()}</span>
+                </div>
+              )}
             </div>
 
             {/* Payment methods */}

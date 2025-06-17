@@ -24,9 +24,9 @@ export function CustomerComboBox({ onCustomerSelect, selectedCustomer }: Custome
     isError: isErrorCustomers,
   } = useCustomers({
     page: customerPageIndex,
-    size: 10,
+    size: 100,
     enabled: popoverOpen || customerSearchKeyword.length > 0, // Fetch when open or search term exists
-    request: { searchBy: 'NAME', search: customerSearchKeyword } as CustomerListRequest,
+    request: { searchBy: 'NAME', search: customerSearchKeyword, isActive: true } as CustomerListRequest,
   });
 
   const customers = customersData?.content || [];

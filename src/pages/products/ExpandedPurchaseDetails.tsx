@@ -10,6 +10,8 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useNavigate } from "react-router-dom";
+import { purchase } from "@/apis/services/purchase";
 
 interface ExpandedPurchaseOrderDetailsProps {
   purchaseOrderId: number;
@@ -27,14 +29,31 @@ export default function ExpandedPurchaseOrderDetails({ purchaseOrderId }: Expand
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const cancelPurchaseOrderMutation = useCancelPurchaseOrder();
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState<PurchaseDetailsResponse | null>(null);
 
-  const handleEdit = (purchaseOrder: PurchaseDetailsResponse) => {
-    // TODO: implement edit functionality
-    console.log("Editing purchase order", purchaseOrder);
+  const handleEdit = async (purchaseOrder: PurchaseDetailsResponse) => {
+    if (!purchaseOrder.id) {
+      toast({
+        title: "Lỗi",
+        description: "Không tìm thấy phiếu nhập.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      const previewData = await purchase.getPurchaseOrderPreview(purchaseOrder.id);
+      navigate('/products/purchase-order/import', { state: { previewData, purchaseOrderId: purchaseOrder.id } });
+    } catch (error) {
+      toast({
+        title: "Lỗi",
+        description: "Không thể lấy thông tin phiếu nhập.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDelete = (purchaseOrder: PurchaseDetailsResponse) => {

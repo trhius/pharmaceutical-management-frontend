@@ -31,7 +31,7 @@ export const purchase = {
   getPurchaseOrderDetails: (id: number): Promise<Types.PurchaseDetailsResponse> =>
     apiClient.get(`/api/purchases/${id}`).then((res) => res.data),
 
-  getPurchasePreview: (id: number): Promise<Types.PurchasePreviewResponse> =>
+  getPurchaseOrderPreview: (id: number): Promise<Types.PurchasePreviewResponse> =>
     apiClient.get(`/api/purchases/${id}/preview`).then((res) => res.data),
 
   importPurchaseOrder: (data: Types.PurchaseImportRequest): Promise<Types.StringResponse> =>

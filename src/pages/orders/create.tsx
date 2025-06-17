@@ -12,10 +12,9 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Lock,
-  RotateCcw,
   RefreshCw,
   Printer,
+  LayoutDashboard,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +29,8 @@ import { useRecommendSupplements } from '@/apis/hooks/sales';
 import { RecommendedProduct } from '@/apis/types/sales';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useNavigate } from 'react-router-dom';
+import { useAccountInfo } from '@/apis/hooks/account';
 
 interface CartItem extends ProductResponse {
   quantity: number;
@@ -50,6 +51,9 @@ export default function Component() {
     initialSize: 21,
     resetPageIndexOnFilterChange: false,
   });
+
+  const navigate = useNavigate();
+  const { data: accountInfo } = useAccountInfo();
 
   const [activeTab, setActiveTab] = useState(1);
   const [tabs, setTabs] = useState<TabItem[]>([
@@ -246,7 +250,7 @@ export default function Component() {
 
   // Calculate total amount for the active tab
   const totalAmount = currentSelectedProducts.reduce((sum, product) => {
-    return sum + (product.selectedPrice?.purchasePrice || 0) * product.quantity;
+    return sum + (product.selectedPrice?.price || 0) * product.quantity;
   }, 0);
 
   const handleCustomerSelect = (customer: CustomerResponse | null) => {
@@ -311,15 +315,37 @@ export default function Component() {
           </div>
 
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm" className="text-white dark:text-gray-100">
-              <Lock className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="text-white dark:text-gray-100">
-              <RotateCcw className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="text-white dark:text-gray-100">
-              <RefreshCw className="h-4 w-4" />
-            </Button>
+            {accountInfo?.role !== 'PHARMACIST' && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-white dark:text-gray-100"
+                      onClick={() => navigate('/')}
+                    >
+                      <LayoutDashboard className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Quay về trang quản trị</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-white dark:text-gray-100" onClick={resetOrderState}>
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Làm mới đơn hàng</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Button variant="ghost" size="sm" className="text-white dark:text-gray-100">
               <Printer className="h-4 w-4" />
             </Button>
@@ -354,7 +380,7 @@ export default function Component() {
                           {product.shortenName || product.productName}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {product.selectedPrice?.price?.toLocaleString()} VND
+                          {product.selectedPrice?.price?.toLocaleString()} VND (SL: {product.totalQuantity})
                         </p>
                       </div>
                     </div>
@@ -587,7 +613,7 @@ function RecommendedProductCard({
           />
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2 mb-1">
-              {product.productName}
+              {product.shortenName}
             </h3>
             <TooltipProvider>
               <Tooltip>

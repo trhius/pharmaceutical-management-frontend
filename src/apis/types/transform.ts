@@ -34,10 +34,10 @@ export const paymentMethods = [
 ];
 
 export const orderStatusMap: {
-  [key: string]: { label: string; color: string };
+  [key: string]: { label: string; variant: 'default' | 'secondary' | 'destructive' | 'success' | 'outline' };
 } = {
-  NEW: { label: 'Mới', color: 'bg-blue-100 text-blue-800' },
-  COMPLETED: { label: 'Hoàn thành', color: 'bg-green-100 text-green-800' },
-  CANCELLED: { label: 'Đã hủy', color: 'bg-red-100 text-red-800' },
-  RETURNED: { label: 'Đã trả hàng', color: 'bg-yellow-100 text-yellow-800' },
+  NEW: { label: 'Mới', variant: 'secondary' },
+  COMPLETED: { label: 'Hoàn thành', variant: 'success' },
+  CANCELLED: { label: 'Đã hủy', variant: 'destructive' },
+  RETURNED: { label: 'Đã trả hàng', variant: 'outline' },
 };

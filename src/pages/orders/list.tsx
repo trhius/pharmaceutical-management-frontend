@@ -1,22 +1,22 @@
 import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table';
-import { useListOrders, useExportOrders } from '@/apis/hooks/sales'; // Import useExportOrders
+import { useListOrders, useExportOrders } from '@/apis/hooks/sales'; 
 import { useCallback } from 'react';
 import { OrderFilter } from './filter-order';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { OrderListRequest } from '@/apis/types/sales';
-import { FileOutput } from 'lucide-react'; // Import FileOutput icon, ListOrdered icon
-import { Button } from '@/components/ui/button'; // Import Button component
-import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { OrderListRequest, OrderListResponse } from '@/apis/types/sales';
+import { FileOutput } from 'lucide-react'; 
+import { Button } from '@/components/ui/button'; 
+import { useToast } from '@/hooks/use-toast'; 
 import { format } from 'date-fns';
 import DetailOrder from './detail-order';
 
-import useListPageState from '@/hooks/useListPageState'; // Assuming the path to your custom hook
-import { SortDropdown } from '@/components/ui/sort-dropdown'; // Import SortDropdown
+import useListPageState from '@/hooks/useListPageState'; 
+import { SortDropdown } from '@/components/ui/sort-dropdown'; 
 import { Badge } from '@/components/ui/badge';
-import { paymentMethods } from '@/apis/types/transform';
+import { paymentMethods, orderStatusMap } from '@/apis/types/transform';
 
 const searchByOptions = [
   { label: 'Mã đơn hàng', value: 'ORDER_CODE' },
@@ -76,6 +76,7 @@ export default function OrdersListPage() {
     {
       accessorKey: 'customerName',
       header: 'Tên khách hàng', // Translated: Customer Name
+      cell: ({ row }: { row: { original: OrderListResponse } }) => (row.original.customerName ? row.original.customerName : 'Khách lẻ'),
     },
     {
       accessorKey: 'soldBy',
@@ -84,14 +85,21 @@ export default function OrdersListPage() {
     {
       accessorKey: 'finalAmount',
       header: 'Tổng tiền', // Translated: Final Amount
+      cell: ({ row }: { row: { original: OrderListResponse } }) => (row.original.finalAmount ? parseFloat(row.original.finalAmount.toString()) : '-'),
     },
     {
       accessorKey: 'createdAt',
       header: 'Ngày tạo', // Translated: Created At
+      cell: ({ row }: { row: { original: OrderListResponse } }) => (row.original.createdAt ? format(new Date(row.original.createdAt), 'dd/MM/yyyy HH:mm:ss') : '-'),
     },
     {
       accessorKey: 'status',
       header: 'Trạng thái', // Translated: Status
+      cell: ({ row }: any) => {
+        const status = row.original.status;
+        const statusInfo = orderStatusMap[status] || { label: 'Không xác định', variant: 'default' };
+        return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
+      },
     },
     {
       accessorKey: 'paymentMethod',

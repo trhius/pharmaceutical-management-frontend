@@ -18,51 +18,89 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/store/auth-store';
 import { ArrowUpRight, Users, Package, ShoppingCart, AlertCircle } from 'lucide-react';
+import { useDashboardData } from '@/apis/hooks/dashboard';
+import { LowStockProduct, ProductCategoryPoint } from '@/apis/types/dashboard';
 
-// Sample data
-const revenueData = [
-  { name: 'Jan', total: 1500 },
-  { name: 'Feb', total: 2300 },
-  { name: 'Mar', total: 1900 },
-  { name: 'Apr', total: 2700 },
-  { name: 'May', total: 2500 },
-  { name: 'Jun', total: 3000 },
-  { name: 'Jul', total: 2800 },
-  { name: 'Aug', total: 3200 },
-  { name: 'Sep', total: 3600 },
-  { name: 'Oct', total: 3100 },
-  { name: 'Nov', total: 3700 },
-  { name: 'Dec', total: 4000 },
-];
+const formatYAxisTick = (tick: number) => {
+  if (tick >= 1000000) return `${tick / 1000000}Tr`;
+  if (tick >= 1000) return `${tick / 1000}K`;
+  return tick.toString();
+};
 
-const customerData = [
-  { name: 'Jan', new: 50, returning: 120 },
-  { name: 'Feb', new: 60, returning: 130 },
-  { name: 'Mar', new: 45, returning: 125 },
-  { name: 'Apr', new: 70, returning: 140 },
-  { name: 'May', new: 65, returning: 150 },
-  { name: 'Jun', new: 80, returning: 160 },
-];
+const monthMap: { [key: string]: string } = {
+  Jan: 'Thg 1',
+  Feb: 'Thg 2',
+  Mar: 'Thg 3',
+  Apr: 'Thg 4',
+  May: 'Thg 5',
+  Jun: 'Thg 6',
+  Jul: 'Thg 7',
+  Aug: 'Thg 8',
+  Sep: 'Thg 9',
+  Oct: 'Thg 10',
+  Nov: 'Thg 11',
+  Dec: 'Thg 12',
+};
 
-const productCategoryData = [
-  { name: 'Antibiotics', value: 35 },
-  { name: 'Pain Relief', value: 25 },
-  { name: 'Vitamins', value: 20 },
-  { name: 'Cardiovascular', value: 15 },
-  { name: 'Other', value: 5 },
-];
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+  return (
+    <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize="12px" fontWeight="bold">
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+};
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
+  const { data: dashboardData, isLoading, isError } = useDashboardData();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p>Đang tải trang tổng quan...</p>
+      </div>
+    );
+  }
+
+  if (isError || !dashboardData) {
+    return (
+      <div className="flex items-center justify-center h-full text-destructive">
+        <p>Không thể tải dữ liệu trang tổng quan. Vui lòng thử lại sau.</p>
+      </div>
+    );
+  }
+
+  const {
+    summary,
+    revenueOverview,
+    productCategoryDistribution,
+    customerTrends,
+    lowStockAlerts,
+  } = dashboardData;
+
+  const translatedRevenueOverview = revenueOverview.map((item) => ({
+    ...item,
+    name: monthMap[item.name] || item.name,
+  }));
+
+  const translatedCustomerTrends = customerTrends.map((item) => ({
+    ...item,
+    name: monthMap[item.name] || item.name,
+  }));
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.name}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Chào mừng trở lại, {user?.name}</h1>
         <p className="text-muted-foreground">
-          Here's an overview of your pharmacy's performance
+          Đây là tổng quan về hiệu suất của nhà thuốc
         </p>
       </div>
 
@@ -70,7 +108,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Revenue
+              Tổng doanh thu
             </CardTitle>
             <div className="bg-primary/10 p-1 rounded-full">
               <svg
@@ -88,9 +126,9 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
-            <p className="text-xs text-muted-foreground">
-              +20.1% from last month
+            <div className="text-2xl font-bold">{summary.totalRevenue.value.toLocaleString()}₫</div>
+            <p className={`text-xs font-medium ${summary.totalRevenue.change >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+              {summary.totalRevenue.change > 0 ? '+' : ''}{summary.totalRevenue.change.toFixed(2)}% so với tháng trước
             </p>
             <div className="mt-4 h-1 w-full bg-primary/10 rounded-full overflow-hidden">
               <div className="bg-primary h-full w-[75%]" />
@@ -100,16 +138,16 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              New Customers
+              Khách hàng mới
             </CardTitle>
             <div className="bg-primary/10 p-1 rounded-full">
               <Users className="h-4 w-4 text-primary" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+328</div>
-            <p className="text-xs text-muted-foreground">
-              +10.5% from last month
+            <div className="text-2xl font-bold">+{summary.newCustomers.value}</div>
+            <p className={`text-xs font-medium ${summary.newCustomers.change >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+              {summary.newCustomers.change > 0 ? '+' : ''}{summary.newCustomers.change.toFixed(2)}% so với tháng trước
             </p>
             <div className="mt-4 h-1 w-full bg-primary/10 rounded-full overflow-hidden">
               <div className="bg-primary h-full w-[65%]" />
@@ -118,15 +156,15 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Products Sold</CardTitle>
+            <CardTitle className="text-sm font-medium">Sản phẩm đã bán</CardTitle>
             <div className="bg-primary/10 p-1 rounded-full">
               <Package className="h-4 w-4 text-primary" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+12,234</div>
-            <p className="text-xs text-muted-foreground">
-              +15.3% from last month
+            <div className="text-2xl font-bold">+{summary.productsSold.value.toLocaleString()}</div>
+            <p className={`text-xs font-medium ${summary.productsSold.change >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+              {summary.productsSold.change > 0 ? '+' : ''}{summary.productsSold.change.toFixed(2)}% so với tháng trước
             </p>
             <div className="mt-4 h-1 w-full bg-primary/10 rounded-full overflow-hidden">
               <div className="bg-primary h-full w-[80%]" />
@@ -136,16 +174,16 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Active Orders
+              Đơn hàng hoàn thành
             </CardTitle>
             <div className="bg-primary/10 p-1 rounded-full">
               <ShoppingCart className="h-4 w-4 text-primary" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+573</div>
-            <p className="text-xs text-muted-foreground">
-              +7.2% from last month
+            <div className="text-2xl font-bold">+{summary.activeOrders.value}</div>
+            <p className={`text-xs font-medium ${summary.activeOrders.change >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+              {summary.activeOrders.change > 0 ? '+' : ''}{summary.activeOrders.change.toFixed(2)}% so với tháng trước
             </p>
             <div className="mt-4 h-1 w-full bg-primary/10 rounded-full overflow-hidden">
               <div className="bg-primary h-full w-[60%]" />
@@ -156,23 +194,23 @@ export default function DashboardPage() {
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="space-x-2">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="inventory">Inventory</TabsTrigger>
+          <TabsTrigger value="overview">Tổng quan</TabsTrigger>
+          <TabsTrigger value="analytics">Phân tích</TabsTrigger>
+          <TabsTrigger value="inventory">Tồn kho</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             <Card className="lg:col-span-4">
               <CardHeader>
-                <CardTitle>Revenue Overview</CardTitle>
+                <CardTitle>Tổng quan doanh thu</CardTitle>
                 <CardDescription>
-                  Revenue trends over the last 12 months
+                  Xu hướng doanh thu trong 12 tháng qua
                 </CardDescription>
               </CardHeader>
               <CardContent className="pl-2">
                 <ResponsiveContainer width="100%" height={300}>
                   <AreaChart
-                    data={revenueData}
+                    data={translatedRevenueOverview}
                     margin={{
                       top: 10,
                       right: 30,
@@ -188,17 +226,19 @@ export default function DashboardPage() {
                     </defs>
                     <XAxis 
                       dataKey="name" 
-                      stroke="hsl(var(--muted-foreground))" 
+                      stroke="currentColor" 
+                      className="text-muted-foreground"
                       fontSize={12} 
                       tickLine={false} 
                       axisLine={false} 
                     />
                     <YAxis 
-                      stroke="hsl(var(--muted-foreground))" 
+                      stroke="currentColor" 
+                      className="text-muted-foreground"
                       fontSize={12} 
                       tickLine={false} 
                       axisLine={false} 
-                      tickFormatter={(value) => `$${value}`}
+                      tickFormatter={formatYAxisTick}
                     />
                     <CartesianGrid strokeDasharray="3 3" opacity={0.2} vertical={false} />
                     <Tooltip 
@@ -208,7 +248,7 @@ export default function DashboardPage() {
                             <div className="bg-card border border-border rounded-lg shadow-lg p-3">
                               <p className="text-sm font-medium">{payload[0].payload.name}</p>
                               <p className="text-sm font-semibold text-primary">
-                                ${payload[0].value?.toLocaleString()}
+                                {payload[0].value?.toLocaleString()}₫
                               </p>
                             </div>
                           );
@@ -230,25 +270,25 @@ export default function DashboardPage() {
             </Card>
             <Card className="lg:col-span-3">
               <CardHeader>
-                <CardTitle>Product Categories</CardTitle>
+                <CardTitle>Danh mục sản phẩm</CardTitle>
                 <CardDescription>
-                  Sales distribution by category
+                  Phân phối doanh số theo danh mục
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex justify-center">
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
-                      data={productCategoryData}
+                      data={productCategoryDistribution}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={renderCustomizedLabel}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {productCategoryData.map((_, index) => (
+                      {productCategoryDistribution.map((_: ProductCategoryPoint, index: number) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -285,27 +325,30 @@ export default function DashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             <Card className="lg:col-span-4">
               <CardHeader>
-                <CardTitle>Customer Trends</CardTitle>
+                <CardTitle>Xu hướng khách hàng</CardTitle>
                 <CardDescription>
-                  New vs returning customers this year
+                  Khách hàng mới so với khách hàng cũ trong năm nay
                 </CardDescription>
               </CardHeader>
               <CardContent className="pl-2">
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={customerData}>
+                  <BarChart data={translatedCustomerTrends}>
                     <CartesianGrid strokeDasharray="3 3" opacity={0.2} vertical={false} />
                     <XAxis 
                       dataKey="name" 
-                      stroke="hsl(var(--muted-foreground))" 
+                      stroke="currentColor" 
+                      className="text-muted-foreground"
                       fontSize={12} 
                       tickLine={false} 
                       axisLine={false} 
                     />
                     <YAxis 
-                      stroke="hsl(var(--muted-foreground))" 
+                      stroke="currentColor" 
+                      className="text-muted-foreground"
                       fontSize={12} 
                       tickLine={false} 
                       axisLine={false} 
+                      allowDecimals={false}
                     />
                     <Tooltip 
                       content={({ active, payload }) => {
@@ -316,11 +359,11 @@ export default function DashboardPage() {
                               <div className="mt-1">
                                 <p className="flex items-center text-sm">
                                   <span className="h-2 w-2 rounded-full bg-chart-2 mr-1"></span>
-                                  New: {payload[0].value}
+                                  Mới: {payload[0].value}
                                 </p>
                                 <p className="flex items-center text-sm">
                                   <span className="h-2 w-2 rounded-full bg-chart-3 mr-1"></span>
-                                  Returning: {payload[1].value}
+                                  Quay lại: {payload[1].value}
                                 </p>
                               </div>
                             </div>
@@ -332,15 +375,17 @@ export default function DashboardPage() {
                     <Legend />
                     <Bar 
                       dataKey="new" 
-                      name="New Customers" 
-                      fill="hsl(var(--chart-2))" 
+                      name="Khách hàng mới" 
+                      fill="#8884d8" 
                       radius={[4, 4, 0, 0]} 
+                      minPointSize={2}
                     />
                     <Bar 
                       dataKey="returning" 
-                      name="Returning Customers" 
-                      fill="hsl(var(--chart-3))" 
+                      name="Khách hàng quay lại" 
+                      fill="#82ca9d" 
                       radius={[4, 4, 0, 0]} 
+                      minPointSize={2}
                     />
                   </BarChart>
                 </ResponsiveContainer>
@@ -348,30 +393,29 @@ export default function DashboardPage() {
             </Card>
             <Card className="lg:col-span-3">
               <CardHeader>
-                <CardTitle>Low Stock Alerts</CardTitle>
-                <CardDescription>Products that need reordering</CardDescription>
+                <CardTitle>Cảnh báo tồn kho thấp</CardTitle>
+                <CardDescription>Các sản phẩm cần nhập hàng</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[
-                    { id: 1, name: 'Ibuprofen 600mg', stock: 12, threshold: 20 },
-                    { id: 2, name: 'Amoxicillin 500mg', stock: 8, threshold: 15 },
-                    { id: 3, name: 'Lisinopril 10mg', stock: 5, threshold: 10 },
-                    { id: 4, name: 'Simvastatin 20mg', stock: 3, threshold: 10 },
-                  ].map((product) => (
-                    <div key={product.id} className="flex items-center">
-                      <div className="w-full flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <AlertCircle className="h-4 w-4 text-destructive" />
-                          <span className="font-medium">{product.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">{product.stock} left</Badge>
-                          <ArrowUpRight className="h-4 w-4 text-destructive" />
+                  {lowStockAlerts.length > 0 ? (
+                    lowStockAlerts.map((product: LowStockProduct) => (
+                      <div key={product.id} className="flex items-center">
+                        <div className="w-full flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <AlertCircle className="h-4 w-4 text-destructive" />
+                            <span className="font-medium">{product.name}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">Còn {product.stock}</Badge>
+                            <ArrowUpRight className="h-4 w-4 text-destructive" />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Không có cảnh báo tồn kho thấp.</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -380,14 +424,14 @@ export default function DashboardPage() {
         <TabsContent value="analytics" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Analytics</CardTitle>
+              <CardTitle>Phân tích</CardTitle>
               <CardDescription>
-                Detailed analytics information will appear here
+                Thông tin phân tích chi tiết sẽ xuất hiện ở đây
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[400px] flex items-center justify-center border border-dashed rounded-lg">
-                <p className="text-muted-foreground">Analytics module coming soon</p>
+                <p className="text-muted-foreground">Tính năng phân tích sắp ra mắt</p>
               </div>
             </CardContent>
           </Card>
@@ -395,14 +439,14 @@ export default function DashboardPage() {
         <TabsContent value="inventory" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Inventory</CardTitle>
+              <CardTitle>Tồn kho</CardTitle>
               <CardDescription>
-                Inventory management information will appear here
+                Thông tin quản lý kho sẽ xuất hiện ở đây
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[400px] flex items-center justify-center border border-dashed rounded-lg">
-                <p className="text-muted-foreground">Inventory module coming soon</p>
+                <p className="text-muted-foreground">Tính năng quản lý kho sắp ra mắt</p>
               </div>
             </CardContent>
           </Card>

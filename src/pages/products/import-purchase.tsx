@@ -1,8 +1,8 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, UploadIcon, Trash2, Loader2, PlusIcon } from 'lucide-react';
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,16 +22,18 @@ import { useQueryClient } from '@tanstack/react-query';
 export default function ImportPurchasePage() {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
+  const [purchaseOrderId, setPurchaseOrderId] = useState<number | null>(null);
   const [items, setItems] = useState<PurchasePreviewItemResponse[]>([]);
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierResponse | null>(null);
   const [note, setNote] = useState('');
   const [discount, setDiscount] = useState(0);
   const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
 
-  const { data: suppliersData } = useSuppliers({
+  const { data: suppliersData, isLoading: isLoadingSuppliers } = useSuppliers({
     request: {},
     page: 0,
     size: 1000,
@@ -41,9 +43,44 @@ export default function ImportPurchasePage() {
   const importMutation = useImportPurchaseOrder();
   const previewMutation = usePreviewPurchaseOrder();
 
+  useEffect(() => {
+    const { previewData, purchaseOrderId: pId } = location.state || {};
+    if (previewData) {
+      setItems(previewData.items || []);
+      
+      if (previewData.supplierId && previewData.supplierName) {
+        const supplierFromList = suppliersData?.content?.find(s => s.id === previewData.supplierId);
+        if (supplierFromList) {
+          setSelectedSupplier(supplierFromList);
+        } else {
+          setSelectedSupplier({ id: previewData.supplierId, name: previewData.supplierName } as SupplierResponse);
+        }
+      }
+      
+      setNote(previewData.note || '');
+      setDiscount(previewData.discount || 0);
+      if (pId) {
+        setPurchaseOrderId(pId);
+      }
+    }
+  }, [location.state, suppliersData]);
+
   const supplierOptions = useMemo(() => {
-    return suppliersData?.content?.map((s) => ({ value: s.id!.toString(), label: s.name! })) || [];
-  }, [suppliersData]);
+    if (isLoadingSuppliers || !suppliersData?.content) {
+      return selectedSupplier ? [{ value: selectedSupplier.id!.toString(), label: selectedSupplier.name! }] : [];
+    }
+    
+    const options = suppliersData.content.map((s) => ({
+      value: s.id!.toString(),
+      label: s.name!,
+    }));
+
+    if (selectedSupplier && !suppliersData.content.some(s => s.id === selectedSupplier.id)) {
+      options.unshift({ value: selectedSupplier.id!.toString(), label: selectedSupplier.name! });
+    }
+    
+    return options;
+  }, [suppliersData, selectedSupplier, isLoadingSuppliers]);
 
   const handleItemChange = (index: number, field: 'quantity' | 'unitPrice', value: string) => {
     const newItems = [...items];
@@ -87,7 +124,22 @@ export default function ImportPurchasePage() {
               duration: 2000,
             });
           } else {
-            setItems((data as PurchasePreviewResponse).items || []);
+            const preview = data as PurchasePreviewResponse;
+            setItems(preview.items || []);
+            
+            if (preview.supplierId && preview.supplierName) {
+              setSelectedSupplier({
+                id: preview.supplierId,
+                name: preview.supplierName,
+              } as SupplierResponse);
+            } else {
+              setSelectedSupplier(null);
+            }
+            
+            setNote(preview.note || '');
+            setDiscount(preview.discount || 0);
+            setPurchaseOrderId(null);
+
             toast({
               title: 'Thành công',
               description: 'Dữ liệu từ file đã được tải lên.',
@@ -131,6 +183,7 @@ export default function ImportPurchasePage() {
     }));
 
     const payload: PurchaseImportRequest = {
+        id: purchaseOrderId || undefined,
         supplierId: selectedSupplier.id!,
         note,
         discount,
@@ -142,7 +195,10 @@ export default function ImportPurchasePage() {
 
     importMutation.mutate(payload, {
         onSuccess: () => {
-            toast({ title: "Thành công", description: "Tạo phiếu nhập hàng thành công." });
+            const successMessage = purchaseOrderId
+              ? "Cập nhật phiếu nhập thành công."
+              : "Tạo phiếu nhập hàng thành công.";
+            toast({ title: "Thành công", description: successMessage });
             queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
             navigate('/products/purchase-order');
         },
@@ -240,7 +296,7 @@ export default function ImportPurchasePage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold">Tạo nhập hàng</h1>
+        <h1 className="text-2xl font-bold">{purchaseOrderId ? 'Cập nhật phiếu nhập' : 'Tạo nhập hàng'}</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">

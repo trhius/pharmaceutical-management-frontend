@@ -67,7 +67,16 @@ export interface PurchaseListResponse {
   status?: PurchaseOrderStatus;
 }
 
-export interface PurchaseImportRequest {}
+export interface PurchaseImportRequest {
+  id?: number;
+  supplierId: number;
+  note?: string;
+  discount?: number;
+  status: 'DRAFT' | 'CONFIRMED';
+  items: PurchasePreviewItemResponse[];
+  totalAmount: number;
+  finalAmount: number;
+}
 
 export interface PurchasePreviewItemResponse {
   index?: number;
@@ -83,6 +92,10 @@ export interface PurchasePreviewItemResponse {
 }
 
 export interface PurchasePreviewResponse {
+  supplierId?: number;
+  supplierName?: string;
+  note?: string;
+  discount?: number;
   totalItems?: number;
   totalQuantity?: number;
   totalPrice?: number;
