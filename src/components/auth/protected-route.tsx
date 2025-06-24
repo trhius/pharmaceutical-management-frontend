@@ -13,7 +13,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/login" />;
   }
 
-  if (user?.role === 'PHARMACIST' && location.pathname === '/orders/create') {
+  if (user?.role === 'PHARMACIST' && location.pathname !== '/orders/create') {
     return <Navigate to="/orders/create" />;
   }
 

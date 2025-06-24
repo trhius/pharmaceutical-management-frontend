@@ -17,7 +17,7 @@ import {
 } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/store/auth-store';
-import { ArrowUpRight, Users, Package, ShoppingCart, AlertCircle } from 'lucide-react';
+import { ArrowUpRight, Users, Package, ShoppingCart, AlertCircle, Loader2 } from 'lucide-react';
 import { useDashboardData } from '@/apis/hooks/dashboard';
 import { LowStockProduct, ProductCategoryPoint } from '@/apis/types/dashboard';
 
@@ -63,18 +63,15 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p>Đang tải trang tổng quan...</p>
+      <div className="flex items-center justify-center gap-2 p-4">
+        <Loader2 className="animate-spin" />
+        <span>Đang tải dữ liệu...</span>
       </div>
     );
   }
 
   if (isError || !dashboardData) {
-    return (
-      <div className="flex items-center justify-center h-full text-destructive">
-        <p>Không thể tải dữ liệu trang tổng quan. Vui lòng thử lại sau.</p>
-      </div>
-    );
+    return <div className="p-4 text-red-500">Lỗi khi tải dữ liệu.</div>;
   }
 
   const {
